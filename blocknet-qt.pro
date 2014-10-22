@@ -17,17 +17,17 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
-BOOST_LIB_SUFFIX=-mgw49-mt-s-1_55
-BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
-BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
-BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
-BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
-OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1h/include
-OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1h
-MINIUPNPC_INCLUDE_PATH=C:/deps/
-MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
-QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.3
-QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.3/.libs
+#BOOST_LIB_SUFFIX=-mgw49-mt-s-1_55
+#BOOST_INCLUDE_PATH=C:/deps/boost_1_55_0
+#BOOST_LIB_PATH=C:/deps/boost_1_55_0/stage/lib
+#BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
+#BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
+#OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1h/include
+#OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1h
+#MINIUPNPC_INCLUDE_PATH=C:/deps/
+#MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
+#QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.3
+#QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.3/.libs
 
 
 # for boost 1.37, add -mt to the boost libraries
@@ -180,8 +180,13 @@ contains(USE_O3, 1) {
     QMAKE_CFLAGS += -msse2
 }
 
-QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
-
+greaterThan(QT_MAJOR_VERSION, 4) {
+    win32:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+    macx:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+}
+lessThan(QT_MAJOR_VERSION, 5) {
+    QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+}
 
 # Input
 DEPENDPATH += src src/json src/qt
@@ -288,6 +293,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/sph_types.h \
     src/threadsafety.h \
     src/txdb-leveldb.h \
+    src/qt/macnotificationhandler.h \    
     src/qt/blockbrowser.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -458,11 +464,11 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
     LIBS += -lrt
 }
 
-macx:HEADERS += src/qt/macdockiconhandler.h
-macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
+macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
+macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
-macx:ICON = src/qt/res/icons/bitcoin.icns
+macx:ICON = src/qt/res/icons/blocknet.icns
 macx:TARGET = "blocknet-Qt"
 macx:QMAKE_CFLAGS_THREAD += -pthread
 macx:QMAKE_LFLAGS_THREAD += -pthread
