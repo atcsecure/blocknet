@@ -1,0 +1,2 @@
+obj/shabal.o: shabal.c sph_shabal.h sph_types.h
+shabal.c sph_shabal.h sph_types.h :

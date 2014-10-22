@@ -1,0 +1,2 @@
+obj/whirlpool.o: whirlpool.c sph_whirlpool.h sph_types.h md_helper.c
+whirlpool.c sph_whirlpool.h sph_types.h md_helper.c :
