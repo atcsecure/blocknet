@@ -59,76 +59,76 @@ debug-install: FORCE
 debug-uninstall: FORCE
 	$(MAKE) -f $(MAKEFILE).Debug uninstall
 
-Makefile: blocknet-qt.pro ../Qt/5.3.1/mkspecs/win32-g++/qmake.conf ../Qt/5.3.1/mkspecs/features/spec_pre.prf \
-		../Qt/5.3.1/mkspecs/qdevice.pri \
-		../Qt/5.3.1/mkspecs/features/device_config.prf \
-		../Qt/5.3.1/mkspecs/common/shell-win32.conf \
-		../Qt/5.3.1/mkspecs/qconfig.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_bootstrap_private.pri \
-		../Qt/5.3.1/mkspecs/modules-inst/qt_lib_clucene_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_clucene_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_concurrent.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_concurrent_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_core.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_core_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_gui.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_gui_private.pri \
-		../Qt/5.3.1/mkspecs/modules-inst/qt_lib_help.pri \
-		../Qt/5.3.1/mkspecs/modules-inst/qt_lib_help_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_help.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_network.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_network_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_platformsupport_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_printsupport.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_printsupport_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_sql.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_sql_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_testlib.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_testlib_private.pri \
-		../Qt/5.3.1/mkspecs/modules-inst/qt_lib_uitools.pri \
-		../Qt/5.3.1/mkspecs/modules-inst/qt_lib_uitools_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_uitools.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_widgets.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_widgets_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_xml.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_lib_xml_private.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qgenericbearer.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qico.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qminimal.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qnativewifibearer.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qtaccessiblewidgets.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_qwindows.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_plugin_windowsprintersupport.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_lconvert.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_lrelease.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_lupdate.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_qdoc.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_qlalr.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_syncqt.pri \
-		../Qt/5.3.1/mkspecs/modules/qt_tool_uic.pri \
-		../Qt/5.3.1/mkspecs/features/qt_functions.prf \
-		../Qt/5.3.1/mkspecs/features/qt_config.prf \
-		../Qt/5.3.1/mkspecs/features/win32/qt_config.prf \
-		../Qt/5.3.1/mkspecs/win32-g++/qmake.conf \
-		../Qt/5.3.1/mkspecs/features/spec_post.prf \
-		../Qt/5.3.1/mkspecs/features/exclusive_builds.prf \
-		../Qt/5.3.1/mkspecs/features/default_pre.prf \
-		../Qt/5.3.1/mkspecs/features/win32/default_pre.prf \
-		../Qt/5.3.1/mkspecs/features/resolve_config.prf \
-		../Qt/5.3.1/mkspecs/features/exclusive_builds_post.prf \
-		../Qt/5.3.1/mkspecs/features/default_post.prf \
-		../Qt/5.3.1/mkspecs/features/win32/rtti.prf \
-		../Qt/5.3.1/mkspecs/features/precompile_header.prf \
-		../Qt/5.3.1/mkspecs/features/warn_on.prf \
-		../Qt/5.3.1/mkspecs/features/qt.prf \
-		../Qt/5.3.1/mkspecs/features/resources.prf \
-		../Qt/5.3.1/mkspecs/features/moc.prf \
-		../Qt/5.3.1/mkspecs/features/uic.prf \
-		../Qt/5.3.1/mkspecs/features/win32/windows.prf \
-		../Qt/5.3.1/mkspecs/features/testcase_targets.prf \
-		../Qt/5.3.1/mkspecs/features/exceptions.prf \
-		../Qt/5.3.1/mkspecs/features/yacc.prf \
-		../Qt/5.3.1/mkspecs/features/lex.prf \
+Makefile: blocknet-qt.pro C:/Qt/5.3.1/mkspecs/win32-g++/qmake.conf C:/Qt/5.3.1/mkspecs/features/spec_pre.prf \
+		C:/Qt/5.3.1/mkspecs/qdevice.pri \
+		C:/Qt/5.3.1/mkspecs/features/device_config.prf \
+		C:/Qt/5.3.1/mkspecs/common/shell-win32.conf \
+		C:/Qt/5.3.1/mkspecs/qconfig.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_bootstrap_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules-inst/qt_lib_clucene_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_clucene_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_concurrent.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_concurrent_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_core.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_core_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_gui.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_gui_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules-inst/qt_lib_help.pri \
+		C:/Qt/5.3.1/mkspecs/modules-inst/qt_lib_help_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_help.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_network.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_network_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_platformsupport_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_printsupport.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_printsupport_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_sql.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_sql_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_testlib.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_testlib_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules-inst/qt_lib_uitools.pri \
+		C:/Qt/5.3.1/mkspecs/modules-inst/qt_lib_uitools_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_uitools.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_widgets.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_widgets_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_xml.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_lib_xml_private.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qgenericbearer.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qico.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qminimal.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qnativewifibearer.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qtaccessiblewidgets.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_qwindows.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_plugin_windowsprintersupport.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_lconvert.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_lrelease.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_lupdate.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_qdoc.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_qlalr.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_syncqt.pri \
+		C:/Qt/5.3.1/mkspecs/modules/qt_tool_uic.pri \
+		C:/Qt/5.3.1/mkspecs/features/qt_functions.prf \
+		C:/Qt/5.3.1/mkspecs/features/qt_config.prf \
+		C:/Qt/5.3.1/mkspecs/features/win32/qt_config.prf \
+		C:/Qt/5.3.1/mkspecs/win32-g++/qmake.conf \
+		C:/Qt/5.3.1/mkspecs/features/spec_post.prf \
+		C:/Qt/5.3.1/mkspecs/features/exclusive_builds.prf \
+		C:/Qt/5.3.1/mkspecs/features/default_pre.prf \
+		C:/Qt/5.3.1/mkspecs/features/win32/default_pre.prf \
+		C:/Qt/5.3.1/mkspecs/features/resolve_config.prf \
+		C:/Qt/5.3.1/mkspecs/features/exclusive_builds_post.prf \
+		C:/Qt/5.3.1/mkspecs/features/default_post.prf \
+		C:/Qt/5.3.1/mkspecs/features/win32/rtti.prf \
+		C:/Qt/5.3.1/mkspecs/features/precompile_header.prf \
+		C:/Qt/5.3.1/mkspecs/features/warn_on.prf \
+		C:/Qt/5.3.1/mkspecs/features/qt.prf \
+		C:/Qt/5.3.1/mkspecs/features/resources.prf \
+		C:/Qt/5.3.1/mkspecs/features/moc.prf \
+		C:/Qt/5.3.1/mkspecs/features/uic.prf \
+		C:/Qt/5.3.1/mkspecs/features/win32/windows.prf \
+		C:/Qt/5.3.1/mkspecs/features/testcase_targets.prf \
+		C:/Qt/5.3.1/mkspecs/features/exceptions.prf \
+		C:/Qt/5.3.1/mkspecs/features/yacc.prf \
+		C:/Qt/5.3.1/mkspecs/features/lex.prf \
 		blocknet-qt.pro \
 		C:/Qt/5.3.1/lib/qtmain.prl \
 		C:/Qt/5.3.1/lib/Qt5Core.prl \
@@ -142,76 +142,76 @@ Makefile: blocknet-qt.pro ../Qt/5.3.1/mkspecs/win32-g++/qmake.conf ../Qt/5.3.1/m
 		C:/Qt/5.3.1/lib/Qt5PlatformSupport.prl \
 		C:/Qt/5.3.1/plugins/imageformats/qico.prl
 	$(QMAKE) -o Makefile blocknet-qt.pro
-..\Qt\5.3.1\mkspecs\features\spec_pre.prf:
-..\Qt\5.3.1\mkspecs\qdevice.pri:
-..\Qt\5.3.1\mkspecs\features\device_config.prf:
-..\Qt\5.3.1\mkspecs\common\shell-win32.conf:
-..\Qt\5.3.1\mkspecs\qconfig.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_bootstrap_private.pri:
-..\Qt\5.3.1\mkspecs\modules-inst\qt_lib_clucene_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_clucene_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_concurrent.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_concurrent_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_core.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_core_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_gui.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_gui_private.pri:
-..\Qt\5.3.1\mkspecs\modules-inst\qt_lib_help.pri:
-..\Qt\5.3.1\mkspecs\modules-inst\qt_lib_help_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_help.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_network.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_network_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_platformsupport_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_printsupport.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_printsupport_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_sql.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_sql_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_testlib.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_testlib_private.pri:
-..\Qt\5.3.1\mkspecs\modules-inst\qt_lib_uitools.pri:
-..\Qt\5.3.1\mkspecs\modules-inst\qt_lib_uitools_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_uitools.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_widgets.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_widgets_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_xml.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_lib_xml_private.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qgenericbearer.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qico.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qminimal.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qnativewifibearer.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qtaccessiblewidgets.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_qwindows.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_plugin_windowsprintersupport.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_lconvert.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_lrelease.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_lupdate.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_qdoc.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_qlalr.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_syncqt.pri:
-..\Qt\5.3.1\mkspecs\modules\qt_tool_uic.pri:
-..\Qt\5.3.1\mkspecs\features\qt_functions.prf:
-..\Qt\5.3.1\mkspecs\features\qt_config.prf:
-..\Qt\5.3.1\mkspecs\features\win32\qt_config.prf:
-..\Qt\5.3.1\mkspecs\win32-g++\qmake.conf:
-..\Qt\5.3.1\mkspecs\features\spec_post.prf:
-..\Qt\5.3.1\mkspecs\features\exclusive_builds.prf:
-..\Qt\5.3.1\mkspecs\features\default_pre.prf:
-..\Qt\5.3.1\mkspecs\features\win32\default_pre.prf:
-..\Qt\5.3.1\mkspecs\features\resolve_config.prf:
-..\Qt\5.3.1\mkspecs\features\exclusive_builds_post.prf:
-..\Qt\5.3.1\mkspecs\features\default_post.prf:
-..\Qt\5.3.1\mkspecs\features\win32\rtti.prf:
-..\Qt\5.3.1\mkspecs\features\precompile_header.prf:
-..\Qt\5.3.1\mkspecs\features\warn_on.prf:
-..\Qt\5.3.1\mkspecs\features\qt.prf:
-..\Qt\5.3.1\mkspecs\features\resources.prf:
-..\Qt\5.3.1\mkspecs\features\moc.prf:
-..\Qt\5.3.1\mkspecs\features\uic.prf:
-..\Qt\5.3.1\mkspecs\features\win32\windows.prf:
-..\Qt\5.3.1\mkspecs\features\testcase_targets.prf:
-..\Qt\5.3.1\mkspecs\features\exceptions.prf:
-..\Qt\5.3.1\mkspecs\features\yacc.prf:
-..\Qt\5.3.1\mkspecs\features\lex.prf:
+C:\Qt\5.3.1\mkspecs\features\spec_pre.prf:
+C:\Qt\5.3.1\mkspecs\qdevice.pri:
+C:\Qt\5.3.1\mkspecs\features\device_config.prf:
+C:\Qt\5.3.1\mkspecs\common\shell-win32.conf:
+C:\Qt\5.3.1\mkspecs\qconfig.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_bootstrap_private.pri:
+C:\Qt\5.3.1\mkspecs\modules-inst\qt_lib_clucene_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_clucene_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_concurrent.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_concurrent_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_core.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_core_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_gui.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_gui_private.pri:
+C:\Qt\5.3.1\mkspecs\modules-inst\qt_lib_help.pri:
+C:\Qt\5.3.1\mkspecs\modules-inst\qt_lib_help_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_help.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_network.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_network_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_platformsupport_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_printsupport.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_printsupport_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_sql.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_sql_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_testlib.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_testlib_private.pri:
+C:\Qt\5.3.1\mkspecs\modules-inst\qt_lib_uitools.pri:
+C:\Qt\5.3.1\mkspecs\modules-inst\qt_lib_uitools_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_uitools.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_widgets.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_widgets_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_xml.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_lib_xml_private.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qgenericbearer.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qico.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qminimal.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qnativewifibearer.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qtaccessiblewidgets.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_qwindows.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_plugin_windowsprintersupport.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_lconvert.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_lrelease.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_lupdate.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_qdoc.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_qlalr.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_syncqt.pri:
+C:\Qt\5.3.1\mkspecs\modules\qt_tool_uic.pri:
+C:\Qt\5.3.1\mkspecs\features\qt_functions.prf:
+C:\Qt\5.3.1\mkspecs\features\qt_config.prf:
+C:\Qt\5.3.1\mkspecs\features\win32\qt_config.prf:
+C:\Qt\5.3.1\mkspecs\win32-g++\qmake.conf:
+C:\Qt\5.3.1\mkspecs\features\spec_post.prf:
+C:\Qt\5.3.1\mkspecs\features\exclusive_builds.prf:
+C:\Qt\5.3.1\mkspecs\features\default_pre.prf:
+C:\Qt\5.3.1\mkspecs\features\win32\default_pre.prf:
+C:\Qt\5.3.1\mkspecs\features\resolve_config.prf:
+C:\Qt\5.3.1\mkspecs\features\exclusive_builds_post.prf:
+C:\Qt\5.3.1\mkspecs\features\default_post.prf:
+C:\Qt\5.3.1\mkspecs\features\win32\rtti.prf:
+C:\Qt\5.3.1\mkspecs\features\precompile_header.prf:
+C:\Qt\5.3.1\mkspecs\features\warn_on.prf:
+C:\Qt\5.3.1\mkspecs\features\qt.prf:
+C:\Qt\5.3.1\mkspecs\features\resources.prf:
+C:\Qt\5.3.1\mkspecs\features\moc.prf:
+C:\Qt\5.3.1\mkspecs\features\uic.prf:
+C:\Qt\5.3.1\mkspecs\features\win32\windows.prf:
+C:\Qt\5.3.1\mkspecs\features\testcase_targets.prf:
+C:\Qt\5.3.1\mkspecs\features\exceptions.prf:
+C:\Qt\5.3.1\mkspecs\features\yacc.prf:
+C:\Qt\5.3.1\mkspecs\features\lex.prf:
 blocknet-qt.pro:
 C:/Qt/5.3.1/lib/qtmain.prl:
 C:/Qt/5.3.1/lib/Qt5Core.prl:
@@ -232,16 +232,16 @@ qmake_all: FORCE
 make_first: release-make_first debug-make_first FORCE
 all: release-all debug-all FORCE
 clean: release-clean debug-clean FORCE
-	-$(DEL_FILE) C:\blocknet\src\leveldb\libleveldb.a;
+	-$(DEL_FILE) C:\Users\Administrator\Documents\GitHub\blocknet\src\leveldb\libleveldb.a;
 	-$(DEL_FILE) cd
-	-$(DEL_FILE) C:\blocknet\src\leveldb
+	-$(DEL_FILE) C:\Users\Administrator\Documents\GitHub\blocknet\src\leveldb
 	-$(DEL_FILE) ;
 	-$(DEL_FILE) clean
 distclean: release-distclean debug-distclean FORCE
 	-$(DEL_FILE) Makefile
-	-$(DEL_FILE) C:\blocknet\blocknet-qt_plugin_import.cpp
+	-$(DEL_FILE) C:\Users\Administrator\Documents\GitHub\blocknet\blocknet-qt_plugin_import.cpp
 
-C:/blocknet/src/leveldb/libleveldb.a: FORCE
+C:/Users/Administrator/Documents/GitHub/blocknet/src/leveldb/libleveldb.a: FORCE
 
 release-mocclean:
 	$(MAKE) -f $(MAKEFILE).Release mocclean
