@@ -10,6 +10,9 @@ $RECYCLE.BIN/
 
 Build
 Release
+build/
+obj/
+
 # Windows Installer files
 *.cab
 *.msi

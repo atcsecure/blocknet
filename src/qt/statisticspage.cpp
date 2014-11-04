@@ -45,7 +45,7 @@ void StatisticsPage::updateStatistics()
     uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
     pwalletMain->GetStakeWeight(*pwalletMain, nMinWeight, nMaxWeight, nWeight);
     uint64_t nNetworkWeight = GetPoSKernelPS();
-    int64_t volume = ((pindexBest->nMoneySupply)/100000000);
+    int volume = ((pindexBest->nMoneySupply)/100000000);
     int peers = this->model->getNumConnections();
     pPawrate2 = (double)pPawrate;
     QString height = QString::number(nHeight);
