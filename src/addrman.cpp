@@ -15,9 +15,9 @@ int CAddrInfo::GetTriedBucket(const std::vector<unsigned char> &nKey) const
 
     CDataStream ss2(SER_GETHASH, 0);
     std::vector<unsigned char> vchGroupKey = GetGroup();
-    ss2 << nKey << vchGroupKey << (hash1 % ADAGSAN_TRIED_BUCKETS_PER_GROUP);
+    ss2 << nKey << vchGroupKey << (hash1 % ADDRMAN_TRIED_BUCKETS_PER_GROUP);
     uint64_t hash2 = Hash(ss2.begin(), ss2.end()).Get64();
-    return hash2 % ADAGSAN_TRIED_BUCKET_COUNT;
+    return hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
 }
 
 int CAddrInfo::GetNewBucket(const std::vector<unsigned char> &nKey, const CNetAddr& src) const
@@ -29,9 +29,9 @@ int CAddrInfo::GetNewBucket(const std::vector<unsigned char> &nKey, const CNetAd
     uint64_t hash1 = Hash(ss1.begin(), ss1.end()).Get64();
 
     CDataStream ss2(SER_GETHASH, 0);
-    ss2 << nKey << vchSourceGroupKey << (hash1 % ADAGSAN_NEW_BUCKETS_PER_SOURCE_GROUP);
+    ss2 << nKey << vchSourceGroupKey << (hash1 % ADDRMAN_NEW_BUCKETS_PER_SOURCE_GROUP);
     uint64_t hash2 = Hash(ss2.begin(), ss2.end()).Get64();
-    return hash2 % ADAGSAN_NEW_BUCKET_COUNT;
+    return hash2 % ADDRMAN_NEW_BUCKET_COUNT;
 }
 
 bool CAddrInfo::IsTerrible(int64_t nNow) const
@@ -42,13 +42,13 @@ bool CAddrInfo::IsTerrible(int64_t nNow) const
     if (nTime > nNow + 10*60) // came in a flying DeLorean
         return true;
 
-    if (nTime==0 || nNow-nTime > ADAGSAN_HORIZON_DAYS*86400) // not seen in over a month
+    if (nTime==0 || nNow-nTime > ADDRMAN_HORIZON_DAYS*86400) // not seen in over a month
         return true;
 
-    if (nLastSuccess==0 && nAttempts>=ADAGSAN_RETRIES) // tried three times and never a success
+    if (nLastSuccess==0 && nAttempts>=ADDRMAN_RETRIES) // tried three times and never a success
         return true;
 
-    if (nNow-nLastSuccess > ADAGSAN_MIN_FAIL_DAYS*86400 && nAttempts>=ADAGSAN_MAX_FAILURES) // 10 successive failures in the last week
+    if (nNow-nLastSuccess > ADDRMAN_MIN_FAIL_DAYS*86400 && nAttempts>=ADDRMAN_MAX_FAILURES) // 10 successive failures in the last week
         return true;
 
     return false;
@@ -130,7 +130,7 @@ int CAddrMan::SelectTried(int nKBucket)
     // find the least recently tried among them
     int64_t nOldest = -1;
     int nOldestPos = -1;
-    for (unsigned int i = 0; i < ADAGSAN_TRIED_ENTRIES_INSPECT_ON_EVICT && i < vTried.size(); i++)
+    for (unsigned int i = 0; i < ADDRMAN_TRIED_ENTRIES_INSPECT_ON_EVICT && i < vTried.size(); i++)
     {
         int nPos = GetRandInt(vTried.size() - i) + i;
         int nTemp = vTried[nPos];
@@ -219,7 +219,7 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     std::vector<int> &vTried = vvTried[nKBucket];
 
     // first check whether there is place to just add it
-    if (vTried.size() < ADAGSAN_TRIED_BUCKET_SIZE)
+    if (vTried.size() < ADDRMAN_TRIED_BUCKET_SIZE)
     {
         vTried.push_back(nId);
         nTried++;
@@ -242,7 +242,7 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     // do not update nTried, as we are going to move something else there immediately
 
     // check whether there is place in that one,
-    if (vNew.size() < ADAGSAN_NEW_BUCKET_SIZE)
+    if (vNew.size() < ADDRMAN_NEW_BUCKET_SIZE)
     {
         // if so, move it back there
         vNew.insert(vTried[nPos]);
@@ -338,7 +338,7 @@ bool CAddrMan::Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimeP
             return false;
 
         // do not update if the max reference count is reached
-        if (pinfo->nRefCount == ADAGSAN_NEW_BUCKETS_PER_ADDRESS)
+        if (pinfo->nRefCount == ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
             return false;
 
         // stochastic test: previous nRefCount == N: 2^N times harder to increase it
@@ -360,7 +360,7 @@ bool CAddrMan::Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimeP
     if (!vNew.count(nId))
     {
         pinfo->nRefCount++;
-        if (vNew.size() == ADAGSAN_NEW_BUCKET_SIZE)
+        if (vNew.size() == ADDRMAN_NEW_BUCKET_SIZE)
             ShrinkNew(nUBucket);
         vvNew[nUBucket].insert(nId);
     }
@@ -430,7 +430,7 @@ CAddress CAddrMan::Select_(int nUnkBias)
     }
 }
 
-#ifdef DEBUG_ADAGSAN
+#ifdef DEBUG_ADDRMAN
 int CAddrMan::Check_()
 {
     std::set<int> setTried;
@@ -449,7 +449,7 @@ int CAddrMan::Check_()
             if (info.nRefCount) return -2;
             setTried.insert(n);
         } else {
-            if (info.nRefCount < 0 || info.nRefCount > ADAGSAN_NEW_BUCKETS_PER_ADDRESS) return -3;
+            if (info.nRefCount < 0 || info.nRefCount > ADDRMAN_NEW_BUCKETS_PER_ADDRESS) return -3;
             if (!info.nRefCount) return -4;
             mapNew[n] = info.nRefCount;
         }
@@ -492,9 +492,9 @@ int CAddrMan::Check_()
 
 void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr)
 {
-    int nNodes = ADAGSAN_GETADDR_MAX_PCT*vRandom.size()/100;
-    if (nNodes > ADAGSAN_GETADDR_MAX)
-        nNodes = ADAGSAN_GETADDR_MAX;
+    int nNodes = ADDRMAN_GETADDR_MAX_PCT*vRandom.size()/100;
+    if (nNodes > ADDRMAN_GETADDR_MAX)
+        nNodes = ADDRMAN_GETADDR_MAX;
 
     // perform a random shuffle over the first nNodes elements of vRandom (selecting from all)
     for (int n = 0; n<nNodes; n++)
