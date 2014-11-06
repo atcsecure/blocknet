@@ -129,7 +129,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
     //    which will lower-case it (and thus invalidate the address).
     if(uri.startsWith("blocknet://"))
     {
-        uri.replace(0, 12, "blocknet:");
+        uri.replace(0, std::string("blocknet://").length(), "blocknet:");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
