@@ -15,11 +15,13 @@
 #ifndef BITCOIN_BASE58_H
 #define BITCOIN_BASE58_H
 
-#include <string>
-#include <vector>
 #include "bignum.h"
 #include "key.h"
 #include "script.h"
+
+
+#include <string>
+#include <vector>
 
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 

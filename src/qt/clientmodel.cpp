@@ -7,6 +7,8 @@
 #include "alert.h"
 #include "main.h"
 #include "ui_interface.h"
+#include "message.h"
+#include "qt/messagedialog/message_metatype.h"
 
 #include <QDateTime>
 #include <QTimer>
@@ -163,12 +165,20 @@ static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, Ch
                               Q_ARG(int, status));
 }
 
+static void NotifyNewMessage(ClientModel *clientmodel, const Message & message)
+{
+    QMetaObject::invokeMethod(clientmodel, "newMessage", Qt::QueuedConnection,
+                              Q_ARG(QVariant, QVariant::fromValue(message)));
+}
+
 void ClientModel::subscribeToCoreSignals()
 {
     // Connect signals to client
     uiInterface.NotifyBlocksChanged.connect(boost::bind(NotifyBlocksChanged, this));
     uiInterface.NotifyNumConnectionsChanged.connect(boost::bind(NotifyNumConnectionsChanged, this, _1));
     uiInterface.NotifyAlertChanged.connect(boost::bind(NotifyAlertChanged, this, _1, _2));
+    uiInterface.NotifyNewMessage.connect(boost::bind(NotifyNewMessage, this, _1));
+
 }
 
 void ClientModel::unsubscribeFromCoreSignals()
@@ -177,4 +187,6 @@ void ClientModel::unsubscribeFromCoreSignals()
     uiInterface.NotifyBlocksChanged.disconnect(boost::bind(NotifyBlocksChanged, this));
     uiInterface.NotifyNumConnectionsChanged.disconnect(boost::bind(NotifyNumConnectionsChanged, this, _1));
     uiInterface.NotifyAlertChanged.disconnect(boost::bind(NotifyAlertChanged, this, _1, _2));
+    uiInterface.NotifyNewMessage.disconnect(boost::bind(NotifyNewMessage, this, _1));
+
 }

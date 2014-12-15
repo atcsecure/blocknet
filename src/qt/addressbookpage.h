@@ -1,11 +1,19 @@
+//*****************************************************************************
+//*****************************************************************************
+
 #ifndef ADDRESSBOOKPAGE_H
 #define ADDRESSBOOKPAGE_H
 
+#include "../messagedb.h"
+
 #include <QDialog>
 
+//*****************************************************************************
+//*****************************************************************************
 namespace Ui {
     class AddressBookPage;
 }
+
 class AddressTableModel;
 class OptionsModel;
 
@@ -17,6 +25,8 @@ class QMenu;
 class QModelIndex;
 QT_END_NAMESPACE
 
+//*****************************************************************************
+//*****************************************************************************
 /** Widget that shows a list of sending or receiving addresses.
   */
 class AddressBookPage : public QDialog
@@ -64,6 +74,7 @@ private slots:
     void on_copyToClipboard_clicked();
     void on_signMessage_clicked();
     void on_verifyMessage_clicked();
+    void on_messages_clicked();
     void selectionChanged();
     void on_showQRCode_clicked();
     /** Spawn contextual menu (right mouse menu) for address book entry */
@@ -71,6 +82,8 @@ private slots:
 
     /** Copy label of currently selected address entry to clipboard */
     void onCopyLabelAction();
+    /** Copy public key to clipboard for selected address entry */
+    void onCopyPublicKeyAction();
     /** Edit currently selected address entry */
     void onEditAction();
 
@@ -80,6 +93,7 @@ private slots:
 signals:
     void signMessage(QString addr);
     void verifyMessage(QString addr);
+    void showMessages(const QString & addr);
 };
 
 #endif // ADDRESSBOOKDIALOG_H

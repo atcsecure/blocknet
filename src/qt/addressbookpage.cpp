@@ -1,3 +1,6 @@
+//*****************************************************************************
+//*****************************************************************************
+
 #include "addressbookpage.h"
 #include "ui_addressbookpage.h"
 
@@ -8,15 +11,23 @@
 #include "csvmodelwriter.h"
 #include "guiutil.h"
 
+#ifdef USE_QRCODE
+#include "qrcodedialog.h"
+#endif
+
+#include "../util/verify.h"
+#include "../key.h"
+#include "../base58.h"
+#include "../wallet.h"
+#include "../init.h"
+
 #include <QSortFilterProxyModel>
 #include <QClipboard>
 #include <QMessageBox>
 #include <QMenu>
 
-#ifdef USE_QRCODE
-#include "qrcodedialog.h"
-#endif
-
+//*****************************************************************************
+//*****************************************************************************
 AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddressBookPage),
@@ -64,16 +75,19 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     // Context menu actions
     QAction *copyLabelAction = new QAction(tr("Copy &Label"), this);
     QAction *copyAddressAction = new QAction(ui->copyToClipboard->text(), this);
+    QAction * copyPubKey = new QAction(trUtf8("Copy public &key"), this);
     QAction *editAction = new QAction(tr("&Edit"), this);
     QAction *showQRCodeAction = new QAction(ui->showQRCode->text(), this);
     QAction *signMessageAction = new QAction(ui->signMessage->text(), this);
     QAction *verifyMessageAction = new QAction(ui->verifyMessage->text(), this);
+    QAction * messagesAction = new QAction(trUtf8("M&essages"), this);
     deleteAction = new QAction(ui->deleteButton->text(), this);
 
     // Build context menu
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
+    contextMenu->addAction(copyPubKey);
     contextMenu->addAction(editAction);
     if(tab == SendingTab)
         contextMenu->addAction(deleteAction);
@@ -82,28 +96,37 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     if(tab == ReceivingTab)
         contextMenu->addAction(signMessageAction);
     else if(tab == SendingTab)
+    {
         contextMenu->addAction(verifyMessageAction);
+        contextMenu->addAction(messagesAction);
+    }
 
     // Connect signals for context menu actions
-    connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(on_copyToClipboard_clicked()));
-    connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(onCopyLabelAction()));
-    connect(editAction, SIGNAL(triggered()), this, SLOT(onEditAction()));
-    connect(deleteAction, SIGNAL(triggered()), this, SLOT(on_deleteButton_clicked()));
-    connect(showQRCodeAction, SIGNAL(triggered()), this, SLOT(on_showQRCode_clicked()));
-    connect(signMessageAction, SIGNAL(triggered()), this, SLOT(on_signMessage_clicked()));
-    connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(on_verifyMessage_clicked()));
+    VERIFY(connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(on_copyToClipboard_clicked())));
+    VERIFY(connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(onCopyLabelAction())));
+    VERIFY(connect(copyPubKey, SIGNAL(triggered()), this, SLOT(onCopyPublicKeyAction())));
+    VERIFY(connect(editAction, SIGNAL(triggered()), this, SLOT(onEditAction())));
+    VERIFY(connect(deleteAction, SIGNAL(triggered()), this, SLOT(on_deleteButton_clicked())));
+    VERIFY(connect(showQRCodeAction, SIGNAL(triggered()), this, SLOT(on_showQRCode_clicked())));
+    VERIFY(connect(signMessageAction, SIGNAL(triggered()), this, SLOT(on_signMessage_clicked())));
+    VERIFY(connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(on_verifyMessage_clicked())));
+    VERIFY(connect(messagesAction, SIGNAL(triggered()), this, SLOT(on_messages_clicked())));
 
-    connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    VERIFY(connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint))));
 
     // Pass through accept action from button box
-    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    VERIFY(connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept())));
 }
 
+//*****************************************************************************
+//*****************************************************************************
 AddressBookPage::~AddressBookPage()
 {
     delete ui;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::setModel(AddressTableModel *model)
 {
     this->model = model;
@@ -147,21 +170,87 @@ void AddressBookPage::setModel(AddressTableModel *model)
     selectionChanged();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::setOptionsModel(OptionsModel *optionsModel)
 {
     this->optionsModel = optionsModel;
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_copyToClipboard_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, AddressTableModel::Address);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::onCopyLabelAction()
 {
     GUIUtil::copyEntryData(ui->tableView, AddressTableModel::Label);
 }
 
+//*****************************************************************************
+//*****************************************************************************
+void AddressBookPage::onCopyPublicKeyAction()
+{
+    if (!ui->tableView->selectionModel())
+    {
+        QMessageBox::warning(this, "", trUtf8("No selected rows"));
+        return;
+    }
+
+    QModelIndexList indexes = ui->tableView->selectionModel()->selectedRows(AddressTableModel::Address);
+    if (indexes.isEmpty())
+    {
+        QMessageBox::warning(this, "", trUtf8("No selected rows"));
+        return;
+    }
+
+    QModelIndex idx = indexes.at(0);
+    QString address = idx.data().toString();
+
+    CPubKey pubKey;
+
+    StoredPubKeysDb & keysDb = StoredPubKeysDb::instance();
+
+    // check stored key
+    if (keysDb.load(address.toStdString(), pubKey))
+    {
+        // found
+        QApplication::clipboard()->setText(QString::fromStdString(EncodeBase58(pubKey.Raw())));
+        return;
+    }
+
+    // not found stored key, check address
+    CBitcoinAddress addr(address.toStdString());
+    if (!addr.IsValid())
+    {
+        QMessageBox::warning(this, "", trUtf8("Invalid bitcoin address"));
+        return;
+    }
+
+    CKeyID id;
+    CKey key;
+    if (!addr.GetKeyID(id) || !pwalletMain->GetKey(id, key))
+    {
+        QMessageBox::information(this, "", trUtf8("Key not found"));
+        return;
+    }
+
+    pubKey = key.GetPubKey();
+    if (!pubKey.IsValid())
+    {
+        QMessageBox::information(this, "", trUtf8("Public key not found"));
+        return;
+    }
+
+    QApplication::clipboard()->setText(QString::fromStdString(EncodeBase58(pubKey.Raw())));
+}
+
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::onEditAction()
 {
     if(!ui->tableView->selectionModel())
@@ -180,6 +269,8 @@ void AddressBookPage::onEditAction()
     dlg.exec();
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_signMessage_clicked()
 {
     QTableView *table = ui->tableView;
@@ -195,6 +286,8 @@ void AddressBookPage::on_signMessage_clicked()
     emit signMessage(addr);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_verifyMessage_clicked()
 {
     QTableView *table = ui->tableView;
@@ -210,6 +303,25 @@ void AddressBookPage::on_verifyMessage_clicked()
     emit verifyMessage(addr);
 }
 
+//*****************************************************************************
+//*****************************************************************************
+void AddressBookPage::on_messages_clicked()
+{
+    QTableView *table = ui->tableView;
+    QModelIndexList indexes = table->selectionModel()->selectedRows(AddressTableModel::Address);
+    QString addr;
+
+    foreach (QModelIndex index, indexes)
+    {
+        QVariant address = index.data();
+        addr = address.toString();
+    }
+
+    emit showMessages(addr);
+}
+
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_newAddressButton_clicked()
 {
     if(!model)
@@ -225,6 +337,8 @@ void AddressBookPage::on_newAddressButton_clicked()
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_deleteButton_clicked()
 {
     QTableView *table = ui->tableView;
@@ -237,6 +351,8 @@ void AddressBookPage::on_deleteButton_clicked()
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::selectionChanged()
 {
     // Set button states based on selected tab and selection
@@ -282,14 +398,31 @@ void AddressBookPage::selectionChanged()
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::done(int retval)
 {
+    // When this is a tab/widget and not a modal dialog, ignore "done"
+    if (mode == ForEditing)
+    {
+        return;
+    }
+
+    // if rejected - done
+    if (retval == Rejected)
+    {
+        QDialog::done(retval);
+        return;
+    }
+
     QTableView *table = ui->tableView;
+
+    // if no model - reject
     if(!table->selectionModel() || !table->model())
+    {
+        QDialog::done(Rejected);
         return;
-    // When this is a tab/widget and not a model dialog, ignore "done"
-    if(mode == ForEditing)
-        return;
+    }
 
     // Figure out which address was selected, and return it
     QModelIndexList indexes = table->selectionModel()->selectedRows(AddressTableModel::Address);
@@ -309,6 +442,8 @@ void AddressBookPage::done(int retval)
     QDialog::done(retval);
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::exportClicked()
 {
     // CSV is currently the only supported format
@@ -333,6 +468,8 @@ void AddressBookPage::exportClicked()
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::on_showQRCode_clicked()
 {
 #ifdef USE_QRCODE
@@ -352,6 +489,8 @@ void AddressBookPage::on_showQRCode_clicked()
 #endif
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::contextualMenu(const QPoint &point)
 {
     QModelIndex index = ui->tableView->indexAt(point);
@@ -361,6 +500,8 @@ void AddressBookPage::contextualMenu(const QPoint &point)
     }
 }
 
+//*****************************************************************************
+//*****************************************************************************
 void AddressBookPage::selectNewAddress(const QModelIndex &parent, int begin, int end)
 {
     QModelIndex idx = proxyModel->mapFromSource(model->index(begin, AddressTableModel::Address, parent));
