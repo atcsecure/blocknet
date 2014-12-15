@@ -16,6 +16,7 @@
 class CBasicKeyStore;
 class CWallet;
 class uint256;
+class Message;
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -91,6 +92,13 @@ public:
      * @note called with lock cs_mapAlerts held.
      */
     boost::signals2::signal<void (const uint256 &hash, ChangeType status)> NotifyAlertChanged;
+
+    /**
+     * @brief NotifyNewMessage
+     * called when new message received
+     */
+    boost::signals2::signal<void (const Message & message)> NotifyNewMessage;
+
 };
 
 extern CClientUIInterface uiInterface;
