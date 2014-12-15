@@ -1070,6 +1070,16 @@ void BitcoinGUI::unlockWallet()
 
 //*****************************************************************************
 //*****************************************************************************
+void BitcoinGUI::lockWallet()
+{
+    if(!walletModel)
+        return;
+
+    walletModel->setWalletLocked(true);
+}
+
+//*****************************************************************************
+//*****************************************************************************
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
 {
     // activateWindow() (sometimes) helps with keyboard focus on Windows
