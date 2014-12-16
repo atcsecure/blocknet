@@ -284,7 +284,14 @@ void BitcoinGUI::createActions()
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
-	
+
+    // TODO icons
+    messagesAction = new QAction(QIcon(":/icons/block"), tr("&Messages"), this);
+    messagesAction->setToolTip(tr("Show chat"));
+    // messagesAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+    messagesAction->setCheckable(true);
+    tabGroup->addAction(messagesAction);
+
 	connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
     VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
     VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(gotoOverviewPage())));
