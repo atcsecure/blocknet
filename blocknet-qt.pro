@@ -153,7 +153,8 @@ SOURCES += src/txdb-leveldb.cpp \
     src/qt/messagedialog/usersmodel.cpp \
     src/lz4/lz4.c \
     src/message.cpp \
-    src/messagedb.cpp
+    src/messagedb.cpp \
+    src/xbridgeconnector.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -323,7 +324,10 @@ HEADERS += src/qt/bitcoingui.h \
     src/lz4/lz4.h \
     src/qt/messagedialog/userdelegate.h \
     src/qt/messagedialog/usersmodel.h \
-    src/lz4/lz4.h
+    src/lz4/lz4.h \
+    src/FastDelegate.h \
+    src/xbridgeconnector.h \
+    src/xbridgepacket.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

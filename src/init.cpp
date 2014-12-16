@@ -10,6 +10,8 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+#include "xbridgeconnector.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -906,6 +908,9 @@ bool AppInit2()
 
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
+
+    // start xbridge and announce local addresses
+    xbridge().connect();
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,
