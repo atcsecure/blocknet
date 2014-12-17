@@ -106,8 +106,9 @@ void MessagesDialog::setToAddress(const QString & address)
 
     ui->pubKeyTo_SM->clear();
 
-    CBitcoinAddress addr(address.toStdString());
-    if (addr.IsValid())
+    // TODO disable for blocknet testing
+    // CBitcoinAddress addr(address.toStdString());
+    // if (addr.IsValid())
     {
         CPubKey pubKey;
         m_keys.load(address.toStdString(), pubKey);
@@ -461,12 +462,14 @@ void MessagesDialog::on_sendButton_SM_clicked()
 
     // check destination addr
     m.to = ui->addressTo_SM->text().toStdString();
-    if (!checkAddress(m.to))
-    {
-        ui->addressTo_SM->setValid(false);
-        QMessageBox::warning(this, "", "invalid address");
-        return;
-    }
+
+    // TODO disable for blocknet testing
+//    if (!checkAddress(m.to))
+//    {
+//        ui->addressTo_SM->setValid(false);
+//        QMessageBox::warning(this, "", "invalid address");
+//        return;
+//    }
 
     CKey myKey;
     if (!getKeyForAddress(m.from, myKey))

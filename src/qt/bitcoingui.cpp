@@ -624,7 +624,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
         {
             progressBarLabel->setText(tr("Synchronizing with network..."));
             progressBarLabel->setVisible(true);
-            progressBar->setFormat(tr("%n%", "", nPercentageDone));
+            progressBar->setFormat(tr("%1%").arg(nPercentageDone));
             progressBar->setMaximum(nTotalBlocks);
             progressBar->setValue(count);
             progressBar->setVisible(true);

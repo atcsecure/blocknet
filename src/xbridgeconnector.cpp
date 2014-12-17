@@ -35,7 +35,8 @@ XBridgeConnector::XBridgeConnector()
 //******************************************************************************
 void XBridgeConnector::run()
 {
-
+    doReadHeader(XBridgePacketPtr(new XBridgePacket));
+    m_io.run();
 }
 
 //*****************************************************************************
@@ -228,7 +229,7 @@ bool XBridgeConnector::processXChatMessage(XBridgePacketPtr packet)
 
     // skip 20 bytes dest address
     CDataStream stream((const char *)(packet->data()+20),
-                       (const char *)(packet->data()+packet->size()-20-1));
+                       (const char *)(packet->data()+packet->size()));
 
     Message m;
     stream >> m;
