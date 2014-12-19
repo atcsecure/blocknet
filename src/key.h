@@ -157,6 +157,9 @@ public:
     bool VerifyCompact(uint256 hash, const std::vector<unsigned char>& vchSig);
 
     bool IsValid();
+
+    // returns EC_KEY
+    EC_KEY * GetECKey();
 };
 
 #endif

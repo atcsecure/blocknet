@@ -1,39 +1,60 @@
 TEMPLATE = app
 TARGET = blocknet-qt
 VERSION = 1.0.0
-INCLUDEPATH += src src/json src/qt
+
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+
 QT += core gui network
-CONFIG += no_include_pwd
-CONFIG += thread
-CONFIG += static
-
-win32:QMAKE_LFLAGS *= -Wl,--large-address-aware -static
-
-QMAKE_CXXFLAGS = -fpermissive
-
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += widgets
-    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
+CONFIG += no_include_pwd
+
+# UNCOMMENT THIS SECTION TO BUILD ON WINDOWS
+# Change paths if needed, these use the foocoin/deps.git repository locations
 
 !include($$PWD/config.pri) {
    error(Failed to include config.pri)
  }
 
+INCLUDEPATH += src src/json src/qt
 
+LIBS += \
+    $$join(BOOST_LIB_PATH,,-L,) \
+    $$join(BDB_LIB_PATH,,-L,) \
+    $$join(OPENSSL_LIB_PATH,,-L,) \
+    $$join(QRENCODE_LIB_PATH,,-L,)
 
+LIBS += \
+    -lssl \
+    -lcrypto \
+    -ldb_cxx$$BDB_LIB_SUFFIX \
+    -lpthread
 
-# for boost 1.37, add -mt to the boost libraries
-# use: qmake BOOST_LIB_SUFFIX=-mt
-# for boost thread win32 with _win32 sufix
-# use: BOOST_THREAD_LIB_SUFFIX=_win32-...
-# or when linking against a specific BerkelyDB version: BDB_LIB_SUFFIX=-4.8
+windows {
+    LIBS += \
+        -lshlwapi \
+        -lws2_32 \
+        -lole32 \
+        -loleaut32 \
+        -luuid \
+        -lgdi32 \
+        -lboost_system-mgw48-mt-sd-1_55 \
+        -lboost_filesystem-mgw48-mt-sd-1_55 \
+        -lboost_program_options-mgw48-mt-sd-1_55 \
+        -lboost_thread-mgw48-mt-sd-1_55 \
+        -lboost_date_time-mgw48-mt-sd-1_55
+}
 
-# Dependency library locations can be customized with:
-#    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
-#    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
+unix {
+    LIBS += \
+        -lboost_system \
+        -lboost_filesystem \
+        -lboost_program_options \
+        -lboost_thread \
+        -lboost_date_time
+}
 
 OBJECTS_DIR = build
 MOC_DIR = build
@@ -58,9 +79,8 @@ QMAKE_LFLAGS *= -fstack-protector-all --param ssp-buffer-size=1
 # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
 }
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
-win32:QMAKE_LFLAGS *= -Wl,--large-address-aware -static
-win32:QMAKE_LFLAGS += -static-libgcc -static-libstdc++
-
+win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
+QMAKE_CXXFLAGS = -fpermissive
 
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
@@ -100,6 +120,7 @@ contains(USE_DBUS, 1) {
 contains(USE_IPV6, -) {
     message(Building without IPv6 support)
 } else {
+    message(Building with IPv6 support)
     count(USE_IPV6, 0) {
         USE_IPV6=1
     }
@@ -112,7 +133,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 INCLUDEPATH += src/leveldb/include src/leveldb/helpers
-LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
+LIBS += $$PWD/src/leveldb/libleveldb.a #$$PWD/src/leveldb/libmemenv.a
 SOURCES += src/txdb-leveldb.cpp \
     src/bloom.cpp \
     src/hash.cpp \
@@ -131,7 +152,17 @@ SOURCES += src/txdb-leveldb.cpp \
 	src/fugue.c \
 	src/hamsi.c \
 	src/shabal.c \
-    src/whirlpool.c
+    src/whirlpool.c \
+    src/qt/messagedialog/messagedelegate.cpp \
+    src/qt/messagedialog/messagedialog.cpp \
+    src/qt/messagedialog/messagesmodel.cpp \
+    src/qt/messagedialog/userdelegate.cpp \
+    src/qt/messagedialog/usersmodel.cpp \
+    src/lz4/lz4.c \
+    src/message.cpp \
+    src/messagedb.cpp \
+    src/xbridgeconnector.cpp
+
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
     genleveldb.commands = cd $$PWD/src/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
@@ -148,7 +179,7 @@ genleveldb.depends = FORCE
 PRE_TARGETDEPS += $$PWD/src/leveldb/libleveldb.a
 QMAKE_EXTRA_TARGETS += genleveldb
 # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
+#QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
 
 # regenerate src/build.h
 !windows|contains(USE_BUILD_INFO, 1) {
@@ -176,11 +207,34 @@ contains(USE_O3, 1) {
 }
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-    win32:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
-    macx:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+    win32:QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wno-ignored-qualifiers \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
+    macx:QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
 }
 lessThan(QT_MAJOR_VERSION, 5) {
-    QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+    QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wno-ignored-qualifiers \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
 }
 
 # Input
@@ -289,7 +343,22 @@ HEADERS += src/qt/bitcoingui.h \
     src/threadsafety.h \
     src/txdb-leveldb.h \
     src/qt/macnotificationhandler.h \    
-    src/qt/blockbrowser.h
+    src/qt/blockbrowser.h \
+    src/qt/messagedialog/messagedialog.h \
+    src/util/verify.h \
+    src/qt/messagedialog/messagesmodel.h \
+    src/qt/messagedialog/messagedelegate.h \
+    src/message.h \
+    src/messagedb.h \
+    src/qt/messagedialog/message_metatype.h \
+    src/lz4/lz4.h \
+    src/qt/messagedialog/userdelegate.h \
+    src/qt/messagedialog/usersmodel.h \
+    src/lz4/lz4.h \
+    src/FastDelegate.h \
+    src/xbridgeconnector.h \
+    src/xbridgepacket.h
+
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -379,7 +448,9 @@ FORMS += \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
 	src/qt/forms/statisticspage.ui \
-    src/qt/forms/blockbrowser.ui
+    src/qt/forms/blockbrowser.ui \
+    src/qt/messagedialog/messagedialog.ui
+
 
 contains(USE_QRCODE, 1) {
 HEADERS += src/qt/qrcodedialog.h
@@ -475,7 +546,13 @@ LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB
 LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
 # -lgdi32 has to happen after -lcrypto (see  #681)
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
-LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX
+LIBS += \
+    -lboost_system$$BOOST_LIB_SUFFIX \
+    -lboost_filesystem$$BOOST_LIB_SUFFIX \
+    -lboost_program_options$$BOOST_LIB_SUFFIX \
+    -lboost_thread$$BOOST_THREAD_LIB_SUFFIX \
+    -lboost_date_time$$BOOST_THREAD_LIB_SUFFIX
+
 windows:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 
 contains(RELEASE, 1) {

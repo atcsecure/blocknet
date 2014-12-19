@@ -271,6 +271,18 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                             nFlags,    // Flags
                             0);
 
+            // create file if not exists
+            if (ret == 2)
+            {
+                nFlags |= DB_CREATE;
+                ret = pdb->open(NULL,      // Txn pointer
+                                fMockDb ? NULL : pszFile,   // Filename
+                                "main",    // Logical db name
+                                DB_BTREE,  // Database type
+                                nFlags,    // Flags
+                                0);
+            }
+
             if (ret != 0)
             {
                 delete pdb;
