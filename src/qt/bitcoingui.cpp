@@ -1042,7 +1042,18 @@ void BitcoinGUI::encryptWallet(bool status)
 //*****************************************************************************
 void BitcoinGUI::backupWallet()
 {
+    // TODO use for QT5, need add correct preprocessor directive
+#if 1
+    QString saveDir;
+    QStringList saveDirs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (saveDirs.size())
+    {
+        saveDir = saveDirs.first();
+    }
+#else
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+#endif
+
     QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
     if(!filename.isEmpty()) {
         if(!walletModel->backupWallet(filename)) {

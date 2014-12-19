@@ -1,9 +1,14 @@
 TEMPLATE = app
 TARGET = blocknet-qt
 VERSION = 1.0.0
-INCLUDEPATH += src src/json src/qt
+
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+
 QT += core gui network
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += widgets
+}
+
 CONFIG += no_include_pwd
 
 # UNCOMMENT THIS SECTION TO BUILD ON WINDOWS
@@ -12,6 +17,8 @@ CONFIG += no_include_pwd
 !include($$PWD/config.pri) {
    error(Failed to include config.pri)
  }
+
+INCLUDEPATH += src src/json src/qt
 
 LIBS += \
     $$join(BOOST_LIB_PATH,,-L,) \
@@ -200,11 +207,34 @@ contains(USE_O3, 1) {
 }
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-    win32:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
-    macx:QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+    win32:QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wno-ignored-qualifiers \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
+    macx:QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
 }
 lessThan(QT_MAJOR_VERSION, 5) {
-    QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+    QMAKE_CXXFLAGS_WARN_ON = \
+        -fdiagnostics-show-option \
+        -Wall \
+        -Wextra \
+        -Wno-ignored-qualifiers \
+        -Wformat \
+        -Wformat-security \
+        -Wno-unused-parameter \
+        -Wstack-protector
 }
 
 # Input
