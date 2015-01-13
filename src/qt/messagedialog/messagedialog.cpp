@@ -281,6 +281,8 @@ void MessagesDialog::clearMessages(const QString & address)
 //*****************************************************************************
 void MessagesDialog::pushToUndelivered(const Message & m)
 {
+    return;
+
     UndeliveredMap messages;
     m_db.loadUndelivered(messages);
 
@@ -695,6 +697,8 @@ void MessagesDialog::addrContextMenu(QPoint point)
 // static
 bool MessagesDialog::resendUndelivered(const std::vector<std::string> & addresses)
 {
+    return true;
+
     ChatDb & db = ChatDb::instance();
 
     UndeliveredMap map;

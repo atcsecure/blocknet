@@ -217,7 +217,7 @@ bool Message::broadcast() const
     return true;
 }
 
-extern const std::string strMessageMagic;
+const std::string xchatMessageMagic("XChat Signed Message");
 
 //*****************************************************************************
 //*****************************************************************************
@@ -233,7 +233,7 @@ bool Message::sign(CKey & key)
     }
 
     CDataStream ss(SER_GETHASH, 0);
-    ss << strMessageMagic << text;
+    ss << xchatMessageMagic << text;
 
     // std::vector<unsigned char> vchSig;
     if (!key.SignCompact(Hash(ss.begin(), ss.end()), signature))
@@ -258,7 +258,7 @@ bool Message::sign(CKey & key)
 //    }
 
 //    CDataStream ss(SER_GETHASH, 0);
-//    ss << strMessageMagic << text;
+//    ss << xchatMessageMagic << text;
 
 //    // std::vector<unsigned char> vchSig;
 //    if (!key.SignCompact(Hash(ss.begin(), ss.end()), signature))
@@ -649,7 +649,7 @@ bool Message::decrypt(const CKey & _receiverKey, bool & isMessageForMy,
             memcpy(&signature[0], &vchPayload[1+20], 65);
 
             CDataStream ss(SER_GETHASH, 0);
-            ss << strMessageMagic << text;
+            ss << xchatMessageMagic << text;
 
             CKey keyFrom;
             keyFrom.SetCompactSignature(Hash(ss.begin(), ss.end()), signature);
