@@ -553,7 +553,6 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
     if(count < nTotalBlocks)
     {
-        int nRemainingBlocks = nTotalBlocks - count;
         float nPercentageDone = count / (nTotalBlocks * 0.01f);
 
         if (strStatusBarWarnings.isEmpty())

@@ -1,3 +1,4 @@
+
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
@@ -37,6 +38,8 @@
 
 static const int64_t COIN = 100000000;
 static const int64_t CENT = 1000000;
+
+typedef int64_t CAmount;
 
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))
@@ -117,6 +120,14 @@ inline void MilliSleep(int64_t n)
 #endif
 }
 
+extern bool fMasterNode;
+extern bool fLiteMode;
+extern int64_t enforceMasternodePaymentsTime;
+extern std::string strMasterNodeAddr;
+extern int keysLoaded;
+extern bool fSucessfullyLoaded;
+extern std::vector<int64_t> darkSendDenominations;
+
 /* This GNU C extension enables the compiler to check the format string against the parameters provided.
  * X is the number of the "format string" parameter, and Y is the number of the first variadic parameter.
  * Parameters count from 1.
@@ -154,6 +165,7 @@ extern bool fReopenDebugLog;
 void RandAddSeed();
 void RandAddSeedPerfmon();
 int ATTR_WARN_PRINTF(1,2) OutputDebugStringF(const char* pszFormat, ...);
+
 
 /*
   Rationale for the real_strprintf / strprintf construction:

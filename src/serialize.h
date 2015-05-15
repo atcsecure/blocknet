@@ -36,6 +36,16 @@ inline T& REF(const T& val)
     return const_cast<T&>(val);
 }
 
+/**
+ * Used to acquire a non-const pointer "this" to generate bodies
+ * of const serialization operations from a template
+ */
+template<typename T>
+inline T* NCONST_PTR(const T* val)
+{
+    return const_cast<T*>(val);
+}
+
 /////////////////////////////////////////////////////////////////
 //
 // Templates for serializing to anything that looks like a stream,
@@ -94,10 +104,26 @@ enum
 
 #define READWRITE(obj)      (nSerSize += ::SerReadWrite(s, (obj), nType, nVersion, ser_action))
 
-
-
-
-
+/** 
+ * Implement three methods for serializable objects. These are actually wrappers over
+ * "SerializationOp" template, which implements the body of each class' serialization
+ * code. Adding "ADD_SERIALIZE_METHODS" in the body of the class causes these wrappers to be
+ * added as members. 
+ */
+#define ADD_SERIALIZE_METHODS                                                          \
+    size_t GetSerializeSize(int nType, int nVersion) const {                         \
+        CSizeComputer s(nType, nVersion);                                            \
+        NCONST_PTR(this)->SerializationOp(s, CSerActionSerialize(), nType, nVersion);\
+        return s.size();                                                             \
+    }                                                                                \
+    template<typename Stream>                                                        \
+    void Serialize(Stream& s, int nType, int nVersion) const {                       \
+        NCONST_PTR(this)->SerializationOp(s, CSerActionSerialize(), nType, nVersion);\
+    }                                                                                \
+    template<typename Stream>                                                        \
+    void Unserialize(Stream& s, int nType, int nVersion) {                           \
+        SerializationOp(s, CSerActionUnserialize(), nType, nVersion);                \
+    }
 
 //
 // Basic types
@@ -705,6 +731,35 @@ struct ser_streamplaceholder
 
 
 
+class CSizeComputer
+{
+protected:
+    size_t nSize;
+
+public:
+    int nType;
+    int nVersion;
+
+    CSizeComputer(int nTypeIn, int nVersionIn) : nSize(0), nType(nTypeIn), nVersion(nVersionIn) {}
+
+    CSizeComputer& write(const char *psz, size_t nSize)
+    {
+        this->nSize += nSize;
+        return *this;
+    }
+
+    template<typename T>
+    CSizeComputer& operator<<(const T& obj)
+    {
+        ::Serialize(*this, obj, nType, nVersion);
+        return (*this);
+    }
+
+    size_t size() const {
+        return nSize;
+    }
+};
+
 /** Double ended buffer combining vector and stream-like interfaces.
  *
  * >> and << read and write unformatted data using the above serialization templates.
@@ -808,19 +863,6 @@ public:
     void clear()                                     { vch.clear(); nReadPos = 0; }
     iterator insert(iterator it, const char& x=char()) { return vch.insert(it, x); }
     void insert(iterator it, size_type n, const char& x) { vch.insert(it, n, x); }
-
-    void insert(iterator it, const_iterator first, const_iterator last)
-    {
-        assert(last - first >= 0);
-        if (it == vch.begin() + nReadPos && (unsigned int)(last - first) <= nReadPos)
-        {
-            // special case for inserting at the front when there's room
-            nReadPos -= (last - first);
-            memcpy(&vch[nReadPos], &first[0], last - first);
-        }
-        else
-            vch.insert(it, first, last);
-    }
 
     void insert(iterator it, std::vector<char>::const_iterator first, std::vector<char>::const_iterator last)
     {

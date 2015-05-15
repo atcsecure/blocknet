@@ -2,7 +2,7 @@ TEMPLATE = app
 TARGET = blocknet-qt
 VERSION = 1.0.0
 INCLUDEPATH += src src/json src/qt
-DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE DEBUG_LOCKORDER
 QT += core gui network
 CONFIG += no_include_pwd
 CONFIG += thread
@@ -22,6 +22,26 @@ greaterThan(QT_MAJOR_VERSION, 4) {
    error(Failed to include config.pri)
  }
 
+    BOOST_LIB_SUFFIX=-mt
+    BOOST_INCLUDE_PATH=/usr/local/Cellar/boost/1.57.0/include
+    BOOST_LIB_PATH=/usr/local/Cellar/boost/1.57.0/lib
+
+    BDB_INCLUDE_PATH=/usr/local/opt/berkeley-db4/include
+    BDB_LIB_PATH=/usr/local/Cellar/berkeley-db4/4.8.30/lib
+
+    OPENSSL_INCLUDE_PATH=/usr/local/opt/openssl/include
+    OPENSSL_LIB_PATH=/usr/local/opt/openssl/lib
+
+    MINIUPNPC_INCLUDE_PATH=/usr/local/opt/miniupnpc/include
+    MINIUPNPC_LIB_PATH=/usr/local/Cellar/miniupnpc/1.9.20141027/lib
+
+    QRENCODE_INCLUDE_PATH=/usr/local/opt/qrencode/include
+    QRENCODE_LIB_PATH=/usr/local/opt/qrencode/lib
+
+    DEFINES += IS_ARCH_64
+    #QMAKE_CXXFLAGS += -arch x86_64 -stdlib=libc++
+    #QMAKE_CFLAGS += -arch x86_64
+    #QMAKE_LFLAGS += -arch x86_64 -stdlib=libc++
 
 
 
@@ -287,6 +307,8 @@ HEADERS += src/qt/bitcoingui.h \
 	src/sph_whirlpool.h \
     src/sph_types.h \
     src/threadsafety.h \
+    src/masternode.h \
+    src/activemasternode.h \
     src/txdb-leveldb.h \
     src/qt/macnotificationhandler.h \    
     src/qt/blockbrowser.h
@@ -359,6 +381,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \
     src/scrypt.cpp \
+    src/activemasternode.cpp \
     src/pbkdf2.cpp \
     src/qt/blockbrowser.cpp
 

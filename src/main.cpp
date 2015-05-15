@@ -7,15 +7,18 @@
 #include "checkpoints.h"
 #include "db.h"
 #include "txdb.h"
+#include "masternode.h"
 #include "net.h"
 #include "init.h"
 #include "ui_interface.h"
 #include "kernel.h"
+#include "masternode.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
 
+vector<CInv> vNotFound;
 using namespace std;
 using namespace boost;
 
@@ -287,6 +290,25 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
     CTxDB txdb("r");
     CTxIndex txindex;
     return ReadFromDisk(txdb, prevout, txindex);
+}
+
+
+bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
+{
+    AssertLockHeld(cs_main);
+    // Time based nLockTime implemented in 0.1.6
+    if (tx.nLockTime == 0)
+        return true;
+    if (nBlockHeight == 0)
+        nBlockHeight = nBestHeight;
+    if (nBlockTime == 0)
+        nBlockTime = GetAdjustedTime();
+    if ((int64_t)tx.nLockTime < ((int64_t)tx.nLockTime < LOCKTIME_THRESHOLD ? (int64_t)nBlockHeight : nBlockTime))
+        return true;
+    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+        if (!txin.IsFinal())
+            return false;
+    return true;
 }
 
 bool CTransaction::IsStandard() const
@@ -858,6 +880,25 @@ bool CWalletTx::AcceptWalletTransaction()
     return AcceptWalletTransaction(txdb);
 }
 
+int GetInputAge(CTxIn& vin)
+{
+    const uint256& prevHash = vin.prevout.hash;
+    CTransaction tx;
+    uint256 hashBlock;
+    bool fFound = GetTransaction(prevHash, tx, hashBlock);
+    if(fFound)
+    {
+	if(mapBlockIndex.find(hashBlock) != mapBlockIndex.end())
+	{
+	    return pindexBest->nHeight - mapBlockIndex[hashBlock]->nHeight;
+	}
+	else
+	    return 0;
+    }
+    else
+	return 0; 
+}
+
 int CTxIndex::GetDepthInMainChain() const
 {
     // Read block header
@@ -976,7 +1017,6 @@ int64_t GetProofOfWorkReward(int64_t nFees)
     return nSubsidy + nFees;
 }
 
-const int DAILY_BLOCKCOUNT =  2880;
 // miner's coin stake reward based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
 {
@@ -1112,6 +1152,31 @@ bool IsInitialBlockDownload()
     }
     return (GetTime() - nLastUpdate < 10 &&
             pindexBest->GetBlockTime() < GetTime() - 24 * 60 * 60);
+}
+
+// Requires cs_main.
+void Misbehaving(NodeId pnode, int howmuch)
+{
+    if (howmuch == 0)
+        return;
+
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pn, vNodes)
+    {
+        if(pn->GetId() == pnode)
+        {
+            pn->nMisbehavior += howmuch;
+            int banscore = GetArg("-banscore", 100);
+            if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
+            {
+                printf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName.c_str(), pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                //pn->fShouldBan = true;
+            } 
+            else
+
+            break;
+        }
+    }
 }
 
 void static InvalidChainFound(CBlockIndex* pindexNew)
@@ -2051,6 +2116,71 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             return DoS(100, error("CheckBlock() : bad proof-of-stake block signature"));
     }
 
+
+    // ----------- masternode payments -----------
+
+    bool MasternodePayments = false;
+
+    if(nTime > START_MASTERNODE_PAYMENTS) MasternodePayments = true;
+   
+    if(MasternodePayments)
+    {
+        LOCK2(cs_main, mempool.cs);
+
+        CBlockIndex *pindex = pindexBest;
+        if(IsProofOfStake() && pindex != NULL){
+            if(pindex->GetBlockHash() == hashPrevBlock){
+                CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[1].GetValueOut());
+                bool fIsInitialDownload = IsInitialBlockDownload();
+
+                // If we don't already have its previous block, skip masternode payment step
+                if (!fIsInitialDownload && pindex != NULL)
+                {
+                    bool foundPaymentAmount = false;
+                    bool foundPayee = false;
+                    bool foundPaymentAndPayee = false;
+
+                    CScript payee;
+                    if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee) || payee == CScript()){
+                        foundPayee = true; //doesn't require a specific payee
+                        foundPaymentAmount = true;
+                        foundPaymentAndPayee = true;
+                        if(fDebug) { printf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
+                    }
+
+                    for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount )
+                            foundPaymentAmount = true;
+                        if(vtx[1].vout[i].scriptPubKey == payee )
+                            foundPayee = true;
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount && vtx[1].vout[i].scriptPubKey == payee)
+                            foundPaymentAndPayee = true;
+                    }
+
+                    if(!foundPaymentAndPayee) {
+                        CTxDestination address1;
+                        ExtractDestination(payee, address1);
+                        CBitcoinAddress address2(address1);
+
+                        if(fDebug) { printf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
+                    } else {
+                        if(fDebug) { printf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
+                    }
+                } else {
+                    if(fDebug) { printf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
+                }
+            } else {
+                if(fDebug) { printf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+            }
+        } else {
+            if(fDebug) { printf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+        }
+    } else {
+        if(fDebug) { printf("CheckBlock() : skipping masternode payment checks\n"); }
+    }
+
+
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
@@ -2781,8 +2911,10 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
     case MSG_BLOCK:
         return mapBlockIndex.count(inv.hash) ||
                mapOrphanBlocks.count(inv.hash);
-    }
+    case MSG_MASTERNODE_WINNER:
+        return mapSeenMasternodeVotes.count(inv.hash);
     // Don't know what it is, just say we already got one
+    }
     return true;
 }
 
@@ -3126,6 +3258,18 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                         ss << tx;
                         pfrom->PushMessage("tx", ss);
                     }
+                if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
+                    if(mapSeenMasternodeVotes.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        int a = 0;
+                        ss.reserve(1000);
+                        ss << mapSeenMasternodeVotes[inv.hash] << a;
+                        pfrom->PushMessage("mnw", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed) {
+                    vNotFound.push_back(inv);
                 }
             }
 
@@ -3133,7 +3277,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             Inventory(inv.hash);
         }
     }
-
+    }
 
     else if (strCommand == "getblocks")
     {
@@ -3437,9 +3581,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
     else
     {
-        // Ignore unknown commands for extensibility
-    }
+        ProcessMessageMasternode(pfrom, strCommand, vRecv);
 
+    }
 
     // Update the last seen time for this node's address
     if (pfrom->fNetworkNode)
@@ -3731,3 +3875,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     }
     return true;
 }
+
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
+{
+    int64_t ret = blockValue * 2/3; //67%
+
+    return ret;
+}
+

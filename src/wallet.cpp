@@ -613,6 +613,28 @@ int64_t CWallet::GetDebit(const CTxIn &txin) const
     return 0;
 }
 
+bool CWallet::IsDenominated(const CTxIn &txin) const
+{
+    {
+        LOCK(cs_wallet);
+        map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(txin.prevout.hash);
+        if (mi != mapWallet.end())
+        {
+            const CWalletTx& prev = (*mi).second;
+            if (txin.prevout.n < prev.vout.size()) return IsDenominatedAmount(prev.vout[txin.prevout.n].nValue);
+        }
+    }
+    return false;
+}
+
+bool CWallet::IsDenominatedAmount(int64_t nInputAmount) const
+{
+    BOOST_FOREACH(int64_t d, darkSendDenominations)
+        if(nInputAmount == d)
+            return true;
+    return false;
+}
+
 bool CWallet::IsChange(const CTxOut& txout) const
 {
     CTxDestination address;
@@ -1099,6 +1121,73 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                     vCoins.push_back(COutput(pcoin, i, nDepth));
 
+        }
+    }
+}
+
+void CWallet::AvailableCoinsMN(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl *coinControl, AvailableCoinsType coin_type, bool useIX) const
+{
+    vCoins.clear();
+
+    {
+        LOCK2(cs_main, cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
+            const CWalletTx* pcoin = &(*it).second;
+
+            if (!IsFinalTx(*pcoin))
+                continue;
+
+            if (fOnlyConfirmed && !pcoin->IsTrusted())
+                continue;
+
+            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
+                continue;
+
+            if(pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0)
+                continue;
+
+            int nDepth = pcoin->GetDepthInMainChain();
+            if (nDepth <= 0) // SLINGNOTE: coincontrol fix / ignore 0 confirm 
+                continue;
+
+           /* for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue &&
+                (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
+                    vCoins.push_back(COutput(pcoin, i, nDepth));*/
+            // do not use IX for inputs that have less then 6 blockchain confirmations
+            if (useIX && nDepth < 6)
+                continue;
+
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+                bool found = false;
+                if(coin_type == ONLY_DENOMINATED) {
+                    //should make this a vector
+
+                    found = IsDenominatedAmount(pcoin->vout[i].nValue);
+                } else if(coin_type == ONLY_NONDENOMINATED || coin_type == ONLY_NONDENOMINATED_NOTMN) {
+                    found = true;
+                    if (IsCollateralAmount(pcoin->vout[i].nValue)) continue; // do not use collateral amounts
+                    found = !IsDenominatedAmount(pcoin->vout[i].nValue);
+                    if(found && coin_type == ONLY_NONDENOMINATED_NOTMN) found = (pcoin->vout[i].nValue != 7331*COIN); // do not use MN funds
+                } else {
+                    found = true;
+                }
+                if(!found) continue;
+
+				//isminetype mine = IsMine(pcoin->vout[i]);
+		bool mine = IsMine(pcoin->vout[i]);
+
+                //if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
+                //    !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
+                //    (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
+                //        vCoins.push_back(COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO));
+		//if (!(IsSpent(wtxid, i)) && mine &&
+		if (!(pcoin->IsSpent(i)) &&
+                    !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
+                    (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
+                        vCoins.push_back(COutput(pcoin, i, nDepth, mine));
+            }
         }
     }
 }
@@ -2437,3 +2526,46 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     for (std::map<CKeyID, CBlockIndex*>::const_iterator it = mapKeyFirstBlock.begin(); it != mapKeyFirstBlock.end(); it++)
         mapKeyBirth[it->first] = it->second->nTime - 7200; // block times can be 2h off
 }
+
+
+CAmount CWallet::GetDenominatedBalance(bool onlyDenom, bool onlyUnconfirmed) const
+{
+    int64_t nTotal = 0;
+    {
+        LOCK(cs_wallet);
+        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        {
+            const CWalletTx* pcoin = &(*it).second;
+
+            int nDepth = pcoin->GetDepthInMainChain();
+
+            // skip conflicted
+            if(nDepth < 0) continue;
+
+            bool unconfirmed = (!IsFinalTx(*pcoin) || (!pcoin->IsTrusted() && nDepth == 0));
+            if(onlyUnconfirmed != unconfirmed) continue;
+
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+            {
+				//isminetype mine = IsMine(pcoin->vout[i]);
+		//bool mine = IsMine(pcoin->vout[i]);
+                //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
+		//COutput out = COutput(pcoin, i, nDepth, mine);
+
+                //if(IsSpent(out.tx->GetHash(), i)) continue;
+		if(pcoin->IsSpent(i)) continue;
+                if(!IsMine(pcoin->vout[i])) continue;
+                if(onlyDenom != IsDenominatedAmount(pcoin->vout[i].nValue)) continue;
+
+                nTotal += pcoin->vout[i].nValue;
+            }
+        }
+    }
+
+
+
+    return nTotal;
+}
+
+
+

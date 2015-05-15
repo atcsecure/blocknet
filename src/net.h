@@ -5,6 +5,11 @@
 #ifndef BITCOIN_NET_H
 #define BITCOIN_NET_H
 
+#include "mruset.h"
+#include "netbase.h"
+#include "protocol.h"
+#include "addrman.h"
+
 #include <deque>
 #include <boost/array.hpp>
 #include <boost/foreach.hpp>
@@ -14,17 +19,12 @@
 #include <arpa/inet.h>
 #endif
 
-#include "mruset.h"
-#include "netbase.h"
-#include "protocol.h"
-#include "addrman.h"
-
 class CRequestTracker;
 class CNode;
 class CBlockIndex;
 extern int nBestHeight;
 
-
+typedef int NodeId;
 
 inline unsigned int ReceiveBufferSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
 inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
@@ -35,7 +35,7 @@ bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool darkSendMaster=false);
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -72,6 +72,7 @@ enum
 {
     MSG_TX = 1,
     MSG_BLOCK,
+    MSG_MASTERNODE_WINNER
 };
 
 class CRequestTracker
@@ -138,10 +139,11 @@ public:
     int64_t nTimeConnected;
     std::string addrName;
     int nVersion;
+    int nMisbehavior;
+    std::string cleanSubVer;
     std::string strSubVer;
     bool fInbound;
     int nStartingHeight;
-    int nMisbehavior;
 };
 
 
@@ -169,24 +171,32 @@ public:
     std::string addrName;
     CService addrLocal;
     int nVersion;
-    std::string strSubVer;
+    std::string strSubVer, cleanSubVer;
     bool fOneShot;
     bool fClient;
     bool fInbound;
     bool fNetworkNode;
     bool fSuccessfullyConnected;
     bool fDisconnect;
+    // We use fRelayTxes for two purposes -
+    // a) it allows us to not relay tx invs before receiving the peer's version message
+    // b) the peer may tell us in their version message that we should not relay tx invs
+    //    until they have initialized their bloom filter.
+    bool fRelayTxes;
+    bool fDarkSendMaster;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
+    NodeId id;
 protected:
 
     // Denial-of-service detection/prevention
     // Key is IP address, value is banned-until-time
     static std::map<CNetAddr, int64_t> setBanned;
     static CCriticalSection cs_setBanned;
-    int nMisbehavior;
+    std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
 
 public:
+    int nMisbehavior;
     std::map<uint256, CRequestTracker> mapRequests;
     CCriticalSection cs_mapRequests;
     uint256 hashContinue;
@@ -256,6 +266,9 @@ private:
     void operator=(const CNode&);
 public:
 
+    NodeId GetId() const {
+      return id;
+    }
 
     int GetRefCount()
     {
@@ -416,7 +429,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1>
     void PushMessage(const char* pszCommand, const T1& a1)
     {
@@ -432,7 +445,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2)
     {
@@ -448,7 +461,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3)
     {
@@ -464,7 +477,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4)
     {
@@ -480,7 +493,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4, typename T5>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5)
     {
@@ -496,7 +509,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6)
     {
@@ -512,7 +525,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7)
     {
@@ -528,7 +541,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8)
     {
@@ -544,7 +557,7 @@ public:
             throw;
         }
     }
-
+    
     template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
     void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9)
     {
@@ -560,7 +573,22 @@ public:
             throw;
         }
     }
-
+    
+    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
+    void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9, const T10& a10)
+    {
+        try
+        {
+            BeginMessage(pszCommand);
+            vSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10;
+            EndMessage();
+        }
+        catch (...)
+        {
+            AbortMessage();
+            throw;
+        }
+    }
 
     void PushRequest(const char* pszCommand,
                      void (*fn)(void*, CDataStream&), void* param1)
@@ -607,6 +635,20 @@ public:
     }
 
 
+    bool HasFulfilledRequest(std::string strRequest)
+    {
+        BOOST_FOREACH(std::string& type, vecRequestsFulfilled)
+        {
+            if(type == strRequest) return true;
+        }
+        return false;
+    }
+
+    void FulfilledRequest(std::string strRequest)
+    {
+        if(HasFulfilledRequest(strRequest)) return;
+        vecRequestsFulfilled.push_back(strRequest);
+    }
 
     void PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd);
     bool IsSubscribed(unsigned int nChannel);
@@ -645,10 +687,5 @@ inline void RelayInventory(const CInv& inv)
             pnode->PushInventory(inv);
     }
 }
-
-class CTransaction;
-void RelayTransaction(const CTransaction& tx, const uint256& hash);
-void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
-
 
 #endif

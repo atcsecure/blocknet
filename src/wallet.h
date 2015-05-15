@@ -27,6 +27,15 @@ class COutput;
 class CCoinControl;
 
 /** (client) version numbers for particular wallet features */
+enum AvailableCoinsType
+{
+    ALL_COINS = 1,
+    ONLY_DENOMINATED = 2,
+    ONLY_NONDENOMINATED = 3,
+    ONLY_NONDENOMINATED_NOTMN = 4 // ONLY_NONDENOMINATED and not 1000 SLING at the same time
+};
+
+
 enum WalletFeature
 {
     FEATURE_BASE = 10500, // the earliest version new wallets supports (only useful for getinfo's clientversion output)
@@ -83,6 +92,16 @@ private:
 
 public:
     mutable CCriticalSection cs_wallet;
+    bool SelectCoinsDark(int64_t nValueMin, int64_t nValueMax, std::vector<CTxIn>& setCoinsRet, int64_t& nValueRet, int nDarksendRoundsMin, int nDarksendRoundsMax) const;
+    bool SelectCoinsByDenominations(int nDenom, int64_t nValueMin, int64_t nValueMax, std::vector<CTxIn>& setCoinsRet, std::vector<COutput>& vCoins, int64_t& nValueRet, int nDarksendRoundsMin, int nDarksendRoundsMax);
+    bool SelectCoinsDarkDenominated(int64_t nTargetValue, std::vector<CTxIn>& setCoinsRet, int64_t& nValueRet) const;
+    bool SelectCoinsMasternode(CTxIn& vin, int64_t& nValueRet, CScript& pubScript) const;
+    bool HasCollateralInputs() const;
+    bool IsCollateralAmount(int64_t nInputAmount) const;
+    int  CountInputsWithAmount(int64_t nInputAmount);
+
+    bool SelectCoinsCollateral(std::vector<CTxIn>& setCoinsRet, int64_t& nValueRet) const ;
+    bool SelectCoinsWithoutDenomination(int64_t nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
 
     bool fFileBacked;
     std::string strWalletFile;
@@ -129,7 +148,14 @@ public:
 
     void AvailableCoinsMinConf(std::vector<COutput>& vCoins, int nConf) const;
     void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl=NULL) const;
+    void AvailableCoinsMN(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl = NULL, AvailableCoinsType coin_type=ALL_COINS, bool useIX = false) const;
     bool SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
+
+    bool IsLockedCoin(uint256 hash, unsigned int n) const;
+    void LockCoin(COutPoint& output);
+    void UnlockCoin(COutPoint& output);
+    void UnlockAllCoins();
+    void ListLockedCoins(std::vector<COutPoint>& vOutpts);
     // keystore implementation
     // Generate a new key
     CPubKey GenerateNewKey();
@@ -206,6 +232,26 @@ public:
 
     std::set< std::set<CTxDestination> > GetAddressGroupings();
     std::map<CTxDestination, int64_t> GetAddressBalances();
+
+    bool IsDenominated(const CTxIn &txin) const;
+
+    bool IsDenominated(const CTransaction& tx) const
+    {
+        /*
+            Return false if ANY inputs are non-denom
+        */
+        bool ret = true;
+        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+        {
+            if(!IsDenominated(txin)) {
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
+    bool IsDenominatedAmount(int64_t nInputAmount) const;
+
 
     bool IsMine(const CTxIn& txin) const;
     int64_t GetDebit(const CTxIn& txin) const;

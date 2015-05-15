@@ -8,6 +8,9 @@
 #include "net.h"
 #include "init.h"
 #include "util.h"
+#include "activemasternode.h"
+#include "masternode.cpp"
+#include "masternode.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include <boost/filesystem.hpp>
@@ -312,6 +315,13 @@ std::string HelpMessage()
         "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n" +
         "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n" +
         "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n";
+    strUsage += "  -litemode=<n>          " + _("Disable all Masternode and Darksend related functionality (0-1, default: 0)") + "\n";
+    strUsage += "\n" + _("Masternode options:") + "\n";
+    strUsage += "  -masternode=<n>            " + _("Enable the client to act as a masternode (0-1, default: 0)") + "\n";
+    strUsage += "  -mnconf=<file>             " + _("Specify masternode configuration file (default: masternode.conf)") + "\n";
+    strUsage += "  -masternodeprivkey=<n>     " + _("Set the masternode private key") + "\n";
+    strUsage += "  -masternodeaddr=<n>        " + _("Set external address:port to get to this masternode (example: address:port)") + "\n";
+    strUsage += "  -masternodeminprotocol=<n> " + _("Ignore masternodes less than version (example: 70007; default : 0)") + "\n";
 
     return strUsage;
 }
@@ -526,6 +536,15 @@ bool AppInit2()
     printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
     printf("Used data directory %s\n", strDataDir.c_str());
     std::ostringstream strErrors;
+
+    if (mapArgs.count("-masternodepaymentskey")) // masternode payments priv key
+    {
+        if (!masternodePayments.SetPrivKey(GetArg("-masternodepaymentskey", "")))
+            return InitError(_("Unable to sign masternode payment winner, wrong key?"));
+    }
+
+    //ignore masternodes below protocol version
+    CMasterNode::minProtoVersion = GetArg("-masternodeminprotocol", MIN_MN_PROTO_VERSION);
 
     if (fDaemon)
         fprintf(stdout, "blocknet server starting\n");
@@ -880,6 +899,45 @@ bool AppInit2()
 
     if (!CheckDiskSpace())
         return false;
+
+    //lite mode disables all Masternode and Darksend related functionality
+    fLiteMode = GetBoolArg("-litemode", false);
+    if(fMasterNode && fLiteMode){
+        return InitError("You can not start a masternode in litemode");
+    }
+
+    fMasterNode = GetBoolArg("-masternode", false);
+    if(fMasterNode) {
+        printf("IS DARKSEND MASTER NODE\n");
+        strMasterNodeAddr = GetArg("-masternodeaddr", "");
+
+        printf(" addr %s\n", strMasterNodeAddr.c_str());
+
+        if(!strMasterNodeAddr.empty()){
+            CService addrTest = CService(strMasterNodeAddr);
+            if (!addrTest.IsValid()) {
+                return InitError("Invalid -masternodeaddr address: " + strMasterNodeAddr);
+            }
+        }
+
+        strMasterNodePrivKey = GetArg("-masternodeprivkey", "");
+        if(!strMasterNodePrivKey.empty()){
+            std::string errorMessage;
+
+            CKey key;
+            CPubKey pubkey;
+
+            if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key, pubkey))
+            {
+                return InitError(_("Invalid masternodeprivkey. Please see documenation."));
+            }
+
+            activeMasternode.pubKeyMasternode = pubkey;
+
+        } else {
+            return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
+        }
+    }
 
     RandAddSeedPerfmon();
 

@@ -1,3 +1,4 @@
+
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
@@ -20,15 +21,37 @@ class CBlockIndex;
 class CKeyItem;
 class CReserveKey;
 class COutPoint;
+class CValidationState;
 
 class CAddress;
 class CInv;
 class CRequestTracker;
 class CNode;
 
+typedef int NodeId;
+
 // to make the PoS stable, PoW with 0 in rewards 72 + 36 hours post ICO
 // Nov 8th, 23:59:59 GMT
 static const int LAST_POW_TIME = 1415491199;
+#define START_MASTERNODE_PAYMENTS_TESTNET 1433011023
+#define START_MASTERNODE_PAYMENTS 1433011023
+
+#define MASTERNODE_NOT_PROCESSED               0 // initial state
+#define MASTERNODE_IS_CAPABLE                  1
+#define MASTERNODE_NOT_CAPABLE                 2
+#define MASTERNODE_STOPPED                     3
+#define MASTERNODE_INPUT_TOO_NEW               4
+#define MASTERNODE_PORT_NOT_OPEN               6
+#define MASTERNODE_PORT_OPEN                   7
+#define MASTERNODE_SYNC_IN_PROCESS             8
+#define MASTERNODE_REMOTELY_ENABLED            9
+
+#define MASTERNODE_MIN_CONFIRMATIONS           15
+#define MASTERNODE_MIN_DSEEP_SECONDS           (30*60)
+#define MASTERNODE_MIN_DSEE_SECONDS            (5*60)
+#define MASTERNODE_PING_SECONDS                (1*60)
+#define MASTERNODE_EXPIRATION_SECONDS          (65*60)
+#define MASTERNODE_REMOVAL_SECONDS             (70*60)
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -127,6 +150,11 @@ void StakeMiner(CWallet *pwallet);
 void ResendWalletTransactions(bool fForce = false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
+
+bool AbortNode(const std::string &msg, const std::string &userMessage="");
+void Misbehaving(NodeId nodeid, int howmuch);
+
+int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos
@@ -248,6 +276,7 @@ public:
     COutPoint prevout;
     CScript scriptSig;
     unsigned int nSequence;
+    CScript prevPubKey;
 
     CTxIn()
     {
@@ -319,6 +348,7 @@ public:
 };
 
 
+int GetInputAge(CTxIn& vin);
 
 
 /** An output of a transaction.  It contains the public key that the next input
@@ -353,7 +383,7 @@ public:
         scriptPubKey.clear();
     }
 
-    bool IsNull()
+    bool IsNull() const
     {
         return (nValue == -1);
     }
@@ -385,22 +415,12 @@ public:
         return !(a == b);
     }
 
-    std::string ToStringShort() const
-    {
-        return strprintf(" out %s %s", FormatMoney(nValue).c_str(), scriptPubKey.ToString(true).c_str());
-    }
-
     std::string ToString() const
     {
         if (IsEmpty()) return "CTxOut(empty)";
-        if (scriptPubKey.size() < 6)
-            return "CTxOut(error)";
-        return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)", FormatMoney(nValue).c_str(), scriptPubKey.ToString().c_str());
-    }
-
-    void print() const
-    {
-        printf("%s\n", ToString().c_str());
+        return strprintf("CTxOut(nValue=%s, scriptPubKey=%s)",
+                         FormatMoney(nValue).c_str(),
+                         scriptPubKey.ToString().c_str());
     }
 };
 
@@ -550,6 +570,8 @@ public:
         @see CTransaction::FetchInputs
      */
     unsigned int GetP2SHSigOpCount(const MapPrevTx& mapInputs) const;
+
+    bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
     /** Amount of bitcoins spent by this transaction.
         @return sum of all outputs (note: does not include fees)
@@ -1561,6 +1583,73 @@ public:
 
 
 
+/** Capture information about block/transaction validation */
+class CValidationState {
+private:
+    enum mode_state {
+        MODE_VALID,   //! everything ok
+        MODE_INVALID, //! network rule violation (DoS value may be set)
+        MODE_ERROR,   //! run-time error
+    } mode;
+    int nDoS;
+    std::string strRejectReason;
+    unsigned char chRejectCode;
+    bool corruptionPossible;
+public:
+    CValidationState() : mode(MODE_VALID), nDoS(0), chRejectCode(0), corruptionPossible(false) {}
+    bool DoS(int level, bool ret = false,
+             unsigned char chRejectCodeIn=0, std::string strRejectReasonIn="",
+             bool corruptionIn=false) {
+        chRejectCode = chRejectCodeIn;
+        strRejectReason = strRejectReasonIn;
+        corruptionPossible = corruptionIn;
+        if (mode == MODE_ERROR)
+            return ret;
+        nDoS += level;
+        mode = MODE_INVALID;
+        return ret;
+    }
+    bool Invalid(bool ret = false,
+                 unsigned char _chRejectCode=0, std::string _strRejectReason="") {
+        return DoS(0, ret, _chRejectCode, _strRejectReason);
+    }
+    bool Error(std::string strRejectReasonIn="") {
+        if (mode == MODE_VALID)
+            strRejectReason = strRejectReasonIn;
+        mode = MODE_ERROR;
+        return false;
+    }
+    bool Abort(const std::string &msg) {
+        AbortNode(msg);
+        return Error(msg);
+    }
+    bool IsValid() const {
+        return mode == MODE_VALID;
+    }
+    bool IsInvalid() const {
+        return mode == MODE_INVALID;
+    }
+    bool IsError() const {
+        return mode == MODE_ERROR;
+    }
+    bool IsInvalid(int &nDoSOut) const {
+        if (IsInvalid()) {
+            nDoSOut = nDoS;
+            return true;
+        }
+        return false;
+    }
+    bool CorruptionPossible() const {
+        return corruptionPossible;
+    }
+    unsigned char GetRejectCode() const { return chRejectCode; }
+    std::string GetRejectReason() const { return strRejectReason; }
+};
+
+
+
+
+
 
 
 class CTxMemPool
@@ -1597,4 +1686,21 @@ public:
 
 extern CTxMemPool mempool;
 
+bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree,
+                        bool* pfMissingInputs);
+
+
+void RelayDarkSendFinalTransaction(const int sessionID, const CTransaction& txNew);
+void RelayDarkSendIn(const std::vector<CTxIn>& in, const int64_t& nAmount, const CTransaction& txCollateral, const std::vector<CTxOut>& out);
+void RelayDarkSendStatus(const int sessionID, const int newState, const int newEntriesCount, const int newAccepted, const std::string error="");
+void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion);
+void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion);
+void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop);
+void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop);
+void RelayDarkSendCompletedTransaction(const int sessionID, const bool error, const std::string errorMessage);
+void RelayDarkSendMasterNodeContestant();
+void RelayTransaction(const CTransaction& tx, const uint256& hash);
+void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
+
+bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 #endif
