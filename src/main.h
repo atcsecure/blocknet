@@ -270,6 +270,7 @@ public:
     COutPoint prevout;
     CScript scriptSig;
     unsigned int nSequence;
+    CScript prevPubKey;
 
     CTxIn()
     {

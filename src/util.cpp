@@ -62,6 +62,12 @@ namespace boost {
 
 using namespace std;
 
+//Dark  features
+bool fMasterNode = false;
+string strMasterNodePrivKey = "";
+string strMasterNodeAddr = "";
+bool fLiteMode = false;
+
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
 bool fDebug = false;

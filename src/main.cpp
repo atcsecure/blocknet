@@ -17,6 +17,7 @@
 #include <boost/filesystem/fstream.hpp>
 
 
+vector<CInv> vNotFound;
 using namespace std;
 using namespace boost;
 
@@ -3232,7 +3233,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             Inventory(inv.hash);
         }
     }
-
+    }
 
     else if (strCommand == "getblocks")
     {
@@ -3538,7 +3539,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         ProcessMessageMasternode(pfrom, strCommand, vRecv);
 
-    }
     }
 
     // Update the last seen time for this node's address

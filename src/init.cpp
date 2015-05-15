@@ -8,6 +8,7 @@
 #include "net.h"
 #include "init.h"
 #include "util.h"
+#include "activemasternode.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include <boost/filesystem.hpp>
