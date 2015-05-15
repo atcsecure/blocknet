@@ -130,7 +130,6 @@ CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 bool LoadExternalBlockFile(FILE* fileIn);
-int GetInputAge(CTxIn& vin);
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
@@ -342,6 +341,7 @@ public:
 };
 
 
+int GetInputAge(CTxIn& vin);
 
 
 /** An output of a transaction.  It contains the public key that the next input
