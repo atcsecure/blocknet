@@ -2100,7 +2100,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         foundPayee = true; //doesn't require a specific payee
                         foundPaymentAmount = true;
                         foundPaymentAndPayee = true;
-                        if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
+                        if(fDebug) { printf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
                     }
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
@@ -2117,22 +2117,22 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         ExtractDestination(payee, address1);
                         CBitcoinAddress address2(address1);
 
-                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                        if(fDebug) { printf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
                     } else {
-                        if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
+                        if(fDebug) { printf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
                     }
                 } else {
-                    if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
+                    if(fDebug) { printf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
                 }
             } else {
-                if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+                if(fDebug) { printf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
             }
         } else {
-            if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+            if(fDebug) { printf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
         }
     } else {
-        if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
+        if(fDebug) { printf("CheckBlock() : skipping masternode payment checks\n"); }
     }
 
 
@@ -3539,7 +3539,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         ProcessMessageMasternode(pfrom, strCommand, vRecv);
 
     }
-
+    }
 
     // Update the last seen time for this node's address
     if (pfrom->fNetworkNode)

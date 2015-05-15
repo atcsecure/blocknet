@@ -907,10 +907,10 @@ bool AppInit2()
 
     fMasterNode = GetBoolArg("-masternode", false);
     if(fMasterNode) {
-        LogPrintf("IS DARKSEND MASTER NODE\n");
+        printf("IS DARKSEND MASTER NODE\n");
         strMasterNodeAddr = GetArg("-masternodeaddr", "");
 
-        LogPrintf(" addr %s\n", strMasterNodeAddr.c_str());
+        printf(" addr %s\n", strMasterNodeAddr.c_str());
 
         if(!strMasterNodeAddr.empty()){
             CService addrTest = CService(strMasterNodeAddr);

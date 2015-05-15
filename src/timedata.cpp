@@ -48,7 +48,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200,0);
     vTimeOffsets.input(nOffsetSample);
-    LogPrintf("Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+    printf("Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
 
     // There is a known issue here (see issue #4521):
     //
@@ -94,16 +94,16 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
                     fDone = true;
                     string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Sling will not work properly.");
                     strMiscWarning = strMessage;
-                    LogPrintf("*** %s\n", strMessage);
+                    printf("*** %s\n", strMessage);
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
                 }
             }
         }
         if (fDebug) {
             BOOST_FOREACH(int64_t n, vSorted)
-                LogPrintf("%+d  ", n);
-            LogPrintf("|  ");
+                printf("%+d  ", n);
+            printf("|  ");
         }
-        LogPrintf("nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset/60);
+        printf("nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset/60);
     }
 }

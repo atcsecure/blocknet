@@ -127,7 +127,7 @@ public:
 
     bool UpdatedWithin(int seconds)
     {
-        // LogPrintf("UpdatedWithin %d, %d --  %d \n", GetAdjustedTime() , lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+        // printf("UpdatedWithin %d, %d --  %d \n", GetAdjustedTime() , lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
 
         return (GetAdjustedTime() - lastTimeSeen) < seconds;
     }

@@ -158,6 +158,7 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 int ATTR_WARN_PRINTF(1,2) OutputDebugStringF(const char* pszFormat, ...);
 
+
 /*
   Rationale for the real_strprintf / strprintf construction:
     It is not allowed to use va_start with a pass-by-reference argument.
