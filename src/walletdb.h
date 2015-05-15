@@ -12,6 +12,29 @@ class CKeyPool;
 class CAccount;
 class CAccountingEntry;
 
+class CAdrenalineNodeConfig
+{
+public:
+    int nVersion;
+    std::string sAlias;
+    std::string sAddress;
+    std::string sCollateralAddress;
+    std::string sMasternodePrivKey;
+
+    CAdrenalineNodeConfig()
+    {
+	nVersion = 0;
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(nVersion);
+        READWRITE(sAlias);
+        READWRITE(sAddress);
+        READWRITE(sCollateralAddress);
+	READWRITE(sMasternodePrivKey);
+    )
+};
+
 /** Error statuses for the wallet database */
 enum DBErrors
 {
@@ -69,6 +92,10 @@ public:
     bool WriteName(const std::string& strAddress, const std::string& strName);
 
     bool EraseName(const std::string& strAddress);
+
+    bool WriteAdrenalineNodeConfig(std::string sAlias, const CAdrenalineNodeConfig& nodeConfig);
+    bool ReadAdrenalineNodeConfig(std::string sAlias, CAdrenalineNodeConfig& nodeConfig);
+    bool EraseAdrenalineNodeConfig(std::string sAlias);
 
     bool WriteTx(uint256 hash, const CWalletTx& wtx)
     {
