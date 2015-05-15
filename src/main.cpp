@@ -2481,7 +2481,7 @@ bool LoadBlockIndex(bool fAllowNew)
         if (!fAllowNew)
             return false;
 
-        const char* pszTimestamp = "decentralized consensus based democracy is the future";
+        const char* pszTimestamp = "decentralized consensus based democracy is the future of live";
         CTransaction txNew;
         txNew.nTime = 1413915684;
         txNew.vin.resize(1);
@@ -2499,6 +2499,7 @@ bool LoadBlockIndex(bool fAllowNew)
 		if(fTestNet)
         {
             block.nNonce   = 0;
+			
         }
         if (false  && (block.GetHash() != hashGenesisBlock)) {
 
