@@ -7,6 +7,7 @@
 
 //#include "primitives/transaction.h"
 #include "main.h"
+#include "net.h"
 #include "masternode.h"
 #include "activemasternode.h"
 
@@ -343,11 +344,11 @@ public:
     void UpdateState(unsigned int newState)
     {
         if (fMasterNode && (newState == POOL_STATUS_ERROR || newState == POOL_STATUS_SUCCESS)){
-            LogPrintf("CDarkSendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a masternode. \n");
+            printf("CDarkSendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a masternode. \n");
             return;
         }
 
-        LogPrintf("CDarkSendPool::UpdateState() == %d | %d \n", state, newState);
+        printf("CDarkSendPool::UpdateState() == %d | %d \n", state, newState);
         if(state != newState){
             lastTimeChanged = GetTimeMillis();
             if(fMasterNode) {

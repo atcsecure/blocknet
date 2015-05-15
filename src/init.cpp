@@ -9,6 +9,8 @@
 #include "init.h"
 #include "util.h"
 #include "activemasternode.h"
+#include "masternode.cpp"
+#include "masternode.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include <boost/filesystem.hpp>
@@ -539,8 +541,6 @@ bool AppInit2()
     {
         if (!masternodePayments.SetPrivKey(GetArg("-masternodepaymentskey", "")))
             return InitError(_("Unable to sign masternode payment winner, wrong key?"));
-        if (!sporkManager.SetPrivKey(GetArg("-masternodepaymentskey", "")))
-            return InitError(_("Unable to sign spork message, wrong key?"));
     }
 
     //ignore masternodes below protocol version

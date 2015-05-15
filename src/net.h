@@ -179,6 +179,7 @@ public:
     bool fDisconnect;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
+    bool fDarkSendMaster;
 protected:
 
     // Denial-of-service detection/prevention
@@ -256,7 +257,9 @@ private:
     CNode(const CNode&);
     void operator=(const CNode&);
 public:
-
+    NodeId GetId() const {
+      return id;
+    }
 
     int GetRefCount()
     {
@@ -651,5 +654,7 @@ class CTransaction;
 void RelayTransaction(const CTransaction& tx, const uint256& hash);
 void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
 
+
+void RelayDarkSendStatus(const int sessionID, const int newState, const int newEntriesCount, const int newAccepted, const std::string error="");
 
 #endif

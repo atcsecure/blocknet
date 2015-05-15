@@ -7,6 +7,7 @@
 #include "checkpoints.h"
 #include "db.h"
 #include "txdb.h"
+#include "masternode.h"
 #include "net.h"
 #include "init.h"
 #include "ui_interface.h"

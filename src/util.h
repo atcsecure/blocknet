@@ -122,6 +122,10 @@ inline void MilliSleep(int64_t n)
 
 extern bool fMasterNode;
 extern bool fLiteMode;
+extern int64_t enforceMasternodePaymentsTime;
+extern std::string strMasterNodeAddr;
+extern int keysLoaded;
+extern bool fSucessfullyLoaded;
 
 
 /* This GNU C extension enables the compiler to check the format string against the parameters provided.

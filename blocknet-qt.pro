@@ -39,9 +39,9 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     QRENCODE_LIB_PATH=/usr/local/opt/qrencode/lib
 
     DEFINES += IS_ARCH_64
-    QMAKE_CXXFLAGS += -arch x86_64 -stdlib=libc++
-    QMAKE_CFLAGS += -arch x86_64
-    QMAKE_LFLAGS += -arch x86_64 -stdlib=libc++
+    #QMAKE_CXXFLAGS += -arch x86_64 -stdlib=libc++
+    #QMAKE_CFLAGS += -arch x86_64
+    #QMAKE_LFLAGS += -arch x86_64 -stdlib=libc++
 
 
 
