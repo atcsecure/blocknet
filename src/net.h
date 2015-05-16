@@ -257,9 +257,6 @@ private:
     CNode(const CNode&);
     void operator=(const CNode&);
 public:
-    NodeId GetId() const {
-      return id;
-    }
 
     int GetRefCount()
     {

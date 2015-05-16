@@ -149,6 +149,8 @@ void ResendWalletTransactions(bool fForce = false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
+bool AbortNode(const std::string &msg, const std::string &userMessage="");
+
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 
 /** Position on disk for a particular transaction. */
