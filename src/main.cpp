@@ -2481,7 +2481,7 @@ bool LoadBlockIndex(bool fAllowNew)
         if (!fAllowNew)
             return false;
 
-        const char* pszTimestamp = "decentralized consensus based democracy is the future of live";
+        const char* pszTimestamp = "decentralized consensus based democracy is the future";
         CTransaction txNew;
         txNew.nTime = 1413915684;
         txNew.vin.resize(1);
