@@ -65,8 +65,23 @@ class CPubKey {
 private:
     std::vector<unsigned char> vchPubKey;
     friend class CKey;
+    unsigned char vch[65];
+
+    unsigned int static GetLen(unsigned char chHeader) {
+        if (chHeader == 2 || chHeader == 3)
+            return 33;
+        if (chHeader == 4 || chHeader == 6 || chHeader == 7)
+            return 65;
+        return 0;
+    }
 
 public:
+    // Simple read-only vector-like interface to the pubkey data.
+    unsigned int size() const { return GetLen(vch[0]); }
+    const unsigned char *begin() const { return vch; }
+    const unsigned char *end() const { return vch+size(); }
+    const unsigned char &operator[](unsigned int pos) const { return vch[pos]; }
+
     CPubKey() { }
     CPubKey(const std::vector<unsigned char> &vchPubKeyIn) : vchPubKey(vchPubKeyIn) { }
     friend bool operator==(const CPubKey &a, const CPubKey &b) { return a.vchPubKey == b.vchPubKey; }

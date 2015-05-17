@@ -25,6 +25,7 @@ class CBlockIndex;
 extern int nBestHeight;
 
 
+typedef int NodeId;
 
 inline unsigned int ReceiveBufferSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
 inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
@@ -35,7 +36,7 @@ bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool darkSendMaster=false);
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -177,9 +178,15 @@ public:
     bool fNetworkNode;
     bool fSuccessfullyConnected;
     bool fDisconnect;
+    // We use fRelayTxes for two purposes -
+    // a) it allows us to not relay tx invs before receiving the peer's version message
+    // b) the peer may tell us in their version message that we should not relay tx invs
+    //    until they have initialized their bloom filter.
+    bool fRelayTxes;
+    bool fDarkSendMaster;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
-    bool fDarkSendMaster;
+    NodeId id;
 protected:
 
     // Denial-of-service detection/prevention
@@ -257,6 +264,10 @@ private:
     CNode(const CNode&);
     void operator=(const CNode&);
 public:
+
+    NodeId GetId() const {
+      return id;
+    }
 
     int GetRefCount()
     {
