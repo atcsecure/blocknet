@@ -1692,4 +1692,6 @@ public:
 
 extern CTxMemPool mempool;
 
+bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree,
+                        bool* pfMissingInputs);
 #endif
