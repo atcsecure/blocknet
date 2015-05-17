@@ -193,6 +193,7 @@ protected:
     // Key is IP address, value is banned-until-time
     static std::map<CNetAddr, int64_t> setBanned;
     static CCriticalSection cs_setBanned;
+    std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
     int nMisbehavior;
 
 public:
@@ -619,6 +620,20 @@ public:
     }
 
 
+    bool HasFulfilledRequest(std::string strRequest)
+    {
+        BOOST_FOREACH(std::string& type, vecRequestsFulfilled)
+        {
+            if(type == strRequest) return true;
+        }
+        return false;
+    }
+
+    void FulfilledRequest(std::string strRequest)
+    {
+        if(HasFulfilledRequest(strRequest)) return;
+        vecRequestsFulfilled.push_back(strRequest);
+    }
 
     void PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd);
     bool IsSubscribed(unsigned int nChannel);

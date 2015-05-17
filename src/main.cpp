@@ -1136,6 +1136,32 @@ bool IsInitialBlockDownload()
             pindexBest->GetBlockTime() < GetTime() - 24 * 60 * 60);
 }
 
+// Requires cs_main.
+void Misbehaving(NodeId pnode, int howmuch)
+{
+    if (howmuch == 0)
+        return;
+
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pn, vNodes)
+    {
+        if(pn->GetId() == pnode)
+        {
+            pn->nMisbehavior += howmuch;
+            int banscore = GetArg("-banscore", 100);
+            if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
+            {
+                printf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                //pn->fShouldBan = true;
+            } 
+            else
+                printf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+
+            break;
+        }
+    }
+}
+
 void static InvalidChainFound(CBlockIndex* pindexNew)
 {
     if (pindexNew->nChainTrust > nBestInvalidTrust)
