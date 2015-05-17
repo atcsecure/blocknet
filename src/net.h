@@ -140,10 +140,10 @@ public:
     int64_t nTimeConnected;
     std::string addrName;
     int nVersion;
+    int nMisbehavior;
     std::string strSubVer;
     bool fInbound;
     int nStartingHeight;
-    int nMisbehavior;
 };
 
 
@@ -194,9 +194,9 @@ protected:
     static std::map<CNetAddr, int64_t> setBanned;
     static CCriticalSection cs_setBanned;
     std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
-    int nMisbehavior;
 
 public:
+    int nMisbehavior;
     std::map<uint256, CRequestTracker> mapRequests;
     CCriticalSection cs_mapRequests;
     uint256 hashContinue;

@@ -1151,11 +1151,10 @@ void Misbehaving(NodeId pnode, int howmuch)
             int banscore = GetArg("-banscore", 100);
             if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
             {
-                printf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                printf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName.c_str(), pn->nMisbehavior-howmuch, pn->nMisbehavior);
                 //pn->fShouldBan = true;
             } 
             else
-                printf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
 
             break;
         }
