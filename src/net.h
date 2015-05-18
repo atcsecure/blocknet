@@ -18,6 +18,7 @@
 #include "netbase.h"
 #include "protocol.h"
 #include "addrman.h"
+#include "main.h"
 
 class CRequestTracker;
 class CNode;
