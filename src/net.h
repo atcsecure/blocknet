@@ -141,6 +141,7 @@ public:
     std::string addrName;
     int nVersion;
     int nMisbehavior;
+    std::string cleanSubVer;
     std::string strSubVer;
     bool fInbound;
     int nStartingHeight;

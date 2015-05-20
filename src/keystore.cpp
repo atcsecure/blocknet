@@ -26,12 +26,12 @@ bool CBasicKeyStore::AddKey(const CKey& key)
     return true;
 }
 
-bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
-{
-    LOCK(cs_KeyStore);
-    mapKeys[pubkey.GetID()] = key;
-    return true;
-}
+//bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
+//{
+//    LOCK(cs_KeyStore);
+//    mapKeys[pubkey.GetID()] = key;
+//    return true;
+//}
 
 bool CBasicKeyStore::AddCScript(const CScript& redeemScript)
 {

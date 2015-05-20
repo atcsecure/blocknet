@@ -481,9 +481,11 @@ bool IsProxy(const CNetAddr &addr) {
     return false;
 }
 
-bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout)
+bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout, bool *outProxyConnectionFailed)
 {
     proxyType proxy;
+    if (outProxyConnectionFailed)
+        *outProxyConnectionFailed = false;
 
     // no proxy needed
     if (!GetProxy(addrDest.GetNetwork(), proxy))
@@ -493,7 +495,11 @@ bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout)
 
     // first connect to proxy server
     if (!ConnectSocketDirectly(proxy.first, hSocket, nTimeout))
+    {
+        if (outProxyConnectionFailed)
+            *outProxyConnectionFailed = true;
         return false;
+    }
 
     // do socks negotiation
     switch (proxy.second) {
@@ -514,10 +520,14 @@ bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout)
     return true;
 }
 
-bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest, int portDefault, int nTimeout)
+bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest, int portDefault, int nTimeout, bool *outProxyConnectionFailed)
 {
     string strDest;
     int port = portDefault;
+
+    if (outProxyConnectionFailed)
+        *outProxyConnectionFailed = false;
+
     SplitHostPort(string(pszDest), port, strDest);
 
     SOCKET hSocket = INVALID_SOCKET;
@@ -534,7 +544,11 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
     if (!nameproxy.second)
         return false;
     if (!ConnectSocketDirectly(nameproxy.first, hSocket, nTimeout))
+    {
+        if (outProxyConnectionFailed)
+            *outProxyConnectionFailed = true;
         return false;
+    }
 
     switch(nameproxy.second) {
         default:
