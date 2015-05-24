@@ -36,6 +36,12 @@ static const int LAST_POW_TIME = 1415491199;
 #define START_MASTERNODE_PAYMENTS_TESTNET 1433011023
 #define START_MASTERNODE_PAYMENTS 1433011023
 
+
+static const int64_t DARKSEND_COLLATERAL = (50000*COIN);
+static const int64_t DARKSEND_FEE = (0.001337*COIN);
+static const int64_t DARKSEND_POOL_MAX = (13371.99*COIN);
+
+
 #define MASTERNODE_NOT_PROCESSED               0 // initial state
 #define MASTERNODE_IS_CAPABLE                  1
 #define MASTERNODE_NOT_CAPABLE                 2

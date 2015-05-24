@@ -307,6 +307,7 @@ HEADERS += src/qt/bitcoingui.h \
 	src/sph_whirlpool.h \
     src/sph_types.h \
     src/threadsafety.h \
+    src/darksend.h \
     src/masternode.h \
     src/activemasternode.h \
     src/txdb-leveldb.h \
@@ -381,7 +382,9 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/scrypt-x86.S \
     src/scrypt-x86_64.S \
     src/scrypt.cpp \
+    src/darksend.cpp \
     src/activemasternode.cpp \
+    src/masternode.cpp \
     src/pbkdf2.cpp \
     src/qt/blockbrowser.cpp
 

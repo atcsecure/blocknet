@@ -12,6 +12,7 @@
 #include "init.h"
 #include "ui_interface.h"
 #include "kernel.h"
+#include "darksend.h"
 #include "masternode.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
