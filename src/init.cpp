@@ -9,8 +9,6 @@
 #include "init.h"
 #include "util.h"
 #include "activemasternode.h"
-#include "masternode.cpp"
-#include "masternode.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include <boost/filesystem.hpp>
