@@ -2805,3 +2805,216 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
 
 
 
+bool CWallet::CreateCollateralTransaction(CTransaction& txCollateral, std::string strReason)
+{
+    /*
+        To doublespend a collateral transaction, it will require a fee higher than this. So there's
+        still a significant cost.
+    */
+    int64_t nFeeRet = 0.001*COIN;
+
+    txCollateral.vin.clear();
+    txCollateral.vout.clear();
+
+    CReserveKey reservekey(this);
+    int64_t nValueIn2 = 0;
+    std::vector<CTxIn> vCoinsCollateral;
+
+    if (!SelectCoinsCollateral(vCoinsCollateral, nValueIn2))
+    {
+        strReason = "Error: Darksend requires a collateral transaction and could not locate an acceptable input!";
+        return false;
+    }
+
+    // make our change address
+    CScript scriptChange;
+    CPubKey vchPubKey;
+    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+    scriptChange =GetScriptForDestination(vchPubKey.GetID());
+    reservekey.KeepKey();
+
+    BOOST_FOREACH(CTxIn v, vCoinsCollateral)
+        txCollateral.vin.push_back(v);
+
+    if(nValueIn2 - DARKSEND_COLLATERAL - nFeeRet > 0) {
+        //pay collateral charge in fees
+        CTxOut vout3 = CTxOut(nValueIn2 - DARKSEND_COLLATERAL, scriptChange);
+        txCollateral.vout.push_back(vout3);
+    }
+
+    int vinNumber = 0;
+    BOOST_FOREACH(CTxIn v, txCollateral.vin) {
+        if(!SignSignature(*this, v.prevPubKey, txCollateral, vinNumber, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) {
+            BOOST_FOREACH(CTxIn v, vCoinsCollateral)
+                UnlockCoin(v.prevout);
+
+            strReason = "CDarkSendPool::Sign - Unable to sign collateral transaction! \n";
+            return false;
+        }
+        vinNumber++;
+    }
+
+    return true;
+}
+
+bool CWallet::ConvertList(std::vector<CTxIn> vCoins, std::vector<int64_t>& vecAmounts)
+{
+    BOOST_FOREACH(CTxIn i, vCoins){
+        if (mapWallet.count(i.prevout.hash))
+        {
+            CWalletTx& wtx = mapWallet[i.prevout.hash];
+            if(i.prevout.n < wtx.vout.size()){
+                vecAmounts.push_back(wtx.vout[i.prevout.n].nValue);
+            }
+        } else {
+            LogPrintf("ConvertList -- Couldn't find transaction\n");
+        }
+    }
+    return true;
+}
+
+string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
+{
+    if (IsLocked())
+        return _("Error: Wallet locked, unable to create transaction!");
+
+    if(darkSendPool.GetState() != POOL_STATUS_ERROR && darkSendPool.GetState() != POOL_STATUS_SUCCESS)
+        if(darkSendPool.GetMyTransactionCount() > 0)
+            return _("Error: You already have pending entries in the Darksend pool");
+
+    // ** find the coins we'll use
+    std::vector<CTxIn> vCoins;
+    std::vector<COutput> vCoins2;
+    int64_t nValueIn = 0;
+    CReserveKey reservekey(this);
+
+    /*
+        Select the coins we'll use
+        if minRounds >= 0 it means only denominated inputs are going in and coming out
+    */
+    if(minRounds >= 0){
+        if (!SelectCoinsByDenominations(darkSendPool.sessionDenom, 0.1*COIN, DARKSEND_POOL_MAX, vCoins, vCoins2, nValueIn, minRounds, maxRounds))
+            return _("Insufficient funds");
+    }
+
+    // calculate total value out
+    int64_t nTotalValue = GetTotalValue(vCoins);
+    LogPrintf("PrepareDarksendDenominate - preparing darksend denominate . Got: %d \n", nTotalValue);
+
+    //--------------
+    BOOST_FOREACH(CTxIn v, vCoins)
+        LockCoin(v.prevout);
+
+    // denominate our funds
+    int64_t nValueLeft = nTotalValue;
+    std::vector<CTxOut> vOut;
+    std::vector<int64_t> vDenoms;
+
+    /*
+        TODO: Front load with needed denominations (e.g. .1, 1 )
+    */
+
+    /*
+        Add all denominations once
+        The beginning of the list is front loaded with each possible
+        denomination in random order. This means we'll at least get 1
+        of each that is required as outputs.
+    */
+    BOOST_FOREACH(int64_t d, darkSendDenominations){
+        vDenoms.push_back(d);
+        vDenoms.push_back(d);
+    }
+
+    //randomize the order of these denominations
+    std::random_shuffle (vDenoms.begin(), vDenoms.end());
+
+    /*
+        Build a long list of denominations
+        Next we'll build a long random list of denominations to add.
+        Eventually as the algorithm goes through these it'll find the ones
+        it nees to get exact change.
+    */
+    for(int i = 0; i <= 500; i++)
+        BOOST_FOREACH(int64_t d, darkSendDenominations)
+            vDenoms.push_back(d);
+
+    //randomize the order of inputs we get back
+    std::random_shuffle (vDenoms.begin() + (int)darkSendDenominations.size() + 1, vDenoms.end());
+
+    // Make outputs by looping through denominations randomly
+    BOOST_REVERSE_FOREACH(int64_t v, vDenoms){
+        //only use the ones that are approved
+        bool fAccepted = false;
+        if((darkSendPool.sessionDenom & (1 << 0))      && v == ((100000*COIN) +100000000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 1)) && v == ((10000*COIN)  +10000000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 2)) && v == ((1000*COIN)   +1000000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 3)) && v == ((100*COIN)    +100000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 4)) && v == ((10*COIN)     +10000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 5)) && v == ((1*COIN)      +1000)) {fAccepted = true;}
+        else if((darkSendPool.sessionDenom & (1 << 6)) && v == ((.1*COIN)     +100)) {fAccepted = true;}
+        if(!fAccepted) continue;
+
+        int nOutputs = 0;
+
+        // add each output up to 10 times until it can't be added again
+        if(nValueLeft - v >= 0 && nOutputs <= 10) {
+            CScript scriptChange;
+            CPubKey vchPubKey;
+            //use a unique change address
+            assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+            scriptChange =GetScriptForDestination(vchPubKey.GetID());
+            reservekey.KeepKey();
+
+            CTxOut o(v, scriptChange);
+            vOut.push_back(o);
+
+            //increment outputs and subtract denomination amount
+            nOutputs++;
+            nValueLeft -= v;
+        }
+
+        if(nValueLeft == 0) break;
+    }
+
+    //back up mode , incase we couldn't successfully make the outputs for some reason
+    if(vOut.size() > 40 || darkSendPool.GetDenominations(vOut) != darkSendPool.sessionDenom || nValueLeft != 0){
+        vOut.clear();
+        nValueLeft = nTotalValue;
+
+        // Make outputs by looping through denominations, from small to large
+
+        BOOST_FOREACH(const COutput& out, vCoins2){
+            CScript scriptChange;
+            CPubKey vchPubKey;
+            //use a unique change address
+            assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+            scriptChange =GetScriptForDestination(vchPubKey.GetID());
+            reservekey.KeepKey();
+
+            CTxOut o(out.tx->vout[out.i].nValue, scriptChange);
+            vOut.push_back(o);
+
+            //increment outputs and subtract denomination amount
+            nValueLeft -= out.tx->vout[out.i].nValue;
+
+            if(nValueLeft == 0) break;
+        }
+
+    }
+
+    if(darkSendPool.GetDenominations(vOut) != darkSendPool.sessionDenom)
+        return "Error: can't make current denominated outputs";
+
+    // we don't support change at all
+    if(nValueLeft != 0)
+        return "Error: change left-over in pool. Must use denominations only";
+
+
+    //randomize the output order
+    std::random_shuffle (vOut.begin(), vOut.end());
+
+    darkSendPool.SendDarksendDenominate(vCoins, vOut, nValueIn);
+
+    return "";
+}
+
