@@ -1636,7 +1636,7 @@ bool CDarkSendPool::SendRandomPaymentToSelf()
 
     CScript scriptChange;
     CPubKey vchPubKey;
-    assert(reservekey.GetReservedKey()); // should never fail, as we just unlocked
+    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
     scriptChange= GetScriptForDestination(vchPubKey.GetID());
 
     CWalletTx wtx;
@@ -1670,7 +1670,7 @@ bool CDarkSendPool::MakeCollateralAmounts()
 
     CScript scriptChange;
     CPubKey vchPubKey;
-    assert(reservekey.GetReservedKey()); // should never fail, as we just unlocked
+    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
     scriptChange= GetScriptForDestination(vchPubKey.GetID());
 
     CWalletTx wtx;
@@ -1714,7 +1714,7 @@ bool CDarkSendPool::CreateDenominated(int64_t nTotalValue)
 
     CScript scriptChange;
     CPubKey vchPubKey;
-    assert(reservekey.GetReservedKey()); // should never fail, as we just unlocked
+    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
     scriptChange= GetScriptForDestination(vchPubKey.GetID());
 
     CWalletTx wtx;
@@ -1740,7 +1740,7 @@ bool CDarkSendPool::CreateDenominated(int64_t nTotalValue)
             CScript scriptChange;
             CPubKey vchPubKey;
             //use a unique change address
-            assert(reservekey.GetReservedKey()); // should never fail, as we just unlocked
+            assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
             scriptChange= GetScriptForDestination(vchPubKey.GetID());
             reservekey.KeepKey();
 
@@ -2035,8 +2035,6 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
         return false;
     }
 
-    if (fDebug && pubkey2.GetID() != pubkey.GetID())
-        printf("CDarkSendSigner::VerifyMessage -- keys don't match: %s %s", pubkey2.GetID().ToString(), pubkey.GetID().ToString());
 
     return (pubkey2.GetID() == pubkey.GetID());
 }

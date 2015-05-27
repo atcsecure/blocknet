@@ -1727,7 +1727,7 @@ bool CWallet::SelectCoinsSimple(int64_t nTargetValue, unsigned int nSpendTime, i
     return true;
 }
 
-bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, const CCoinControl* coinControl)
+bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, int32_t& nChangePos, std::string& strFailReason, const CCoinControl* coinControl, AvailableCoinsType coin_type, bool useIX)
 {
     int64_t nValue = 0;
     BOOST_FOREACH (const PAIRTYPE(CScript, int64_t)& s, vecSend)
@@ -1740,6 +1740,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
         return false;
 
     wtxNew.BindWallet(this);
+    CTransaction txNew;
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -1763,7 +1764,23 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                 set<pair<const CWalletTx*,unsigned int> > setCoins;
                 int64_t nValueIn = 0;
                 if (!SelectCoins(nTotalValue, wtxNew.nTime, setCoins, nValueIn, coinControl))
+                {
+                    if(coin_type == ALL_COINS) {
+                        strFailReason = _("Insufficient funds.");
+                    } else if (coin_type == ONLY_NONDENOMINATED) {
+                        strFailReason = _("Unable to locate enough Darksend non-denominated funds for this transaction.");
+                    } else if (coin_type == ONLY_NONDENOMINATED_NOTMN) {
+                        strFailReason = _("Unable to locate enough Darksend non-denominated funds for this transaction that are not equal 1000 SLING.");
+                    } else {
+                        strFailReason = _("Unable to locate enough Darksend denominated funds for this transaction.");
+                        strFailReason += _("Darksend uses exact denominated amounts to send funds, you might simply need to anonymize some more coins.");
+                    }
+
+                    if(useIX){
+                        strFailReason += _("InstantX requires inputs with at least 6 confirmations, you might need to wait a few minutes and try again.");
+                    }
                     return false;
+                }
                 BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
                 {
                     int64_t nCredit = pcoin.first->vout[pcoin.second].nValue;
@@ -1771,15 +1788,6 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                 }
 
                 int64_t nChange = nValueIn - nValue - nFeeRet;
-                // if sub-cent change is required, the fee must be raised to at least MIN_TX_FEE
-                // or until nChange becomes zero
-                // NOTE: this depends on the exact behaviour of GetMinFee
-                if (nFeeRet < MIN_TX_FEE && nChange > 0 && nChange < CENT)
-                {
-                    int64_t nMoveToFee = min(nChange, MIN_TX_FEE - nFeeRet);
-                    nChange -= nMoveToFee;
-                    nFeeRet += nMoveToFee;
-                }
 
                 if (nChange > 0)
                 {
@@ -1803,14 +1811,28 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                         //  post-backup change.
 
                         // Reserve a new key pair from key pool
-                        CPubKey vchPubKey = reservekey.GetReservedKey();
+                        CPubKey vchPubKey;
+                        assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
 
                         scriptChange.SetDestination(vchPubKey.GetID());
                     }
 
                     // Insert change txn at random position:
                     vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size());
+
+		    // -- don't put change output between value and narration outputs
+                    if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
+                    {
+                        while (position > wtxNew.vout.begin())
+                        {
+                            if (position->nValue != 0)
+                                break;
+                            position--;
+                        };
+                    };
+
                     wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
+		    nChangePos = std::distance(wtxNew.vout.begin(), position);
                 }
                 else
                     reservekey.ReturnKey();
@@ -1827,13 +1849,13 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
 
                 // Limit size
                 unsigned int nBytes = ::GetSerializeSize(*(CTransaction*)&wtxNew, SER_NETWORK, PROTOCOL_VERSION);
-                if (nBytes >= MAX_BLOCK_SIZE_GEN/5)
+                if (nBytes >= MAX_STANDARD_TX_SIZE)
                     return false;
                 dPriority /= nBytes;
 
                 // Check that enough fee is included
                 int64_t nPayFee = nTransactionFee * (1 + (int64_t)nBytes / 1000);
-                int64_t nMinFee = wtxNew.GetMinFee(1, GMF_SEND, nBytes);
+                int64_t nMinFee = GetMinFee(wtxNew, 1, GMF_SEND, nBytes);
 
                 if (nFeeRet < max(nPayFee, nMinFee))
                 {
@@ -1852,11 +1874,34 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
     return true;
 }
 
-bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, const CCoinControl* coinControl)
+bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, const CCoinControl* coinControl)
 {
     vector< pair<CScript, int64_t> > vecSend;
     vecSend.push_back(make_pair(scriptPubKey, nValue));
-    return CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, coinControl);
+    
+    if (sNarr.length() > 0)
+    {
+        std::vector<uint8_t> vNarr(sNarr.c_str(), sNarr.c_str() + sNarr.length());
+        std::vector<uint8_t> vNDesc;
+        
+        vNDesc.resize(2);
+        vNDesc[0] = 'n';
+        vNDesc[1] = 'p';
+        
+        CScript scriptN = CScript() << OP_RETURN << vNDesc << OP_RETURN << vNarr;
+        
+        vecSend.push_back(make_pair(scriptN, 0));
+    }
+    
+    // -- CreateTransaction won't place change between value and narr output.
+    //    narration output will be for preceding output
+    
+    int nChangePos;
+    std::string strFailReason;
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos, strFailReason, coinControl);
+    
+    // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
+    return rv;
 }
 
 // NovaCoin: get current stake weight

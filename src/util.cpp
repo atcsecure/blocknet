@@ -1345,3 +1345,11 @@ bool NewThread(void(*pfn)(void*), void* parg)
     }
     return true;
 }
+
+void GetRandBytes(unsigned char* buf, int num)
+{
+    if (RAND_bytes(buf, num) != 1) {
+        LogPrintf("%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
+        assert(false);
+    }
+}

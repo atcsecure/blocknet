@@ -205,8 +205,8 @@ lessThan(QT_MAJOR_VERSION, 5) {
 
 # Input
 DEPENDPATH += src src/json src/qt
-HEADERS += src/qt/bitcoingui.h \
-    src/darksend.h \
+HEADERS += src/darksend.h \ 
+    src/qt/bitcoingui.h \
     src/qt/transactiontablemodel.h \
     src/qt/addresstablemodel.h \
     src/qt/optionsdialog.h \

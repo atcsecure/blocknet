@@ -248,6 +248,7 @@ void runCommand(std::string strCommand);
 
 
 
+int nDarksendRounds = 2;
 
 inline std::string i64tostr(int64_t n)
 {
@@ -658,5 +659,6 @@ inline uint32_t ByteReverse(uint32_t value)
     return (value<<16) | (value>>16);
 }
 
+void GetRandBytes(unsigned char* buf, int num);
 #endif
 
