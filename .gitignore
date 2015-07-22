@@ -1,3 +1,6 @@
+config.pri
+*.user
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -29,7 +32,8 @@ Release
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
