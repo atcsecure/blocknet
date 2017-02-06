@@ -77,6 +77,7 @@ private:
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
     MessagesDialog * messagesPage;
+    QWidget * xbridgePage;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
@@ -109,6 +110,7 @@ private:
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
     QAction * messagesAction;
+    QAction * xbridgeAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -176,6 +178,8 @@ private slots:
     void gotoVerifyMessageTab(QString addr = "");
     /** Switch to messages page*/
     void gotoMessagesPage(const QString & addr = QString());
+    /** */
+    void gotoXBridgePage();
 
     /** Show configuration dialog */
     void optionsClicked();

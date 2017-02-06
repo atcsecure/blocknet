@@ -136,6 +136,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // create messages dialog
     messagesPage = new MessagesDialog(this);
 
+    // xbridge page
+    xbridgePage = new QWidget(this);
+
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
     centralWidget->addWidget(statisticsPage);
@@ -146,8 +149,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(messagesPage);
+    centralWidget->addWidget(xbridgePage);
     setCentralWidget(centralWidget);
-
 
 
     // Status bar notification icons
@@ -292,6 +295,13 @@ void BitcoinGUI::createActions()
     messagesAction->setCheckable(true);
     tabGroup->addAction(messagesAction);
 
+    // TODO icons
+    xbridgeAction = new QAction(QIcon(":/icons/block"), tr("&XBridge"), this);
+    xbridgeAction->setToolTip(tr("Show xbridge dialog"));
+    // xbridgeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+    xbridgeAction->setCheckable(true);
+    tabGroup->addAction(xbridgeAction);
+
 	connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
     VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
     VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(gotoOverviewPage())));
@@ -307,6 +317,7 @@ void BitcoinGUI::createActions()
     VERIFY(connect(addressBookAction,  SIGNAL(triggered()), this, SLOT(gotoAddressBookPage())));
     VERIFY(connect(messagesAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
     VERIFY(connect(messagesAction,     SIGNAL(triggered()), this, SLOT(gotoMessagesPage())));
+    VERIFY(connect(xbridgeAction,      SIGNAL(triggered()), this, SLOT(gotoXBridgePage())));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -424,6 +435,7 @@ void BitcoinGUI::createToolBars()
 	toolbar->addAction(unlockWalletAction);
 	toolbar->addAction(lockWalletAction);
     toolbar->addAction(messagesAction);
+    toolbar->addAction(xbridgeAction);
 
 
 }
@@ -937,6 +949,17 @@ void BitcoinGUI::gotoMessagesPage(const QString & addr)
 
     exportAction->setEnabled(false);
 
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void BitcoinGUI::gotoXBridgePage()
+{
+    xbridgeAction->setChecked(true);
+    centralWidget->setCurrentWidget(xbridgePage);
+
+    exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
