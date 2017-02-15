@@ -39,12 +39,7 @@ windows {
         -lole32 \
         -loleaut32 \
         -luuid \
-        -lgdi32 \
-        -lboost_system-mgw48-mt-sd-1_55 \
-        -lboost_filesystem-mgw48-mt-sd-1_55 \
-        -lboost_program_options-mgw48-mt-sd-1_55 \
-        -lboost_thread-mgw48-mt-sd-1_55 \
-        -lboost_date_time-mgw48-mt-sd-1_55
+        -lgdi32
 }
 
 unix {
@@ -80,7 +75,7 @@ QMAKE_LFLAGS *= -fstack-protector-all --param ssp-buffer-size=1
 }
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
-QMAKE_CXXFLAGS = -fpermissive
+QMAKE_CXXFLAGS += -fpermissive -std=c++11
 
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
@@ -162,7 +157,25 @@ SOURCES += src/txdb-leveldb.cpp \
     src/lz4/lz4.c \
     src/message.cpp \
     src/messagedb.cpp \
-    src/xbridgeconnector.cpp
+    src/xbridgeconnector.cpp \
+    src/qt/xbridgeui/xbridgetransactionsview.cpp \
+    src/xbridge/xbridgetransaction.cpp \
+    src/xbridge/xbridgetransactionmember.cpp \
+    src/qt/xbridgeui/xbridgetransactionsmodel.cpp \
+    src/qt/xbridgeui/xbridgetransactiondialog.cpp \
+    src/qt/xbridgeui/xbridgeaddressbookmodel.cpp \
+    src/qt/xbridgeui/xbridgeaddressbookview.cpp \
+    src/xbridge/util/logger.cpp \
+    src/xbridge/util/settings.cpp \
+    src/xbridge/util/txlog.cpp \
+    src/xbridge/config.cpp \
+    src/xbridge/xbridgeexchange.cpp \
+    src/xbridge/xbridgeapp.cpp \
+    src/xbridge/xbridge.cpp \
+    src/xbridge/xbridgesession.cpp \
+    src/xbridge/util/xutil.cpp \
+    src/xbridge/bitcointransaction.cpp \
+    src/xbridge/bitcoinrpcconnector.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -358,7 +371,30 @@ HEADERS += src/qt/bitcoingui.h \
     src/lz4/lz4.h \
     src/FastDelegate.h \
     src/xbridgeconnector.h \
-    src/xbridgepacket.h
+    src/xbridgepacket.h \
+    src/qt/xbridgeui/xbridgetransactionsview.h \
+    src/xbridge/xbridgetransaction.h \
+    src/xbridge/xbridgetransactiondescr.h \
+    src/xbridge/xbridgetransactionmember.h \
+    src/qt/xbridgeui/xbridgetransactionsmodel.h \
+    src/qt/xbridgeui/xbridgetransactiondialog.h \
+    src/qt/xbridgeui/xbridgeaddressbookmodel.h \
+    src/qt/xbridgeui/xbridgeaddressbookview.h \
+    src/xbridge/util/logger.h \
+    src/xbridge/util/settings.h \
+    src/xbridge/util/txlog.h \
+    src/xbridge/config.h \
+    src/xbridge/xbridgeexchange.h \
+    src/xbridge/xbridgewallet.h \
+    src/xbridge/xbridgeapp.h \
+    src/xbridge/xbridge.h \
+    src/xbridge/xbridgepacket.h \
+    src/xbridge/version.h \
+    src/xbridge/xbridgesession.h \
+    src/xbridge/util/xutil.h \
+    src/xbridge/xuiconnector.h \
+    src/xbridge/bitcointransaction.h \
+    src/xbridge/bitcoinrpcconnector.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

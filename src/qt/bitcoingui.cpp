@@ -31,6 +31,7 @@
 #include "wallet.h"
 #include "bitcoinrpc.h"
 #include "messagedialog/messagedialog.h"
+#include "xbridgeui/xbridgetransactionsview.h"
 #include "util/verify.h"
 
 #ifdef Q_OS_MAC
@@ -137,7 +138,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     messagesPage = new MessagesDialog(this);
 
     // xbridge page
-    xbridgePage = new QWidget(this);
+    xbridgePage = new XBridgeTransactionsView(this);
 
     centralWidget = new QStackedWidget(this);
     centralWidget->addWidget(overviewPage);
