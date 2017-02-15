@@ -13,8 +13,7 @@
 #include "util/xutil.h"
 #include "util/logger.h"
 #include "util/txlog.h"
-// #include "dht/dht.h"
-#include "bitcoinrpc.h"
+#include "bitcoinrpcconnector.h"
 #include "bitcointransaction.h"
 #include "base58.h"
 #include "script.h"
@@ -291,8 +290,7 @@ void XBridgeSession::sendPacket(const std::vector<unsigned char> & to,
 //*****************************************************************************
 void XBridgeSession::sendPacket(const std::string & to, XBridgePacketPtr packet)
 {
-    assert(!"sendPacket");
-    // sendPacket(rpc::toXAddr(to), packet);
+    sendPacket(rpc::toXAddr(to), packet);
 }
 
 //*****************************************************************************
@@ -813,13 +811,12 @@ bool XBridgeSession::processTransactionHold(XBridgePacketPtr packet)
     if (xtx->isLocal())
     {
         // send hold apply
-        assert(!"send packet");
-//        XBridgePacketPtr reply(new XBridgePacket(xbcTransactionHoldApply));
-//        reply->append(hubAddress);
-//        reply->append(rpc::toXAddr(xtx->from));
-//        reply->append(id.begin(), 32);
+        XBridgePacketPtr reply(new XBridgePacket(xbcTransactionHoldApply));
+        reply->append(hubAddress);
+        reply->append(rpc::toXAddr(xtx->from));
+        reply->append(id.begin(), 32);
 
-//        sendPacket(hubAddress, reply);
+        sendPacket(hubAddress, reply);
     }
     return true;
 }
@@ -889,40 +886,38 @@ bool XBridgeSession::processTransactionHoldApply(XBridgePacketPtr packet)
             LOG() << "send xbcTransactionInit to "
                   << util::base64_encode(std::string((char *)&tr->a_destination()[0], 20));
 
-            assert(!"send packet");
-//            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionInit));
-//            reply1->append(rpc::toXAddr(tr->a_destination()));
-//            reply1->append(sessionAddr(), 20);
-//            reply1->append(id.begin(), 32);
-//            reply1->append(static_cast<uint16_t>('A'));
-//            reply1->append(tr->a_address());
-//            reply1->append(fc);
-//            reply1->append(tr->a_amount());
-//            reply1->append(tr->a_destination());
-//            reply1->append(sc);
-//            reply1->append(tr->b_amount());
+            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionInit));
+            reply1->append(rpc::toXAddr(tr->a_destination()));
+            reply1->append(sessionAddr(), 20);
+            reply1->append(id.begin(), 32);
+            reply1->append(static_cast<uint16_t>('A'));
+            reply1->append(tr->a_address());
+            reply1->append(fc);
+            reply1->append(tr->a_amount());
+            reply1->append(tr->a_destination());
+            reply1->append(sc);
+            reply1->append(tr->b_amount());
 
-//            sendPacket(rpc::toXAddr(tr->a_destination()), reply1);
+            sendPacket(rpc::toXAddr(tr->a_destination()), reply1);
 
             // second
             // TODO remove this log
             LOG() << "send xbcTransactionInit to "
                   << util::base64_encode(std::string((char *)&tr->b_destination()[0], 20));
 
-            assert(!"send packet");
-//            XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionInit));
-//            reply2->append(rpc::toXAddr(tr->b_destination()));
-//            reply2->append(sessionAddr(), 20);
-//            reply2->append(id.begin(), 32);
-//            reply2->append(static_cast<uint16_t>('B'));
-//            reply2->append(tr->b_address());
-//            reply2->append(sc);
-//            reply2->append(tr->b_amount());
-//            reply2->append(tr->b_destination());
-//            reply2->append(fc);
-//            reply2->append(tr->a_amount());
+            XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionInit));
+            reply2->append(rpc::toXAddr(tr->b_destination()));
+            reply2->append(sessionAddr(), 20);
+            reply2->append(id.begin(), 32);
+            reply2->append(static_cast<uint16_t>('B'));
+            reply2->append(tr->b_address());
+            reply2->append(sc);
+            reply2->append(tr->b_amount());
+            reply2->append(tr->b_destination());
+            reply2->append(fc);
+            reply2->append(tr->a_amount());
 
-//            sendPacket(rpc::toXAddr(tr->b_destination()), reply2);
+            sendPacket(rpc::toXAddr(tr->b_destination()), reply2);
         }
     }
 
@@ -1013,22 +1008,21 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
     }
 
     // send initialized
-    assert(!"send packet");
-//    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionInitialized));
-//    reply->append(hubAddress);
-//    reply->append(thisAddress);
-//    reply->append(txid.begin(), 32);
-//    if (role == 'A')
-//    {
-//        reply->append(xtx->xPubKey.GetID().begin(), 20);
-//    }
-//    else
-//    {
-//        reply->append(std::vector<unsigned char>(20, 0));
-//    }
-//    reply->append(xtx->mPubKey.begin(), xtx->mPubKey.size());
+    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionInitialized));
+    reply->append(hubAddress);
+    reply->append(thisAddress);
+    reply->append(txid.begin(), 32);
+    if (role == 'A')
+    {
+        reply->append(xtx->xPubKey.GetID().begin(), 20);
+    }
+    else
+    {
+        reply->append(std::vector<unsigned char>(20, 0));
+    }
+    reply->append(xtx->mPubKey.begin(), xtx->mPubKey.size());
 
-//    sendPacket(hubAddress, reply);
+    sendPacket(hubAddress, reply);
 
     return true;
 }
@@ -1104,36 +1098,34 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             // send xbcTransactionCreate
             // with nLockTime == lockTime*2 for first client,
             // with nLockTime == lockTime*4 for second
-            assert(!"send packet");
-//            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionCreate));
-//            reply1->append(rpc::toXAddr(tr->a_address()));
-//            reply1->append(sessionAddr(), 20);
-//            reply1->append(id.begin(), 32);
-//            reply1->append(tr->b_destination());
-//            reply1->append(tr->a_taxAddress());
-//            reply1->append(static_cast<uint32_t>(0));
-//            reply1->append(tr->a_hx());
-//            reply1->append(tr->b_pk1().begin(), tr->b_pk1().size());
+            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionCreate));
+            reply1->append(rpc::toXAddr(tr->a_address()));
+            reply1->append(sessionAddr(), 20);
+            reply1->append(id.begin(), 32);
+            reply1->append(tr->b_destination());
+            reply1->append(tr->a_taxAddress());
+            reply1->append(static_cast<uint32_t>(0));
+            reply1->append(tr->a_hx());
+            reply1->append(tr->b_pk1().begin(), tr->b_pk1().size());
 
-//            sendPacket(tr->a_address(), reply1);
+            sendPacket(tr->a_address(), reply1);
 
             // second
             // TODO remove this log
             LOG() << "send xbcTransactionCreate to "
                   << util::base64_encode(std::string((char *)&tr->b_address()[0], 20));
 
-            assert(!"send packet");
-//            XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionCreate));
-//            reply2->append(rpc::toXAddr(tr->b_address()));
-//            reply2->append(sessionAddr(), 20);
-//            reply2->append(id.begin(), 32);
-//            reply2->append(tr->a_destination());
-//            reply2->append(tr->b_taxAddress());
-//            reply2->append(tr->tax());
-//            reply2->append(tr->a_hx());
-//            reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
+            XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionCreate));
+            reply2->append(rpc::toXAddr(tr->b_address()));
+            reply2->append(sessionAddr(), 20);
+            reply2->append(id.begin(), 32);
+            reply2->append(tr->a_destination());
+            reply2->append(tr->b_taxAddress());
+            reply2->append(tr->tax());
+            reply2->append(tr->a_hx());
+            reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
 
-//            sendPacket(tr->b_address(), reply2);
+            sendPacket(tr->b_address(), reply2);
         }
     }
 
@@ -1306,14 +1298,13 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     }
 #endif
 
-    assert(!"rpc");
-//    std::vector<rpc::Unspent> entries;
-//    if (!rpc::listUnspent(m_wallet.user, m_wallet.passwd,
-//                          m_wallet.ip, m_wallet.port, entries))
-//    {
-//        LOG() << "rpc::listUnspent failed" << __FUNCTION__;
-//        return true;
-//    }
+    std::vector<rpc::Unspent> entries;
+    if (!rpc::listUnspent(m_wallet.user, m_wallet.passwd,
+                          m_wallet.ip, m_wallet.port, entries))
+    {
+        LOG() << "rpc::listUnspent failed" << __FUNCTION__;
+        return true;
+    }
 
     double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
     double taxToSend = outAmount*(taxPercent/100000);
@@ -1322,22 +1313,21 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     double fee2      = static_cast<double>(minTxFee(1, 1))/XBridgeTransactionDescr::COIN;
     double inAmount  = 0;
 
-    assert(!"rpc");
-//    std::vector<rpc::Unspent> usedInTx;
-//    for (const rpc::Unspent & entry : entries)
-//    {
-//        usedInTx.push_back(entry);
-//        inAmount += entry.amount;
-//        fee1 = static_cast<double>(minTxFee(usedInTx.size(), taxToSend > 0 ? 4 : 3)) / XBridgeTransactionDescr::COIN;
+    std::vector<rpc::Unspent> usedInTx;
+    for (const rpc::Unspent & entry : entries)
+    {
+        usedInTx.push_back(entry);
+        inAmount += entry.amount;
+        fee1 = static_cast<double>(minTxFee(usedInTx.size(), taxToSend > 0 ? 4 : 3)) / XBridgeTransactionDescr::COIN;
 
-//        LOG() << "USED FOR TX <" << entry.txId << "> amount " << entry.amount << " " << entry.vout << " fee " << fee1;
+        LOG() << "USED FOR TX <" << entry.txId << "> amount " << entry.amount << " " << entry.vout << " fee " << fee1;
 
-//        // check amount
-//        if (inAmount >= outAmount+fee1+fee2+taxToSend)
-//        {
-//            break;
-//        }
-//    }
+        // check amount
+        if (inAmount >= outAmount+fee1+fee2+taxToSend)
+        {
+            break;
+        }
+    }
 
     // check amount
     if (inAmount < outAmount+fee1+fee2+taxToSend)
@@ -1386,11 +1376,10 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         std::vector<std::pair<std::string, double> > outputs;
 
         // inputs
-        assert(!"rpc");
-//        for (const rpc::Unspent & entry : usedInTx)
-//        {
-//            inputs.push_back(std::make_pair(entry.txId, entry.vout));
-//        }
+        for (const rpc::Unspent & entry : usedInTx)
+        {
+            inputs.push_back(std::make_pair(entry.txId, entry.vout));
+        }
 
         // outputs
 
@@ -1408,65 +1397,61 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         // rest
         if (inAmount > outAmount+fee1+fee2+taxToSend)
         {
-            assert(!"rpc");
-//            std::string addr;
-//            if (!rpc::getNewAddress(m_wallet.user, m_wallet.passwd,
-//                                    m_wallet.ip, m_wallet.port,
-//                                    addr))
-//            {
-//                // cancel transaction
-//                LOG() << "rpc error, transaction canceled " << __FUNCTION__;
-//                sendCancelTransaction(txid, crRpcError);
-//                return true;
-//            }
+            std::string addr;
+            if (!rpc::getNewAddress(m_wallet.user, m_wallet.passwd,
+                                    m_wallet.ip, m_wallet.port,
+                                    addr))
+            {
+                // cancel transaction
+                LOG() << "rpc error, transaction canceled " << __FUNCTION__;
+                sendCancelTransaction(txid, crRpcError);
+                return true;
+            }
 
-//            double rest = inAmount-outAmount-fee1-fee2-taxToSend;
-//            outputs.push_back(std::make_pair(addr, rest));
+            double rest = inAmount-outAmount-fee1-fee2-taxToSend;
+            outputs.push_back(std::make_pair(addr, rest));
         }
 
-        assert(!"rpc");
-//        std::string bintx;
-//        if (!rpc::createRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                       m_wallet.ip, m_wallet.port,
-//                                       inputs, outputs, 0, bintx))
-//        {
-//            // cancel transaction
-//            LOG() << "create transaction error, transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crRpcError);
-//            return true;
-//        }
+        std::string bintx;
+        if (!rpc::createRawTransaction(m_wallet.user, m_wallet.passwd,
+                                       m_wallet.ip, m_wallet.port,
+                                       inputs, outputs, 0, bintx))
+        {
+            // cancel transaction
+            LOG() << "create transaction error, transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crRpcError);
+            return true;
+        }
 
         // sign
         bool complete = false;
-        assert(!"rpc");
-//        if (!rpc::signRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                     m_wallet.ip, m_wallet.port,
-//                                     bintx, complete))
-//        {
-//            // do not sign, cancel
-//            LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crNotSigned);
-//            return true;
-//        }
+        if (!rpc::signRawTransaction(m_wallet.user, m_wallet.passwd,
+                                     m_wallet.ip, m_wallet.port,
+                                     bintx, complete))
+        {
+            // do not sign, cancel
+            LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crNotSigned);
+            return true;
+        }
 
         assert(complete && "not fully signed");
 
         std::string bintxid;
-        assert(!"rpc");
-//        if (!rpc::decodeRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                       m_wallet.ip, m_wallet.port,
-//                                       bintx, bintxid, binjson))
-//        {
-//            LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crRpcError);
-//            return true;
-//        }
+        if (!rpc::decodeRawTransaction(m_wallet.user, m_wallet.passwd,
+                                       m_wallet.ip, m_wallet.port,
+                                       bintx, bintxid, binjson))
+        {
+            LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crRpcError);
+            return true;
+        }
 
-//        TXLOG() << "bailin sendrawtransaction " << bintx;
-//        TXLOG() << binjson;
+        TXLOG() << "bailin sendrawtransaction " << bintx;
+        TXLOG() << binjson;
 
-//        xtx->binTx   = bintx;
-//        xtx->binTxId = bintxid;
+        xtx->binTx   = bintx;
+        xtx->binTxId = bintxid;
 
     } // binTx
 
@@ -1480,20 +1465,19 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 
         // outputs
         {
-            assert(!"rpc");
-//            std::string addr;
-//            if (!rpc::getNewAddress(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, addr))
-//            {
-//                // cancel transaction
-//                LOG() << "rpc error, transaction canceled " << __FUNCTION__;
-//                sendCancelTransaction(txid, crRpcError);
-//                return true;
-//            }
+            std::string addr;
+            if (!rpc::getNewAddress(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, addr))
+            {
+                // cancel transaction
+                LOG() << "rpc error, transaction canceled " << __FUNCTION__;
+                sendCancelTransaction(txid, crRpcError);
+                return true;
+            }
 
-//            CScript scr;
-//            scr.SetDestination(CBitcoinAddress(addr).Get());
+            CScript scr;
+            scr.SetDestination(CBitcoinAddress(addr).Get());
 
-//            outputs.push_back(std::make_pair(scr, outAmount));
+            outputs.push_back(std::make_pair(scr, outAmount));
         }
 
         assert(!"tx");
