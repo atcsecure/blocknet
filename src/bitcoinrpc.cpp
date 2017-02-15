@@ -67,7 +67,7 @@ void RPCTypeCheck(const Array& params,
         if (!((v.type() == t) || (fAllowNull && (v.type() == null_type))))
         {
             string err = strprintf("Expected type %s, got %s",
-                                   Value_type_name[t], Value_type_name[v.type()]);
+                                   value_type_to_string(t).c_str(), value_type_to_string(v.type()).c_str());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
         i++;
@@ -87,7 +87,7 @@ void RPCTypeCheck(const Object& o,
         if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type))))
         {
             string err = strprintf("Expected type %s for %s, got %s",
-                                   Value_type_name[t.second], t.first.c_str(), Value_type_name[v.type()]);
+                                   value_type_to_string(t.second).c_str(), t.first.c_str(), value_type_to_string(v.type()).c_str());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
     }
