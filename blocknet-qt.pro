@@ -174,8 +174,9 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/xbridge.cpp \
     src/xbridge/xbridgesession.cpp \
     src/xbridge/util/xutil.cpp \
-    src/xbridge/bitcointransaction.cpp \
-    src/xbridge/bitcoinrpcconnector.cpp
+    src/xbridge/bitcoinrpcconnector.cpp \
+    src/xbridge/xbitcoinsecret.cpp \
+    src/xbridge/xbitcointransaction.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -393,8 +394,9 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/xbridgesession.h \
     src/xbridge/util/xutil.h \
     src/xbridge/xuiconnector.h \
-    src/xbridge/bitcointransaction.h \
-    src/xbridge/bitcoinrpcconnector.h
+    src/xbridge/bitcoinrpcconnector.h \
+    src/xbridge/xbitcoinsecret.h \
+    src/xbridge/xbitcointransaction.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

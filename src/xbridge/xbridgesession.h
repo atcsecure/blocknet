@@ -12,7 +12,7 @@
 #include "FastDelegate.h"
 #include "uint256.h"
 #include "key.h"
-// #include "ctransaction.h"
+#include "xbitcointransaction.h"
 
 #include <memory>
 #include <set>
@@ -103,10 +103,10 @@ protected:
     std::string round_x(const long double val, uint32_t prec);
 
     virtual uint32_t lockTime(const char role) const;
-//    virtual CTransactionPtr createTransaction();
-//    virtual CTransactionPtr createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-//                                              const std::vector<std::pair<CScript, double> > & outputs,
-//                                              const uint32_t lockTime = 0);
+    virtual xbridge::CTransactionPtr createTransaction();
+    virtual xbridge::CTransactionPtr createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
+                                                       const std::vector<std::pair<CScript, double> > & outputs,
+                                                       const uint32_t lockTime = 0);
     virtual std::string createRawTransaction(const std::vector<std::pair<std::string, int> > & inputs,
                                              const std::vector<std::pair<CScript, double> > & outputs,
                                              const uint32_t lockTime = 0);

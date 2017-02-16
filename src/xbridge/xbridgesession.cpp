@@ -14,7 +14,8 @@
 #include "util/logger.h"
 #include "util/txlog.h"
 #include "bitcoinrpcconnector.h"
-#include "bitcointransaction.h"
+#include "xbitcointransaction.h"
+#include "xbitcoinsecret.h"
 #include "base58.h"
 #include "script.h"
 
@@ -1191,32 +1192,32 @@ uint32_t XBridgeSession::lockTime(const char /*role*/) const
 
 //******************************************************************************
 //******************************************************************************
-//CTransactionPtr XBridgeSession::createTransaction()
-//{
-//    return CTransactionPtr(new CXCTransaction);
-//}
+xbridge::CTransactionPtr XBridgeSession::createTransaction()
+{
+    return xbridge::CTransactionPtr(new xbridge::CXCTransaction);
+}
 
 //******************************************************************************
 //******************************************************************************
-//CTransactionPtr XBridgeSession::createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-//                                                  const std::vector<std::pair<CScript, double> > &outputs,
-//                                                  const uint32_t lockTime)
-//{
-//    CTransactionPtr tx(new CXCTransaction);
-//    tx->nLockTime = lockTime;
+xbridge::CTransactionPtr XBridgeSession::createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
+                                                           const std::vector<std::pair<CScript, double> > &outputs,
+                                                           const uint32_t lockTime)
+{
+    xbridge::CTransactionPtr tx(new xbridge::CXCTransaction);
+    tx->nLockTime = lockTime;
 
-//    for (const std::pair<std::string, int> & in : inputs)
-//    {
-//        tx->vin.push_back(CTxIn(COutPoint(uint256(in.first), in.second)));
-//    }
+    for (const std::pair<std::string, int> & in : inputs)
+    {
+        tx->vin.push_back(CTxIn(COutPoint(uint256(in.first), in.second)));
+    }
 
-//    for (const std::pair<CScript, double> & out : outputs)
-//    {
-//        tx->vout.push_back(CTxOut(out.second*m_wallet.COIN, out.first));
-//    }
+    for (const std::pair<CScript, double> & out : outputs)
+    {
+        tx->vout.push_back(CTxOut(out.second*m_wallet.COIN, out.first));
+    }
 
-//    return tx;
-//}
+    return tx;
+}
 
 //******************************************************************************
 //******************************************************************************
@@ -1224,9 +1225,8 @@ std::string XBridgeSession::createRawTransaction(const std::vector<std::pair<std
                                                  const std::vector<std::pair<CScript, double> > &outputs,
                                                  const uint32_t lockTime)
 {
-    assert(!"tx");
-//    CTransactionPtr tx(createTransaction(inputs, outputs, lockTime));
-//    return tx->toString();
+    xbridge::CTransactionPtr tx(createTransaction(inputs, outputs, lockTime));
+    return tx->toString();
     return std::string();
 }
 
@@ -1660,15 +1660,14 @@ bool XBridgeSession::processTransactionCreated(XBridgePacketPtr packet)
             LOG() << "send xbcTransactionConfirmA to "
                   << util::base64_encode(std::string((char *)&tr->a_destination()[0], 20));
 
-            assert(!"send packet");
-//            XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmA));
-//            reply->append(rpc::toXAddr(tr->a_destination()));
-//            reply->append(sessionAddr(), 20);
-//            reply->append(txid.begin(), 32);
-//            reply->append(tr->b_bintxid());
-//            reply->append(tr->b_innerScript());
+            XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmA));
+            reply->append(rpc::toXAddr(tr->a_destination()));
+            reply->append(sessionAddr(), 20);
+            reply->append(txid.begin(), 32);
+            reply->append(tr->b_bintxid());
+            reply->append(tr->b_innerScript());
 
-//            sendPacket(tr->a_destination(), reply);
+            sendPacket(tr->a_destination(), reply);
         }
     }
 
@@ -1819,14 +1818,13 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
     xuiConnector.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     // send reply
-    assert(!"send packet");
-//    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmedA));
-//    reply->append(hubAddress);
-//    reply->append(thisAddress);
-//    reply->append(txid.begin(), 32);
-//    reply->append(xtx->xPubKey.begin(), xtx->xPubKey.size());
+    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmedA));
+    reply->append(hubAddress);
+    reply->append(thisAddress);
+    reply->append(txid.begin(), 32);
+    reply->append(xtx->xPubKey.begin(), xtx->xPubKey.size());
 
-//    sendPacket(hubAddress, reply);
+    sendPacket(hubAddress, reply);
 
     return true;
 }
@@ -1892,16 +1890,15 @@ bool XBridgeSession::processTransactionConfirmedA(XBridgePacketPtr packet)
     LOG() << "send xbcTransactionConfirmB to "
           << util::base64_encode(std::string((char *)&tr->b_destination()[0], 20));
 
-    assert(!"send packet");
-//    XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionConfirmB));
-//    reply2->append(rpc::toXAddr(tr->b_destination()));
-//    reply2->append(sessionAddr(), 20);
-//    reply2->append(txid.begin(), 32);
-//    reply2->append(xPubkey.begin(), xPubkey.size());
-//    reply2->append(tr->a_bintxid());
-//    reply2->append(tr->a_innerScript());
+    XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionConfirmB));
+    reply2->append(rpc::toXAddr(tr->b_destination()));
+    reply2->append(sessionAddr(), 20);
+    reply2->append(txid.begin(), 32);
+    reply2->append(xPubkey.begin(), xPubkey.size());
+    reply2->append(tr->a_bintxid());
+    reply2->append(tr->a_innerScript());
 
-//    sendPacket(tr->b_destination(), reply2);
+    sendPacket(tr->b_destination(), reply2);
 
     return true;
 }
@@ -2054,13 +2051,12 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
     xuiConnector.NotifyXBridgeTransactionStateChanged(txid, xtx->state);
 
     // send reply
-    assert(!"send packet");
-//    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmedB));
-//    reply->append(hubAddress);
-//    reply->append(thisAddress);
-//    reply->append(txid.begin(), 32);
+    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmedB));
+    reply->append(hubAddress);
+    reply->append(thisAddress);
+    reply->append(txid.begin(), 32);
 
-//    sendPacket(hubAddress, reply);
+    sendPacket(hubAddress, reply);
 
     return true;
 }
@@ -2550,27 +2546,26 @@ void XBridgeSession::requestAddressBook()
         return;
     }
 
-    assert(!"rpc");
-//    std::vector<rpc::AddressBookEntry> entries;
-//    if (!rpc::requestAddressBook(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, entries))
-//    {
-//        return;
-//    }
+    std::vector<rpc::AddressBookEntry> entries;
+    if (!rpc::requestAddressBook(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, entries))
+    {
+        return;
+    }
 
-//    XBridgeApp & app = XBridgeApp::instance();
+    XBridgeApp & app = XBridgeApp::instance();
 
-//    for (const rpc::AddressBookEntry & e : entries)
-//    {
-//        for (const std::string & addr : e.second)
-//        {
-//            std::vector<unsigned char> vaddr = rpc::toXAddr(addr);
-//            m_addressBook.insert(vaddr);
-//            app.storageStore(shared_from_this(), &vaddr[0]);
+    for (const rpc::AddressBookEntry & e : entries)
+    {
+        for (const std::string & addr : e.second)
+        {
+            std::vector<unsigned char> vaddr = rpc::toXAddr(addr);
+            m_addressBook.insert(vaddr);
+            app.storageStore(shared_from_this(), &vaddr[0]);
 
-//            xuiConnector.NotifyXBridgeAddressBookEntryReceived
-//                    (m_wallet.currency, e.first, addr);
-//        }
-//    }
+            xuiConnector.NotifyXBridgeAddressBookEntryReceived
+                    (m_wallet.currency, e.first, addr);
+        }
+    }
 }
 
 //*****************************************************************************
@@ -2657,13 +2652,12 @@ bool XBridgeSession::revertXBridgeTransaction(const uint256 & id)
     }
 
     // rollback, commit revert transaction
-    assert(!"rpc");
-//    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx))
-//    {
-//        // not commited....send cancel???
-//        // sendCancelTransaction(id);
-//        return true;
-//    }
+    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx))
+    {
+        // not commited....send cancel???
+        // sendCancelTransaction(id);
+        return true;
+    }
 
     return true;
 }
@@ -2750,32 +2744,30 @@ bool XBridgeSession::makeNewPubKey(CPubKey & newPKey) const
     if (m_wallet.isGetNewPubKeySupported)
     {
         // use getnewpubkey
-        assert(!"rpc");
-//        std::string key;
-//        if (!rpc::getNewPubKey(m_wallet.user, m_wallet.passwd,
-//                              m_wallet.ip, m_wallet.port, key))
-//        {
-//            return false;
-//        }
+        std::string key;
+        if (!rpc::getNewPubKey(m_wallet.user, m_wallet.passwd,
+                              m_wallet.ip, m_wallet.port, key))
+        {
+            return false;
+        }
 
-//        newPKey = CPubKey(ParseHex(key));
+        newPKey = CPubKey(ParseHex(key));
     }
     else
     {
         // use importprivkey
-        assert(!"rpc");
-//        CKey newKey;
-//        newKey.MakeNewKey(true);
+        CKey newKey;
+        newKey.MakeNewKey(true);
 
-//        if (!rpc::importPrivKey(m_wallet.user, m_wallet.passwd,
-//                                m_wallet.ip, m_wallet.port,
-//                                CBitcoinSecret(newKey).ToString(), "",
-//                                m_wallet.isImportWithNoScanSupported))
-//        {
-//            return false;
-//        }
+        if (!rpc::importPrivKey(m_wallet.user, m_wallet.passwd,
+                                m_wallet.ip, m_wallet.port,
+                                xbridge::CBitcoinSecret(newKey).ToString(), "",
+                                m_wallet.isImportWithNoScanSupported))
+        {
+            return false;
+        }
 
-//        newPKey = newKey.GetPubKey();
+        newPKey = newKey.GetPubKey();
     }
     return newPKey.IsValid();
 }
