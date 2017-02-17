@@ -1,6 +1,7 @@
 config.pri
 *.user
 build-*
+*.qm
 
 # Windows image file caches
 Thumbs.db
