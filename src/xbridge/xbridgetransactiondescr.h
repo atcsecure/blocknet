@@ -1,10 +1,11 @@
 #ifndef XBRIDGETRANSACTIONDESCR
 #define XBRIDGETRANSACTIONDESCR
 
-#include "uint256.h"
+// #include "uint256.h"
 #include "base58.h"
 #include "xbridgepacket.h"
 #include "xkey.h"
+#include "xbitcoinsecret.h"
 
 #include <string>
 #include <boost/cstdint.hpp>
@@ -87,11 +88,11 @@ struct XBridgeTransactionDescr
 
     // multisig key
     xbridge::CPubKey           mPubKey;
-    CBitcoinSecret             mSecret;
+    xbridge::CBitcoinSecret    mSecret;
 
     // X key
     xbridge::CPubKey           xPubKey;
-    CBitcoinSecret             xSecret;
+    xbridge::CBitcoinSecret    xSecret;
 
     XBridgeTransactionDescr()
         : role(0)

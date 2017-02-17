@@ -15,9 +15,10 @@
 #include "util/txlog.h"
 #include "bitcoinrpcconnector.h"
 #include "xbitcointransaction.h"
+#include "xbitcoinaddress.h"
 #include "xbitcoinsecret.h"
+#include "xbitcoinscript.h"
 #include "base58.h"
-#include "script.h"
 
 #include "json/json_spirit.h"
 #include "json/json_spirit_reader_template.h"
@@ -992,9 +993,8 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
         xbridge::CKey km;
         km.MakeNewKey(true);
 
-        assert(!"key");
-//        xtx->mPubKey = km.GetPubKey();
-//        xtx->mSecret = CBitcoinSecret(km);
+        xtx->mPubKey = km.GetPubKey();
+        xtx->mSecret = xbridge::CBitcoinSecret(km);
     }
 
     // x key
@@ -1003,9 +1003,8 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
         xbridge::CKey kx;
         kx.MakeNewKey(true);
 
-        assert(!"key");
-//        xtx->xPubKey = kx.GetPubKey();
-//        xtx->xSecret = CBitcoinSecret(kx);
+        xtx->xPubKey = kx.GetPubKey();
+        xtx->xSecret = xbridge::CBitcoinSecret(kx);
     }
 
     // send initialized
@@ -1068,8 +1067,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
     offset += 20;
 
     // opponent publick key
-    assert(!"key");
-    xbridge::CPubKey pk1;// (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey pk1(packet->data()+offset, packet->data()+offset+33);
     // offset += 33;
 
     XBridgeTransactionPtr tr = e.transaction(id);
@@ -1200,7 +1198,7 @@ xbridge::CTransactionPtr XBridgeSession::createTransaction()
 //******************************************************************************
 //******************************************************************************
 xbridge::CTransactionPtr XBridgeSession::createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-                                                           const std::vector<std::pair<CScript, double> > &outputs,
+                                                           const std::vector<std::pair<xbridge::CScript, double> > &outputs,
                                                            const uint32_t lockTime)
 {
     xbridge::CTransactionPtr tx(new xbridge::CXCTransaction);
@@ -1211,7 +1209,7 @@ xbridge::CTransactionPtr XBridgeSession::createTransaction(const std::vector<std
         tx->vin.push_back(CTxIn(COutPoint(uint256(in.first), in.second)));
     }
 
-    for (const std::pair<CScript, double> & out : outputs)
+    for (const std::pair<xbridge::CScript, double> & out : outputs)
     {
         tx->vout.push_back(CTxOut(out.second*m_wallet.COIN, out.first));
     }
@@ -1222,7 +1220,7 @@ xbridge::CTransactionPtr XBridgeSession::createTransaction(const std::vector<std
 //******************************************************************************
 //******************************************************************************
 std::string XBridgeSession::createRawTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-                                                 const std::vector<std::pair<CScript, double> > &outputs,
+                                                 const std::vector<std::pair<xbridge::CScript, double> > &outputs,
                                                  const uint32_t lockTime)
 {
     xbridge::CTransactionPtr tx(createTransaction(inputs, outputs, lockTime));
@@ -1265,8 +1263,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     uint160 hx(packet->data()+offset);
     offset += 20;
 
-    assert(!"key");
-    xbridge::CPubKey mPubkey; // (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey mPubkey(packet->data()+offset, packet->data()+offset+33);
     // offset += 33;
 
     XBridgeTransactionDescrPtr xtx;
@@ -1350,24 +1347,24 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     // create transactions
 
     // create address for first tx
-    assert(!"script");
-//    {
-//        CScript inner;
-//        inner << OP_IF
-//                    << lTime << OP_CHECKLOCKTIMEVERIFY << OP_DROP
-//                    << OP_DUP << OP_HASH160 << xtx->mPubKey.GetID() << OP_EQUALVERIFY << OP_CHECKSIG
-//              << OP_ELSE
-//                    << OP_DUP << OP_HASH160 << mPubkey.GetID() << OP_EQUALVERIFY << OP_CHECKSIGVERIFY
-//                    << OP_HASH160 << hx << OP_EQUAL
-//              << OP_ENDIF;
+    {
+        xbridge::CScript inner;
+        inner << OP_IF
+                    << lTime << OP_CHECKLOCKTIMEVERIFY << OP_DROP
+                    << OP_DUP << OP_HASH160 << xtx->mPubKey.GetID() << OP_EQUALVERIFY << OP_CHECKSIG
+              << OP_ELSE
+                    << OP_DUP << OP_HASH160 << mPubkey.GetID() << OP_EQUALVERIFY << OP_CHECKSIGVERIFY
+                    << OP_HASH160 << hx << OP_EQUAL
+              << OP_ENDIF;
 
-//        CBitcoinAddress baddr;
+        assert("bitcoin address");
+//        xbridge::CBitcoinAddress baddr;
 //        baddr.Set(inner.GetID(), m_wallet.scriptPrefix[0]);
 
 //        xtx->multisig    = baddr.ToString();
 //        xtx->innerScript = HexStr(inner.begin(), inner.end());
 
-//    } // address for first tx
+    } // address for first tx
 
     // binTx
     std::string binjson;
@@ -1458,7 +1455,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     // refTx
     {
         std::vector<std::pair<std::string, int> > inputs;
-        std::vector<std::pair<CScript, double> >  outputs;
+        std::vector<std::pair<xbridge::CScript, double> >  outputs;
 
         // inputs from binTx
         inputs.push_back(std::make_pair(xtx->binTxId, 0));
@@ -1474,10 +1471,11 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                 return true;
             }
 
-            CScript scr;
-            scr.SetDestination(CBitcoinAddress(addr).Get());
+            assert("bitcoin address");
+//            xbridge::CScript scr;
+//            scr.SetDestination(CBitcoinAddress(addr).Get());
 
-            outputs.push_back(std::make_pair(scr, outAmount));
+//            outputs.push_back(std::make_pair(scr, outAmount));
         }
 
         assert(!"tx");
@@ -1485,22 +1483,21 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 //        txUnsigned->vin[0].nSequence = std::numeric_limits<uint32_t>::max()-1;
 
         std::vector<unsigned char> vchinner = ParseHex(xtx->innerScript.c_str());
-        CScript inner(vchinner.begin(), vchinner.end());
+        xbridge::CScript inner(vchinner.begin(), vchinner.end());
 
-        assert(!"key");
-//        xbridge::CKey m = xtx->mSecret.GetKey();
-//        if (!m.IsValid())
-//        {
-//            // cancel transaction
-//            LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crNotSigned);
-//            return true;
-//        }
+        xbridge::CKey m = xtx->mSecret.GetKey();
+        if (!m.IsValid())
+        {
+            // cancel transaction
+            LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crNotSigned);
+            return true;
+        }
 
-        CScript redeem;
+        xbridge::CScript redeem;
         {
             assert(!"script");
-//            CScript tmp;
+//            xbridge::CScript tmp;
 //            tmp << xtx->mPubKey << OP_TRUE << inner;
 
 //            std::vector<unsigned char> signature2;
@@ -1719,25 +1716,26 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
     // payTx
     {
         std::vector<std::pair<std::string, int> > inputs;
-        std::vector<std::pair<CScript, double> >  outputs;
+        std::vector<std::pair<xbridge::CScript, double> >  outputs;
 
         // inputs from binTx
         inputs.push_back(std::make_pair(binTxId, 0));
 
         // outputs
         {
-            CScript scr;
-            scr.SetDestination(CBitcoinAddress(xtx->to).Get());
+            assert("bitcoin address");
+//            xbridge::CScript scr;
+//            scr.SetDestination(CBitcoinAddress(xtx->to).Get());
 
-            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
-            outputs.push_back(std::make_pair(scr, outAmount));
+//            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
+//            outputs.push_back(std::make_pair(scr, outAmount));
         }
 
         assert(!"tx");
 //        CTransactionPtr txUnsigned(createTransaction(inputs, outputs));
 
 //        std::vector<unsigned char> vchinner = ParseHex(innerScript.c_str());
-//        CScript inner(vchinner.begin(), vchinner.end());
+//        xbridge::CScript inner(vchinner.begin(), vchinner.end());
 
 //        xbridge::CKey m = xtx->mSecret.GetKey();
 //        if (!m.IsValid())
@@ -1768,7 +1766,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
         // sign2
         {
             assert(!"script");
-//            CScript redeem;
+//            xbridge::CScript redeem;
 //            redeem << xtx->xPubKey
 //                   << signature2 << xtx->mPubKey
 //                   << OP_FALSE << inner;
@@ -1860,8 +1858,7 @@ bool XBridgeSession::processTransactionConfirmedA(XBridgePacketPtr packet)
 
     uint256 txid(packet->data()+40);
 
-    assert(!"key");
-    xbridge::CPubKey xPubkey; // (packet->data()+72, packet->data()+72+33);
+    xbridge::CPubKey xPubkey(packet->data()+72, packet->data()+72+33);
 
     XBridgeTransactionPtr tr = e.transaction(txid);
     boost::mutex::scoped_lock l(tr->m_lock);
@@ -1925,8 +1922,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
 
     uint32_t offset = 72;
 
-    assert(!"key");
-    xbridge::CPubKey x; // (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey x(packet->data()+offset, packet->data()+offset+33);
     offset += 33;
 
     std::string binTxId(reinterpret_cast<const char *>(packet->data()+offset));
@@ -1952,56 +1948,55 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
     // payTx
     {
         std::vector<std::pair<std::string, int> > inputs;
-        std::vector<std::pair<CScript, double> >  outputs;
+        std::vector<std::pair<xbridge::CScript, double> >  outputs;
 
         // inputs from binTx
         inputs.push_back(std::make_pair(binTxId, 0));
 
         // outputs
         {
-            CScript scr;
-            scr.SetDestination(CBitcoinAddress(xtx->to).Get());
+            assert("bitcoin address");
+//            xbridge::CScript scr;
+//            scr.SetDestination(CBitcoinAddress(xtx->to).Get());
 
-            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
-            outputs.push_back(std::make_pair(scr, outAmount));
+//            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
+//            outputs.push_back(std::make_pair(scr, outAmount));
         }
 
-        assert(!"tx");
-//        CTransactionPtr txUnsigned(createTransaction(inputs, outputs));
+        xbridge::CTransactionPtr txUnsigned(createTransaction(inputs, outputs));
 
-//        std::vector<unsigned char> vchredeem = ParseHex(innerScript.c_str());
-//        CScript inner(vchredeem.begin(), vchredeem.end());
+        std::vector<unsigned char> vchredeem = ParseHex(innerScript.c_str());
+        xbridge::CScript inner(vchredeem.begin(), vchredeem.end());
 
-//        xbridge::CKey m = xtx->mSecret.GetKey();
-//        if (!m.IsValid())
-//        {
-//            // cancel transaction
-//            LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crNotSigned);
-//            return true;
-//        }
+        xbridge::CKey m = xtx->mSecret.GetKey();
+        if (!m.IsValid())
+        {
+            // cancel transaction
+            LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crNotSigned);
+            return true;
+        }
 
         std::vector<unsigned char> signature2;
         {
-            assert(!"script");
-//            uint256 hash = SignatureHash2(inner, txUnsigned, 0, SIGHASH_ALL);
-//            if (!m.Sign(hash, signature2))
-//            {
-//                // cancel transaction
-//                LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-//                sendCancelTransaction(txid, crNotSigned);
-//                return true;
-//            }
+            uint256 hash = SignatureHash2(inner, txUnsigned, 0, SIGHASH_ALL);
+            if (!m.Sign(hash, signature2))
+            {
+                // cancel transaction
+                LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
+                sendCancelTransaction(txid, crNotSigned);
+                return true;
+            }
 
-//            signature2.push_back((unsigned char)SIGHASH_ALL);
+            signature2.push_back((unsigned char)SIGHASH_ALL);
 
-//            TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
+            TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
         }
 
         // sign2
         {
             assert(!"tx");
-//            CScript redeem;
+//            xbridge::CScript redeem;
 //            redeem << x
 //                   << signature2 << xtx->mPubKey
 //                   << OP_FALSE << inner;

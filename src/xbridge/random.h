@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 
+namespace xbridge
+{
+
 /* Seed OpenSSL PRNG with additional entropy data */
 void RandAddSeed();
 
@@ -48,5 +51,7 @@ static inline uint32_t insecure_rand(void)
     insecure_rand_Rw = 18000 * (insecure_rand_Rw & 65535) + (insecure_rand_Rw >> 16);
     return (insecure_rand_Rw << 16) + insecure_rand_Rz;
 }
+
+} // namespace xbridge
 
 #endif // BITCOIN_RANDOM_H

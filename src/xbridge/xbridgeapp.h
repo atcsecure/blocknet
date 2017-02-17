@@ -73,9 +73,6 @@ public:
 
     int peersCount() const;
 
-//signals:
-//    void showLogMessage(const QString & msg);
-
 public:
     // const unsigned char * myid() const { return m_myid; }
 
@@ -85,8 +82,6 @@ public:
     bool stop();
 
     bool signalRpcStopActive() const;
-
-    // void logMessage(const QString & msg);
 
     XBridgeSessionPtr sessionByCurrency(const std::string & currency) const;
 

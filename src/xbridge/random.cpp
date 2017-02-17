@@ -14,7 +14,7 @@
 #include "serialize.h"        // for begin_ptr(vec)
 // #include "util.h"             // for LogPrint()
 // #include "utilstrencodings.h" // for GetTime()
-#include "utiltime.h"
+#include "util.h"
 #include "ptr.h"
 
 #include <stdlib.h>
@@ -26,6 +26,9 @@
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
+
+namespace xbridge
+{
 
 static void RandFailure()
 {
@@ -199,3 +202,5 @@ void seed_insecure_rand(bool fDeterministic)
         insecure_rand_Rw = tmp;
     }
 }
+
+} // namespace xbridge

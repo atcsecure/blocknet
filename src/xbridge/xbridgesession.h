@@ -13,6 +13,7 @@
 #include "uint256.h"
 #include "xkey.h"
 #include "xbitcointransaction.h"
+#include "xbitcoinscript.h"
 
 #include <memory>
 #include <set>
@@ -105,10 +106,10 @@ protected:
     virtual uint32_t lockTime(const char role) const;
     virtual xbridge::CTransactionPtr createTransaction();
     virtual xbridge::CTransactionPtr createTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-                                                       const std::vector<std::pair<CScript, double> > & outputs,
+                                                       const std::vector<std::pair<xbridge::CScript, double> > & outputs,
                                                        const uint32_t lockTime = 0);
     virtual std::string createRawTransaction(const std::vector<std::pair<std::string, int> > & inputs,
-                                             const std::vector<std::pair<CScript, double> > & outputs,
+                                             const std::vector<std::pair<xbridge::CScript, double> > & outputs,
                                              const uint32_t lockTime = 0);
 
 protected:

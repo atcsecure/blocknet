@@ -240,6 +240,9 @@ bool XBridgeApp::initRpc()
         return true;
     }
 
+    assert(!"rpc not tested");
+    return true;
+
     m_rpcStop = false;
 
     m_threads.create_thread(boost::bind(&XBridgeApp::rpcThreadProc, this));
