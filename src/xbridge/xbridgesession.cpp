@@ -989,7 +989,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
 
     // m key
     {
-        CKey km;
+        xbridge::CKey km;
         km.MakeNewKey(true);
 
         assert(!"key");
@@ -1000,7 +1000,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
     // x key
     if (role == 'A')
     {
-        CKey kx;
+        xbridge::CKey kx;
         kx.MakeNewKey(true);
 
         assert(!"key");
@@ -1069,7 +1069,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
 
     // opponent publick key
     assert(!"key");
-    CPubKey pk1;// (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey pk1;// (packet->data()+offset, packet->data()+offset+33);
     // offset += 33;
 
     XBridgeTransactionPtr tr = e.transaction(id);
@@ -1266,7 +1266,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     offset += 20;
 
     assert(!"key");
-    CPubKey mPubkey; // (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey mPubkey; // (packet->data()+offset, packet->data()+offset+33);
     // offset += 33;
 
     XBridgeTransactionDescrPtr xtx;
@@ -1488,7 +1488,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         CScript inner(vchinner.begin(), vchinner.end());
 
         assert(!"key");
-//        CKey m = xtx->mSecret.GetKey();
+//        xbridge::CKey m = xtx->mSecret.GetKey();
 //        if (!m.IsValid())
 //        {
 //            // cancel transaction
@@ -1739,7 +1739,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
 //        std::vector<unsigned char> vchinner = ParseHex(innerScript.c_str());
 //        CScript inner(vchinner.begin(), vchinner.end());
 
-//        CKey m = xtx->mSecret.GetKey();
+//        xbridge::CKey m = xtx->mSecret.GetKey();
 //        if (!m.IsValid())
 //        {
 //            // cancel transaction
@@ -1861,7 +1861,7 @@ bool XBridgeSession::processTransactionConfirmedA(XBridgePacketPtr packet)
     uint256 txid(packet->data()+40);
 
     assert(!"key");
-    CPubKey xPubkey; // (packet->data()+72, packet->data()+72+33);
+    xbridge::CPubKey xPubkey; // (packet->data()+72, packet->data()+72+33);
 
     XBridgeTransactionPtr tr = e.transaction(txid);
     boost::mutex::scoped_lock l(tr->m_lock);
@@ -1926,7 +1926,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
     uint32_t offset = 72;
 
     assert(!"key");
-    CPubKey x; // (packet->data()+offset, packet->data()+offset+33);
+    xbridge::CPubKey x; // (packet->data()+offset, packet->data()+offset+33);
     offset += 33;
 
     std::string binTxId(reinterpret_cast<const char *>(packet->data()+offset));
@@ -1972,7 +1972,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
 //        std::vector<unsigned char> vchredeem = ParseHex(innerScript.c_str());
 //        CScript inner(vchredeem.begin(), vchredeem.end());
 
-//        CKey m = xtx->mSecret.GetKey();
+//        xbridge::CKey m = xtx->mSecret.GetKey();
 //        if (!m.IsValid())
 //        {
 //            // cancel transaction
@@ -2739,7 +2739,7 @@ bool XBridgeSession::processTransactionDropped(XBridgePacketPtr packet)
 
 //******************************************************************************
 //******************************************************************************
-bool XBridgeSession::makeNewPubKey(CPubKey & newPKey) const
+bool XBridgeSession::makeNewPubKey(xbridge::CPubKey & newPKey) const
 {
     if (m_wallet.isGetNewPubKeySupported)
     {
@@ -2751,12 +2751,12 @@ bool XBridgeSession::makeNewPubKey(CPubKey & newPKey) const
             return false;
         }
 
-        newPKey = CPubKey(ParseHex(key));
+        newPKey = xbridge::CPubKey(ParseHex(key));
     }
     else
     {
         // use importprivkey
-        CKey newKey;
+        xbridge::CKey newKey;
         newKey.MakeNewKey(true);
 
         if (!rpc::importPrivKey(m_wallet.user, m_wallet.passwd,

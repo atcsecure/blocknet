@@ -65,7 +65,7 @@ public:
     bool updateTransactionWhenInitializedReceived(XBridgeTransactionPtr tx,
                                                   const std::string & from,
                                                   const std::vector<unsigned char> & hx,
-                                                  const CPubKey & pk);
+                                                  const xbridge::CPubKey & pk);
     bool updateTransactionWhenCreatedReceived(XBridgeTransactionPtr tx,
                                               const std::string & from,
                                               const std::string & binTxId,

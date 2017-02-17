@@ -11,7 +11,7 @@
 #include "xbridgewallet.h"
 #include "FastDelegate.h"
 #include "uint256.h"
-#include "key.h"
+#include "xkey.h"
 #include "xbitcointransaction.h"
 
 #include <memory>
@@ -97,7 +97,7 @@ protected:
 
     virtual std::string currencyToLog() const { return std::string("[") + m_wallet.currency + std::string("]"); }
 
-    bool makeNewPubKey(CPubKey & newPKey) const;
+    bool makeNewPubKey(xbridge::CPubKey & newPKey) const;
 
     uint64_t minTxFee(const uint32_t inputCount, const uint32_t outputCount);
     std::string round_x(const long double val, uint32_t prec);

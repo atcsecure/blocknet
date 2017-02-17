@@ -11,6 +11,8 @@
 #include "../crypto/ripemd160.h"
 #include "../crypto/sha256.h"
 
+#include "../support/cleanse.h"
+
 #include <string>
 
 #include <openssl/sha.h>
@@ -76,38 +78,55 @@ public:
 };
 
 /** A hasher class for Bitcoin's 160-bit hash (SHA-256 + RIPEMD-160). */
-class CHash160 {
-private:
-    CSHA256 sha;
-public:
-    static const size_t OUTPUT_SIZE = CRIPEMD160::OUTPUT_SIZE;
+//class CHash160 {
+//private:
+//    CSHA256 sha;
+//public:
+//    static const size_t OUTPUT_SIZE = CRIPEMD160::OUTPUT_SIZE;
 
-    void Finalize(unsigned char hash[OUTPUT_SIZE]) {
-        unsigned char buf[sha.OUTPUT_SIZE];
-        sha.Finalize(buf);
-        CRIPEMD160().Write(buf, sha.OUTPUT_SIZE).Finalize(hash);
-    }
+//    void Finalize(unsigned char hash[OUTPUT_SIZE]) {
+//        unsigned char buf[sha.OUTPUT_SIZE];
+//        sha.Finalize(buf);
+//        CRIPEMD160().Write(buf, sha.OUTPUT_SIZE).Finalize(hash);
+//    }
 
-    CHash160& Write(const unsigned char *data, size_t len) {
-        sha.Write(data, len);
-        return *this;
-    }
+//    CHash160& Write(const unsigned char *data, size_t len) {
+//        sha.Write(data, len);
+//        return *this;
+//    }
 
-    CHash160& Reset() {
-        sha.Reset();
-        return *this;
-    }
-};
+//    CHash160& Reset() {
+//        sha.Reset();
+//        return *this;
+//    }
+//};
 
 /** Compute the 160-bit hash an object. */
-template<typename T1>
-inline uint160 Hash160(const T1 pbegin, const T1 pend)
+//template<typename T1>
+//inline uint160 Hash160(const T1 pbegin, const T1 pend)
+//{
+//    static unsigned char pblank[1] = {};
+//    uint160 result;
+//    CHash160().Write(pbegin == pend ? pblank : (const unsigned char*)&pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))
+//              .Finalize((unsigned char*)&result);
+//    return result;
+//}
+
+//
+// Functions for directly locking/unlocking memory objects.
+// Intended for non-dynamically allocated structures.
+//
+template <typename T>
+void LockObject(const T& t)
 {
-    static unsigned char pblank[1] = {};
-    uint160 result;
-    CHash160().Write(pbegin == pend ? pblank : (const unsigned char*)&pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))
-              .Finalize((unsigned char*)&result);
-    return result;
+    LockedPageManager::instance.LockRange((void*)(&t), sizeof(T));
+}
+
+template <typename T>
+void UnlockObject(const T& t)
+{
+    memory_cleanse((void*)(&t), sizeof(T));
+    LockedPageManager::instance.UnlockRange((void*)(&t), sizeof(T));
 }
 
 #endif // UTIL_H

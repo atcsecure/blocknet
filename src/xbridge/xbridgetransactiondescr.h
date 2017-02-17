@@ -4,7 +4,7 @@
 #include "uint256.h"
 #include "base58.h"
 #include "xbridgepacket.h"
-#include "key.h"
+#include "xkey.h"
 
 #include <string>
 #include <boost/cstdint.hpp>
@@ -86,11 +86,11 @@ struct XBridgeTransactionDescr
     XBridgePacketPtr           packet;
 
     // multisig key
-    CPubKey                    mPubKey;
+    xbridge::CPubKey           mPubKey;
     CBitcoinSecret             mSecret;
 
     // X key
-    CPubKey                    xPubKey;
+    xbridge::CPubKey           xPubKey;
     CBitcoinSecret             xSecret;
 
     XBridgeTransactionDescr()

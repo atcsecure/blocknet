@@ -6,7 +6,7 @@
 
 #include "uint256.h"
 #include "xbridgetransactionmember.h"
-#include "key.h"
+#include "xkey.h"
 
 #include <vector>
 #include <string>
@@ -107,7 +107,7 @@ public:
     std::string                a_innerScript() const;
 
     std::vector<unsigned char> a_hx() const;
-    CPubKey                    a_pk1() const;
+    xbridge::CPubKey           a_pk1() const;
 
     // uint256                    secondId() const;
     std::string                b_address() const;
@@ -121,7 +121,7 @@ public:
     std::string                b_innerScript() const;
 
     // std::vector<unsigned char> b_hx() const;
-    CPubKey                    b_pk1() const;
+    xbridge::CPubKey           b_pk1() const;
 
     std::string                fromXAddr(const std::vector<unsigned char> & xaddr) const;
 
@@ -135,7 +135,7 @@ public:
 
     bool                       setKeys(const std::string & addr,
                                        const std::vector<unsigned char> & hx,
-                                       const CPubKey & pk);
+                                       const xbridge::CPubKey & pk);
     bool                       setPayTx(const std::string & addr,
                                         const std::string & prevtxs,
                                         const std::string & payTx);
@@ -187,8 +187,8 @@ private:
     std::vector<unsigned char> m_a_hx;
     std::vector<unsigned char> m_b_hx;
 
-    CPubKey                    m_a_pk1;
-    CPubKey                    m_b_pk1;
+    xbridge::CPubKey           m_a_pk1;
+    xbridge::CPubKey           m_b_pk1;
 
     boost::uint32_t            m_tax;
     std::string                m_a_taxAddress;

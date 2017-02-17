@@ -2,7 +2,7 @@
 #define XBITCOINSECRET_H
 
 #include "base58.h"
-#include "key.h"
+#include "xkey.h"
 
 namespace xbridge
 {

@@ -385,7 +385,7 @@ std::vector<unsigned char> XBridgeTransaction::a_hx() const
 
 //*****************************************************************************
 //*****************************************************************************
-CPubKey XBridgeTransaction::a_pk1() const
+xbridge::CPubKey XBridgeTransaction::a_pk1() const
 {
     return m_a_pk1;
 }
@@ -469,7 +469,7 @@ std::string XBridgeTransaction::b_innerScript() const
 
 //*****************************************************************************
 //*****************************************************************************
-CPubKey XBridgeTransaction::b_pk1() const
+xbridge::CPubKey XBridgeTransaction::b_pk1() const
 {
     return m_b_pk1;
 }
@@ -594,7 +594,7 @@ bool XBridgeTransaction::tryJoin(const XBridgeTransactionPtr other)
 //*****************************************************************************
 bool XBridgeTransaction::setKeys(const std::string & addr,
                                  const std::vector<unsigned char> & hx,
-                                 const CPubKey & pk)
+                                 const xbridge::CPubKey & pk)
 {
     if (m_b.dest() == addr)
     {
