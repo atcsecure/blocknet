@@ -73,12 +73,6 @@ public:
     friend bool operator!=(const CPubKey &a, const CPubKey &b) { return a.vchPubKey != b.vchPubKey; }
     friend bool operator<(const CPubKey &a, const CPubKey &b) { return a.vchPubKey < b.vchPubKey; }
 
-    //! Simple read-only vector-like interface to the pubkey data.
-    unsigned int size() const { return vchPubKey.size(); }
-    const unsigned char* begin() const { return &vchPubKey[0]; }
-    const unsigned char* end() const { return begin() + size(); }
-    const unsigned char& operator[](unsigned int pos) const { return vchPubKey[pos]; }
-
     IMPLEMENT_SERIALIZE(
         READWRITE(vchPubKey);
     )
