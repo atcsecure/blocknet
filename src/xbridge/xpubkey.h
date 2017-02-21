@@ -10,6 +10,7 @@
 #include "serialize.h"
 #include "uint256.h"
 #include "util.h"
+#include "key.h"
 
 #include <stdexcept>
 #include <vector>
@@ -30,12 +31,12 @@ namespace xbridge
 const unsigned int BIP32_EXTKEY_SIZE = 74;
 
 /** A reference to a CKey: the Hash160 of its serialized public key */
-class CKeyID : public uint160
-{
-public:
-    CKeyID() : uint160() {}
-    CKeyID(const uint160& in) : uint160(in) {}
-};
+//class CKeyID : public uint160
+//{
+//public:
+//    CKeyID() : uint160() {}
+//    CKeyID(const uint160& in) : uint160(in) {}
+//};
 
 typedef uint256 ChainCode;
 

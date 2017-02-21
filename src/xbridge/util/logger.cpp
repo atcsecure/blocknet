@@ -5,6 +5,8 @@
 #include "settings.h"
 #include "xbridge/xuiconnector.h"
 
+#include "util.h"
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -87,30 +89,7 @@ LOG::~LOG()
 // static
 std::string LOG::makeFileName()
 {
-    std::string path = settings().logPath().size() ?
-                       settings().logPath() :
-                       settings().appPath();
-
-    if (!path.size())
-    {
-        assert(!"wtf? empty path???");
-        return std::string();
-    }
-
-#ifdef WIN32
-    char sep = '\\';
-    std::replace(path.begin(), path.end(), '/', sep);
-#else
-    char sep = '/';
-    std::replace(path.begin(), path.end(), '\\', sep);
-#endif
-
-    if (path[path.size()-1] != sep)
-    {
-        path.append(1, sep);
-    }
-
-    return path +
+    return GetDataDir().string() + "/" +
             "xbridgep2p_" +
             boost::posix_time::to_iso_string(boost::posix_time::second_clock::local_time()) +
             ".log";

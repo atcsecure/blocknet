@@ -92,29 +92,31 @@ public:
         SetString(pszAddress);
     }
 
-    CTxDestination Get() const {
+    /*CTxDestination*/
+    CKeyID Get() const {
         if (!IsValid())
-            return CNoDestination();
+            // return CNoDestination();
+            return CKeyID();
 
         uint160 id;
         memcpy(&id, &vchData[0], 20);
         return CKeyID(id);
 
-        switch (nVersion) {
-        case PUBKEY_ADDRESS:
-        case PUBKEY_ADDRESS_TEST: {
-            uint160 id;
-            memcpy(&id, &vchData[0], 20);
-            return CKeyID(id);
-        }
-        case SCRIPT_ADDRESS:
-        case SCRIPT_ADDRESS_TEST: {
-            uint160 id;
-            memcpy(&id, &vchData[0], 20);
-            return CScriptID(id);
-        }
-        }
-        return CNoDestination();
+//        switch (nVersion) {
+//        case PUBKEY_ADDRESS:
+//        case PUBKEY_ADDRESS_TEST: {
+//            uint160 id;
+//            memcpy(&id, &vchData[0], 20);
+//            return CKeyID(id);
+//        }
+//        case SCRIPT_ADDRESS:
+//        case SCRIPT_ADDRESS_TEST: {
+//            uint160 id;
+//            memcpy(&id, &vchData[0], 20);
+//            return CScriptID(id);
+//        }
+//        }
+//        return CNoDestination();
     }
 
     bool GetKeyID(CKeyID &keyID) const {

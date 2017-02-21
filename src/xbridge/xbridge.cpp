@@ -3,7 +3,7 @@
 
 #include "xbridge.h"
 #include "xbridgesession.h"
-// #include "xbridgesessionbtc.h"
+#include "xbridgesessionbtc.h"
 // #include "xbridgesessionethereum.h"
 // #include "xbridgesessionrpccommon.h"
 #include "xbridgeapp.h"
@@ -74,31 +74,29 @@ XBridge::XBridge()
                           << ":" << wp.port; // << " COIN=" << wp.COIN;
                 }
 
-                assert(!"sessions");
-
-//                XBridgeSessionPtr session;
-//                if (wp.method == "ETHER")
-//                {
-//                    assert(!"not implemented");
-//                    // session.reset(new XBridgeSessionEthereum(wp));
-//                }
-//                else if (wp.method == "BTC")
-//                {
-//                    session.reset(new XBridgeSessionBtc(wp));
-//                }
-//                else if (wp.method == "RPC")
-//                {
-//                    assert(!"not implemented");
-//                    // session.reset(new XBridgeSessionRpc(wp));
-//                }
-//                else
-//                {
-//                    session.reset(new XBridgeSession(wp));
-//                }
-//                if (session)
-//                {
-//                    app.addSession(session);
-//                }
+                XBridgeSessionPtr session;
+                if (wp.method == "ETHER")
+                {
+                    assert(!"not implemented");
+                    // session.reset(new XBridgeSessionEthereum(wp));
+                }
+                else if (wp.method == "BTC")
+                {
+                    session.reset(new XBridgeSessionBtc(wp));
+                }
+                else if (wp.method == "RPC")
+                {
+                    assert(!"not implemented");
+                    // session.reset(new XBridgeSessionRpc(wp));
+                }
+                else
+                {
+                    session.reset(new XBridgeSession(wp));
+                }
+                if (session)
+                {
+                    app.addSession(session);
+                }
             }
         }
     }

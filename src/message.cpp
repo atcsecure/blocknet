@@ -130,7 +130,7 @@ bool Message::isExpired() const
 bool Message::send()
 {
     // return broadcast();
-    return xbridge().sendXChatMessage(*this);
+    // return xbridge().sendXChatMessage(*this);
 }
 
 //*****************************************************************************

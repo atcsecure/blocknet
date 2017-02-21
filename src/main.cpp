@@ -12,6 +12,7 @@
 #include "ui_interface.h"
 #include "kernel.h"
 #include "message.h"
+#include "xbridgeconnector.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -3457,13 +3458,15 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
     else if (strCommand == "xbridge")
     {
-        XBridgeNetworkPacket pkt;
-        vRecv >> pkt;
+        std::vector<unsigned char> raw;
+        vRecv >> raw;
 
-        uint256 hash = pkt.getNetworkHash();
+        uint256 hash = Hash(raw.begin(), raw.end());
         if (pfrom->setKnown.count(hash))
         {
-            // TODO process packet
+            XBridgePacketPtr ptr(new XBridgePacket());
+            ptr->copyFrom(raw);
+            xbridge().processPacket(ptr);
         }
         pfrom->setKnown.insert(hash);
     }
