@@ -971,10 +971,10 @@ int64_t GetProofOfWorkReward(int64_t nFees)
         {
             nSubsidy = 10000000 * COIN; // 4 million coins for ico
         }
-       
+
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfWorkReward() : create=%s nSubsidy=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
-       
+
     return nSubsidy + nFees;
 }
 
@@ -1865,7 +1865,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
-// might not find out about their coin age. Older transactions are 
+// might not find out about their coin age. Older transactions are
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
@@ -2498,10 +2498,10 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nTime    = 1413915684;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
         block.nNonce   = 1658806;
-		if(fTestNet)
+        if(fTestNet)
         {
             block.nNonce   = 1658806;
-			
+
         }
         if (false  && (block.GetHash() != hashGenesisBlock)) {
 
@@ -3117,7 +3117,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     if (inv.hash == pfrom->hashContinue)
                     {
                         // ppcoin: send latest proof-of-work block to allow the
-                        // download node to accept as orphan (proof-of-stake 
+                        // download node to accept as orphan (proof-of-stake
                         // block might be rejected by stake connection check)
                         vector<CInv> vInv;
                         vInv.push_back(CInv(MSG_BLOCK, GetLastBlockIndex(pindexBest, false)->GetBlockHash()));
@@ -3455,53 +3455,67 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
+    else if (strCommand == "xbridge")
+    {
+        XBridgeNetworkPacket pkt;
+        vRecv >> pkt;
+
+        uint256 hash = pkt.getNetworkHash();
+        if (pfrom->setKnown.count(hash))
+        {
+            // TODO process packet
+        }
+        pfrom->setKnown.insert(hash);
+    }
+
     // messages
-    else if (strCommand == "message")
-    {
-        // received message
-        Message msg;
-        vRecv >> msg;
+    // TODO move to xbridge packet processing fn
+//    else if (strCommand == "message")
+//    {
+//        // received message
+//        Message msg;
+//        vRecv >> msg;
 
-        // check known
-        uint256 hash = msg.getNetworkHash();
-        if (pfrom->setKnown.count(hash) == 0)
-        {
-            pfrom->setKnown.insert(hash);
+//        // check known
+//        uint256 hash = msg.getNetworkHash();
+//        if (pfrom->setKnown.count(hash) == 0)
+//        {
+//            pfrom->setKnown.insert(hash);
 
-            bool isForMe = false;
-            if (!msg.process(isForMe))
-            {
-                pfrom->Misbehaving(10);
-            }
+//            bool isForMe = false;
+//            if (!msg.process(isForMe))
+//            {
+//                pfrom->Misbehaving(10);
+//            }
 
-            if (!isForMe)
-            {
-                // relay, if message not for me
-                msg.broadcast();
-            }
-        }
-    }
-    else if (strCommand == "msgack")
-    {
-        // message delivered
-        uint256 hash;
-        vRecv >> hash;
+//            if (!isForMe)
+//            {
+//                // relay, if message not for me
+//                msg.broadcast();
+//            }
+//        }
+//    }
+//    else if (strCommand == "msgack")
+//    {
+//        // message delivered
+//        uint256 hash;
+//        vRecv >> hash;
 
-        if (pfrom->setKnown.count(hash) == 0)
-        {
-            pfrom->setKnown.insert(hash);
+//        if (pfrom->setKnown.count(hash) == 0)
+//        {
+//            pfrom->setKnown.insert(hash);
 
-            if (!Message::processReceived(hash))
-            {
-                // relay, if not for me
-                LOCK(cs_vNodes);
-                BOOST_FOREACH(CNode* pnode, vNodes)
-                {
-                    pnode->PushMessage("msgack", hash);
-                }
-            }
-        }
-    }
+//            if (!Message::processReceived(hash))
+//            {
+//                // relay, if not for me
+//                LOCK(cs_vNodes);
+//                BOOST_FOREACH(CNode* pnode, vNodes)
+//                {
+//                    pnode->PushMessage("msgack", hash);
+//                }
+//            }
+//        }
+//    }
 
 
     else
