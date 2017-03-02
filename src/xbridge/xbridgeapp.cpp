@@ -12,6 +12,7 @@
 #include "xuiconnector.h"
 #include "bitcoinrpc.h"
 #include "net.h"
+#include "util.h"
 // #include "bitcoinrpcconnection.h"
 
 //#ifndef NO_GUI
@@ -64,7 +65,6 @@ XBridgeApp::XBridgeApp()
     , m_ipv4(true)
     , m_ipv6(true)
     , m_dhtPort(Config::DHT_PORT)
-    , m_serviceSession(new XBridgeSession)
 {
 }
 
@@ -125,11 +125,35 @@ const unsigned char hash[20] =
 
 //*****************************************************************************
 //*****************************************************************************
-bool XBridgeApp::init(int argc, char *argv[])
+bool XBridgeApp::init()
 {
-#ifndef NO_GUI
-    m_app.reset(new QApplication(argc, argv));
-#endif
+    // init xbridge settings
+    Settings & s = settings();
+    {
+        // TODO only windows temporary
+        char modulename[MAX_PATH];
+        ::GetModuleFileNameA(0, modulename, MAX_PATH);
+
+//        std::string path(modulename);
+//        std::string::size_type pos = path.rfind(".");
+//        if (pos != std::string::npos)
+//        {
+//            path = path.substr(0, pos);
+//        }
+        std::string path(GetDataDir().string());
+        path += "/xbridge.conf";
+        s.read(path.c_str());
+
+        char *ptr[1];
+        ptr[0] = modulename;
+        s.parseCmdLine(1, ptr);
+    }
+
+    m_serviceSession.reset(new XBridgeSession);
+
+    // start xbrige
+    m_bridge = XBridgePtr(new XBridge());
+
     return true;
 }
 
@@ -266,29 +290,7 @@ bool XBridgeApp::signalRpcStopActive() const
 
 //*****************************************************************************
 //*****************************************************************************
-void XBridgeApp::onGenerate()
-{
-    m_signalGenerate = true;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-void XBridgeApp::onDump()
-{
-    m_signalDump = true;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-void XBridgeApp::onSearch(const std::string & id)
-{
-    m_searchStrings.push_back(id);
-    m_signalSearch = true;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & /*from*/, const UcharVector & message)
+void XBridgeApp::onSend(const UcharVector & message)
 {
     uint256 hash = Hash(message.begin(), message.end());
 
@@ -304,18 +306,18 @@ void XBridgeApp::onSend(const UcharVector & /*from*/, const UcharVector & messag
 
 //*****************************************************************************
 //*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & from, const XBridgePacketPtr packet)
+void XBridgeApp::onSend(const XBridgePacketPtr & packet)
 {
     UcharVector v;
     std::copy(packet->header(), packet->header()+packet->allSize(), std::back_inserter(v));
-    onSend(from, v);
+    onSend(v);
 }
 
 //*****************************************************************************
 // send packet to xbridge network to specified id,
 // or broadcast, when id is empty
 //*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & /*from*/, const UcharVector & /*id*/, const UcharVector & message)
+void XBridgeApp::onSend(const UcharVector & /*id*/, const UcharVector & message)
 {
     uint256 hash = Hash(message.begin(), message.end());
 
@@ -330,11 +332,12 @@ void XBridgeApp::onSend(const UcharVector & /*from*/, const UcharVector & /*id*/
 }
 
 //*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & from, const UcharVector & id, const XBridgePacketPtr packet)
+//*****************************************************************************
+void XBridgeApp::onSend(const UcharVector & id, const XBridgePacketPtr & packet)
 {
     UcharVector v;
     std::copy(packet->header(), packet->header()+packet->allSize(), std::back_inserter(v));
-    onSend(from, id, v);
+    onSend(id, v);
 }
 
 //*****************************************************************************
@@ -765,7 +768,7 @@ bool XBridgeApp::sendAcceptingTransaction(XBridgeTransactionDescrPtr & ptr)
     ptr->packet->append(tc);
     ptr->packet->append(ptr->toAmount);
 
-    onSend(thisAddress, ptr->hubAddress, ptr->packet);
+    onSend(ptr->hubAddress, ptr->packet);
 
     return true;
 }
@@ -801,13 +804,6 @@ bool XBridgeApp::sendCancelTransaction(const uint256 & txid,
     // cancelled
     return true;
 }
-
-//******************************************************************************
-//******************************************************************************
-//int XBridgeApp::peersCount() const
-//{
-//    return dht_get_count(0, 0);
-//}
 
 //******************************************************************************
 //******************************************************************************

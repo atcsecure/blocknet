@@ -538,10 +538,10 @@ OTHER_FILES += \
     doc/*.rst doc/*.txt doc/README README.md res/bitcoin-qt.rc
 
 # platform specific defaults, if not overridden on command line
-isEmpty(BOOST_LIB_SUFFIX) {
-    macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX = -mgw48-mt-s-1_55
-}
+#isEmpty(BOOST_LIB_SUFFIX) {
+#    macx:BOOST_LIB_SUFFIX = -mt
+#    windows:BOOST_LIB_SUFFIX = -mgw48-mt-s-1_55
+#}
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {
     BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX

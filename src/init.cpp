@@ -2,6 +2,13 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include "xbridge/xbridgeapp.h"
+
+#ifdef STRICT
+#undef STRICT
+#endif
+
 #include "txdb.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
@@ -10,7 +17,6 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
-#include "xbridgeconnector.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -22,7 +28,6 @@
 #ifndef WIN32
 #include <signal.h>
 #endif
-
 
 using namespace std;
 using namespace boost;
@@ -909,8 +914,9 @@ bool AppInit2()
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
 
-    // start xbridge and announce local addresses
-    xbridge().connect();
+    // start xbridge
+    XBridgeApp & app = XBridgeApp::instance();
+    app.init();
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

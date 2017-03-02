@@ -4,7 +4,7 @@
 #ifndef XBRIDGECONNECTOR_H
 #define XBRIDGECONNECTOR_H
 
-#include "xbridgepacket.h"
+#include "xbridge/xbridgepacket.h"
 #include "message.h"
 #include "FastDelegate.h"
 

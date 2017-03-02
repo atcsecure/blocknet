@@ -50,7 +50,7 @@ public:
 
     static std::string version();
 
-    bool init(int argc, char *argv[]);
+    bool init();
 
     int exec();
 
@@ -70,8 +70,6 @@ public:
 
     bool cancelXBridgeTransaction(const uint256 & id, const TxCancelReason & reason);
     bool sendCancelTransaction(const uint256 & txid, const TxCancelReason & reason);
-
-    int peersCount() const;
 
 public:
     // const unsigned char * myid() const { return m_myid; }
@@ -98,22 +96,7 @@ public:
 
     void handleRpcRequest(rpc::AcceptedConnection * conn);
 
-public:// slots:
-    // generate new id
-    void onGenerate();
-    // dump local table
-    void onDump();
-    // search id
-    void onSearch(const std::string & id);
-    // send messave via xbridge
-    void onSend(const UcharVector & from, const UcharVector & message);
-    void onSend(const UcharVector & from, const XBridgePacketPtr packet);
-    void onSend(const UcharVector & from, const UcharVector & id, const std::vector<unsigned char> & message);
-    void onSend(const UcharVector & from, const UcharVector & id, const XBridgePacketPtr packet);
-    // call when message from xbridge network received
-    void onMessageReceived(const std::vector<unsigned char> & id, const std::vector<unsigned char> & message);
-    // broadcast message
-    void onBroadcastReceived(const std::vector<unsigned char> & message);
+    XBridgeSessionPtr serviceSession();
 
     void storeAddressBookEntry(const std::string & currency,
                                const std::string & name,
@@ -124,7 +107,19 @@ public:// slots:
 
     void checkUnconfirmedTx();
 
-    XBridgeSessionPtr serviceSession();
+public:// slots:
+    // send messave via xbridge
+    void onSend(const XBridgePacketPtr & packet);
+    void onSend(const UcharVector & id, const XBridgePacketPtr & packet);
+
+    // call when message from xbridge network received
+    void onMessageReceived(const std::vector<unsigned char> & id, const std::vector<unsigned char> & message);
+    // broadcast message
+    void onBroadcastReceived(const std::vector<unsigned char> & message);
+
+private:
+    void onSend(const UcharVector & message);
+    void onSend(const UcharVector & id, const std::vector<unsigned char> & message);
 
 public:
     static void sleep(const unsigned int umilliseconds);

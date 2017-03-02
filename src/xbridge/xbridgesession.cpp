@@ -279,17 +279,15 @@ bool XBridgeSession::decryptPacket(XBridgePacketPtr /*packet*/)
 //*****************************************************************************
 //*****************************************************************************
 void XBridgeSession::sendPacket(const std::vector<unsigned char> & to,
-                                XBridgePacketPtr packet)
+                                const XBridgePacketPtr & packet)
 {
     XBridgeApp & app = XBridgeApp::instance();
-    app.onSend(std::vector<unsigned char>(m_myid, m_myid + 20),
-               to,
-               packet->body());
+    app.onSend(to, packet);
 }
 
 //*****************************************************************************
 //*****************************************************************************
-void XBridgeSession::sendPacket(const std::string & to, XBridgePacketPtr packet)
+void XBridgeSession::sendPacket(const std::string & to, const XBridgePacketPtr & packet)
 {
     sendPacket(rpc::toXAddr(to), packet);
 }
@@ -443,26 +441,28 @@ bool XBridgeSession::takeXBridgeMessage(const std::vector<unsigned char> & messa
 //*****************************************************************************
 bool XBridgeSession::processXChatMessage(XBridgePacketPtr packet)
 {
-    DEBUG_TRACE();
-
-    // size must be > 20 bytes (160bit)
-    if (packet->size() <= 20)
-    {
-        ERR() << "invalid packet size for xbcXChatMessage "
-              << "need more than 20 received " << packet->size() << " "
-              << __FUNCTION__;
-        return false;
-    }
-
-    // read dest address
-    std::vector<unsigned char> daddr(packet->data(), packet->data() + 20);
-
-    XBridgeApp & app = XBridgeApp::instance();
-    app.onSend(std::vector<unsigned char>(m_myid, m_myid + 20),
-               daddr,
-               std::vector<unsigned char>(packet->header(), packet->header()+packet->allSize()));
-
+    assert(!"check rhis fn");
     return true;
+
+//    DEBUG_TRACE();
+
+//    // size must be > 20 bytes (160bit)
+//    if (packet->size() <= 20)
+//    {
+//        ERR() << "invalid packet size for xbcXChatMessage "
+//              << "need more than 20 received " << packet->size() << " "
+//              << __FUNCTION__;
+//        return false;
+//    }
+
+//    // read dest address
+//    std::vector<unsigned char> daddr(packet->data(), packet->data() + 20);
+
+//    XBridgeApp & app = XBridgeApp::instance();
+//    app.onSend(daddr,
+//               std::vector<unsigned char>(packet->header(), packet->header()+packet->allSize()));
+
+//    return true;
 }
 
 //*****************************************************************************

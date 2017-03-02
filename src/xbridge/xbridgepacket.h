@@ -409,16 +409,18 @@ public:
         sizeField() = static_cast<uint32_t>(m_body.size()) - headerSize;
     }
 
-    void    copyFrom(const std::vector<unsigned char> & data)
+    bool copyFrom(const std::vector<unsigned char> & data)
     {
         m_body = data;
 
         if (sizeField() != static_cast<uint32_t>(data.size())-headerSize)
         {
             assert(!"incorrect data size in XBridgePacket::copyFrom");
+            return false;
         }
 
         // TODO check packet crc
+        return true;
     }
 
     XBridgePacket() : m_body(headerSize, 0)

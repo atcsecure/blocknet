@@ -3,6 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "xbridge/xbridgeapp.h"
 #include "alert.h"
 #include "checkpoints.h"
 #include "db.h"
@@ -12,7 +13,7 @@
 #include "ui_interface.h"
 #include "kernel.h"
 #include "message.h"
-#include "xbridgeconnector.h"
+// #include "xbridgeconnector.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -3462,13 +3463,19 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         vRecv >> raw;
 
         uint256 hash = Hash(raw.begin(), raw.end());
-        if (pfrom->setKnown.count(hash))
+        if (!pfrom->setKnown.count(hash))
         {
-            XBridgePacketPtr ptr(new XBridgePacket());
-            ptr->copyFrom(raw);
-            xbridge().processPacket(ptr);
+            pfrom->setKnown.insert(hash);
+
+            if (raw.size() > 20)
+            {
+                std::vector<unsigned char> addr(raw.begin(), raw.begin()+20);
+                raw.erase(raw.begin(), raw.begin()+20);
+
+                XBridgeApp & app = XBridgeApp::instance();
+                app.onMessageReceived(addr, raw);
+            }
         }
-        pfrom->setKnown.insert(hash);
     }
 
     // messages
