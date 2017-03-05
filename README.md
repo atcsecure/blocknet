@@ -6,3 +6,7 @@
 
 -- xbridgep2p is blocknets cross chain router
 -- https://github.com/atcsecure/xbridgep2p/
+
+## Router spec summary
+-- gateway node's broadcast the hosted chains
+-- client nodes maintain table of chains and which gateway nodes
