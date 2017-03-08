@@ -35,11 +35,7 @@ public:
 
     unsigned short dhtPort() const    { return m_dhtPort; }
 
-    std::string logPath() const
-    {
-        try { return m_pt.get<std::string>("Main.LogPath"); }
-        catch (std::exception &) {} return std::string();
-    }
+    std::string logPath() const;
 
     std::vector<std::string> peers() const;
 

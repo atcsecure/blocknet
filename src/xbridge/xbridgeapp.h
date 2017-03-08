@@ -192,9 +192,9 @@ public:
     static boost::mutex                                  m_txUnconfirmedLocker;
     static std::map<uint256, XBridgeTransactionDescrPtr> m_unconfirmed;
 
-#ifndef NO_GUI
-    std::shared_ptr<QCoreApplication> m_app;
-#endif
+//#ifndef NO_GUI
+//    std::shared_ptr<QCoreApplication> m_app;
+//#endif
 };
 
 #endif // XBRIDGEAPP_H

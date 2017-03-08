@@ -5,6 +5,8 @@
 #include "logger.h"
 #include "../config.h"
 
+#include "../../main.h"
+
 #include <algorithm>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -122,6 +124,16 @@ bool Settings::write(const char * fileName)
     }
 
     return true;
+}
+
+//******************************************************************************
+//******************************************************************************
+std::string Settings::logPath() const
+{
+//    try { return m_pt.get<std::string>("Main.LogPath"); }
+//    catch (std::exception &) {} return std::string();
+
+    return std::string(GetDataDir().string()) + "/";
 }
 
 //******************************************************************************

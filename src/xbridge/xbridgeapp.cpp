@@ -131,8 +131,8 @@ bool XBridgeApp::init()
     Settings & s = settings();
     {
         // TODO only windows temporary
-        char modulename[MAX_PATH];
-        ::GetModuleFileNameA(0, modulename, MAX_PATH);
+        // char modulename[MAX_PATH];
+        // ::GetModuleFileNameA(0, modulename, MAX_PATH);
 
 //        std::string path(modulename);
 //        std::string::size_type pos = path.rfind(".");
@@ -145,7 +145,7 @@ bool XBridgeApp::init()
         s.read(path.c_str());
 
         char *ptr[1];
-        ptr[0] = modulename;
+        ptr[0] = qPrintable(qApp->applicationFilePath());
         s.parseCmdLine(1, ptr);
     }
 
