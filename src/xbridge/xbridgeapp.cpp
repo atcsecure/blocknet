@@ -101,7 +101,7 @@ std::string XBridgeApp::version()
 
 //*****************************************************************************
 //*****************************************************************************
-int XBridgeApp::exec()
+bool XBridgeApp::start()
 {
 //#ifdef NO_GUI
 //    m_threads.join_all();
@@ -113,6 +113,13 @@ int XBridgeApp::exec()
 
 //    return m_app->exec();
 //#endif
+
+    m_serviceSession.reset(new XBridgeSession);
+
+    // start xbrige
+    m_bridge = XBridgePtr(new XBridge());
+
+    return true;
 }
 
 //*****************************************************************************
@@ -130,29 +137,20 @@ bool XBridgeApp::init()
     // init xbridge settings
     Settings & s = settings();
     {
-        // TODO only windows temporary
-        // char modulename[MAX_PATH];
-        // ::GetModuleFileNameA(0, modulename, MAX_PATH);
-
-//        std::string path(modulename);
-//        std::string::size_type pos = path.rfind(".");
-//        if (pos != std::string::npos)
-//        {
-//            path = path.substr(0, pos);
-//        }
         std::string path(GetDataDir().string());
         path += "/xbridge.conf";
         s.read(path.c_str());
 
-        char *ptr[1];
-        ptr[0] = qPrintable(qApp->applicationFilePath());
-        s.parseCmdLine(1, ptr);
+        QStringList arguments = qApp->arguments();
+        int argc = arguments.size() + 1;
+        char *argv[argc];
+        argv[0] = qPrintable(qApp->applicationFilePath());
+        for (int i = 1; i < argc; ++i)
+        {
+            argv[i] = qPrintable(arguments[i-1]);
+        }
+        s.parseCmdLine(argc, argv);
     }
-
-    m_serviceSession.reset(new XBridgeSession);
-
-    // start xbrige
-    m_bridge = XBridgePtr(new XBridge());
 
     return true;
 }

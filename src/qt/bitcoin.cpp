@@ -12,6 +12,8 @@
 #include "ui_interface.h"
 #include "qtipcserver.h"
 
+#include "xbridge/xbridgeapp.h"
+
 #include <QApplication>
 #include <QMessageBox>
 #include <QTextCodec>
@@ -214,6 +216,10 @@ int main(int argc, char *argv[])
         // Regenerate startup link, to fix links to old versions
         if (GUIUtil::GetStartOnSystemStartup())
             GUIUtil::SetStartOnSystemStartup(true);
+
+        // init xbridge
+        XBridgeApp & xapp = XBridgeApp::instance();
+        xapp.init();
 
         BitcoinGUI window;
         guiref = &window;

@@ -916,7 +916,7 @@ bool AppInit2()
 
     // start xbridge
     XBridgeApp & app = XBridgeApp::instance();
-    app.init();
+    app.start();
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

@@ -51,8 +51,7 @@ public:
     static std::string version();
 
     bool init();
-
-    int exec();
+    bool start();
 
 
     uint256 sendXBridgeTransaction(const std::string & from,

@@ -31,7 +31,7 @@ const QString testToAmount("0.0005");
 //******************************************************************************
 XBridgeTransactionDialog::XBridgeTransactionDialog(XBridgeTransactionsModel & model,
                                                    QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::Dialog)
     // , m_walletModel(0)
     , m_model(model)
     , m_addressBook(this)

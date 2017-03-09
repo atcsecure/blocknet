@@ -10,7 +10,7 @@
 //******************************************************************************
 //******************************************************************************
 XBridgeAddressBookView::XBridgeAddressBookView(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent, Qt::Dialog)
 {
     setupUi();
 }
