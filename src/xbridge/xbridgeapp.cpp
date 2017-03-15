@@ -132,7 +132,7 @@ const unsigned char hash[20] =
 
 //*****************************************************************************
 //*****************************************************************************
-bool XBridgeApp::init()
+bool XBridgeApp::init(int argc, char *argv[])
 {
     // init xbridge settings
     Settings & s = settings();
@@ -140,17 +140,12 @@ bool XBridgeApp::init()
         std::string path(GetDataDir().string());
         path += "/xbridge.conf";
         s.read(path.c_str());
-
-        QStringList arguments = qApp->arguments();
-        int argc = arguments.size() + 1;
-        char *argv[argc];
-        argv[0] = qPrintable(qApp->applicationFilePath());
-        for (int i = 1; i < argc; ++i)
-        {
-            argv[i] = qPrintable(arguments[i-1]);
-        }
         s.parseCmdLine(argc, argv);
     }
+
+    // init exchange
+    XBridgeExchange & e = XBridgeExchange::instance();
+    e.init();
 
     return true;
 }
@@ -288,43 +283,37 @@ bool XBridgeApp::signalRpcStopActive() const
 
 //*****************************************************************************
 //*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & message)
-{
-    uint256 hash = Hash(message.begin(), message.end());
-
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode * pnode, vNodes)
-    {
-        if (pnode->setKnown.insert(hash).second)
-        {
-            pnode->PushMessage("xbridge", message);
-        }
-    }
-}
-
-//*****************************************************************************
-//*****************************************************************************
 void XBridgeApp::onSend(const XBridgePacketPtr & packet)
 {
-    UcharVector v;
-    std::copy(packet->header(), packet->header()+packet->allSize(), std::back_inserter(v));
-    onSend(v);
+    static UcharVector addr(20, 0);
+    UcharVector v(packet->header(), packet->header()+packet->allSize());
+    onSend(addr, v);
 }
 
 //*****************************************************************************
 // send packet to xbridge network to specified id,
 // or broadcast, when id is empty
 //*****************************************************************************
-void XBridgeApp::onSend(const UcharVector & /*id*/, const UcharVector & message)
+void XBridgeApp::onSend(const UcharVector & id, const UcharVector & message)
 {
-    uint256 hash = Hash(message.begin(), message.end());
+    UcharVector msg(id);
+
+    // timestamp
+    time_t timestamp = std::time(0);
+    unsigned char * ptr = reinterpret_cast<unsigned char *>(&timestamp);
+    msg.insert(msg.end(), ptr, ptr + sizeof(time_t));
+
+    // body
+    msg.insert(msg.end(), message.begin(), message.end());
+
+    uint256 hash = Hash(msg.begin(), msg.end());
 
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode * pnode, vNodes)
+    for  (CNode * pnode : vNodes)
     {
         if (pnode->setKnown.insert(hash).second)
         {
-            pnode->PushMessage("xbridge", message);
+            pnode->PushMessage("xbridge", msg);
         }
     }
 }
@@ -342,6 +331,13 @@ void XBridgeApp::onSend(const UcharVector & id, const XBridgePacketPtr & packet)
 //*****************************************************************************
 void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & message)
 {
+    if (isKnownMessage(message))
+    {
+        return;
+    }
+
+    addToKnown(message);
+
     static UcharVector localid(m_myid, m_myid+20);
 
     XBridgePacketPtr packet(new XBridgePacket);
@@ -382,7 +378,7 @@ void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & m
 
     else
     {
-        LOG() << "process message for unknown address";
+        // LOG() << "process message for unknown address";
     }
 }
 
@@ -397,7 +393,12 @@ XBridgeSessionPtr XBridgeApp::serviceSession()
 //*****************************************************************************
 void XBridgeApp::onBroadcastReceived(const std::vector<unsigned char> & message)
 {
-    // LOG() << "received broadcast message";
+    if (isKnownMessage(message))
+    {
+        return;
+    }
+
+    addToKnown(message);
 
     // process message
     XBridgePacketPtr packet(new XBridgePacket);
@@ -700,7 +701,8 @@ bool XBridgeApp::sendPendingTransaction(XBridgeTransactionDescrPtr & ptr)
         ptr->packet->append(ptr->toAmount);
     }
 
-    onSend(std::vector<unsigned char>(m_myid, m_myid+20), ptr->packet);
+    // onSend(std::vector<unsigned char>(m_myid, m_myid+20), ptr->packet);
+    onSend(ptr->packet);
 
     ptr->state = XBridgeTransactionDescr::trPending;
 
@@ -750,7 +752,7 @@ bool XBridgeApp::sendAcceptingTransaction(XBridgeTransactionDescrPtr & ptr)
     std::vector<unsigned char> tc(8, 0);
     std::copy(ptr->toCurrency.begin(), ptr->toCurrency.end(), tc.begin());
 
-    std::vector<unsigned char> thisAddress(m_myid, m_myid+20);
+    // std::vector<unsigned char> thisAddress(m_myid, m_myid+20);
 
     // 20 bytes - id of transaction
     // 2x

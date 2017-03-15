@@ -50,7 +50,8 @@ public:
 
     static std::string version();
 
-    bool init();
+    bool init(int argc, char *argv[]);
+    bool start();
     bool start();
 
 
@@ -117,8 +118,7 @@ public:// slots:
     void onBroadcastReceived(const std::vector<unsigned char> & message);
 
 private:
-    void onSend(const UcharVector & message);
-    void onSend(const UcharVector & id, const std::vector<unsigned char> & message);
+    void onSend(const UcharVector & id, const UcharVector & message);
 
 public:
     static void sleep(const unsigned int umilliseconds);
