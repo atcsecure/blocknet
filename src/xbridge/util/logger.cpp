@@ -14,6 +14,7 @@
 #include <mutex>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 
 std::mutex logLocker;
 
@@ -89,7 +90,10 @@ LOG::~LOG()
 // static
 std::string LOG::makeFileName()
 {
-    return GetDataDir().string() + "/" +
+    boost::filesystem::path directory = GetDataDir() / "log";
+    boost::filesystem::create_directory(directory);
+
+    return directory.string() + "/" +
             "xbridgep2p_" +
             boost::posix_time::to_iso_string(boost::posix_time::second_clock::local_time()) +
             ".log";
