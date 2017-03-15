@@ -3467,13 +3467,37 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             pfrom->setKnown.insert(hash);
 
-            if (raw.size() > 20)
+            // Relay
             {
+                LOCK(cs_vNodes);
+                for  (CNode * pnode : vNodes)
+                {
+                    if (pnode->setKnown.insert(hash).second)
+                    {
+                        pnode->PushMessage("xbridge", raw);
+                    }
+                }
+            }
+
+            if (raw.size() > 20 + sizeof(time_t))
+            {
+                static std::vector<unsigned char> zero(20, 0);
                 std::vector<unsigned char> addr(raw.begin(), raw.begin()+20);
+                // remove addr from raw
                 raw.erase(raw.begin(), raw.begin()+20);
+                // remove timestamp from raw
+                raw.erase(raw.begin(), raw.begin()+sizeof(time_t));
 
                 XBridgeApp & app = XBridgeApp::instance();
-                app.onMessageReceived(addr, raw);
+
+                if (addr != zero)
+                {
+                    app.onMessageReceived(addr, raw);
+                }
+                else
+                {
+                    app.onBroadcastReceived(raw);
+                }
             }
         }
     }
