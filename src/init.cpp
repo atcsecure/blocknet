@@ -177,6 +177,8 @@ bool AppInit(int argc, char* argv[])
             exit(ret);
         }
 
+        assert(!"init xbridge");
+
         fRet = AppInit2();
     }
     catch (std::exception& e) {
