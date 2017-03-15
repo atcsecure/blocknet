@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 
         // init xbridge
         XBridgeApp & xapp = XBridgeApp::instance();
-        xapp.init();
+        xapp.init(argc, argv);
 
         BitcoinGUI window;
         guiref = &window;
