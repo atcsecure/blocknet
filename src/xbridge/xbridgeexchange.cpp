@@ -6,7 +6,7 @@
 #include "util/logger.h"
 #include "util/settings.h"
 #include "util/xutil.h"
-#include "bitcoinrpc.h"
+#include "bitcoinrpcconnector.h"
 
 #include <algorithm>
 
@@ -64,13 +64,12 @@ bool XBridgeExchange::init()
         }
 
         // get new addres for receive fee
-        assert(!"rpc new address");
         std::string feeAddress;
-//        if (!rpc::getNewAddress(user, passwd, ip, port, feeAddress))
-//        {
-//            LOG() << "wallet not connected " << *i;
-//            continue;
-//        }
+        if (!rpc::getNewAddress(user, passwd, ip, port, feeAddress))
+        {
+            LOG() << "wallet not connected " << *i;
+            continue;
+        }
 
         WalletParam & wp = m_wallets[*i];
         wp.currency   = *i;
