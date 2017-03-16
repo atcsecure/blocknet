@@ -52,7 +52,6 @@ public:
 
     bool init(int argc, char *argv[]);
     bool start();
-    bool start();
 
 
     uint256 sendXBridgeTransaction(const std::string & from,

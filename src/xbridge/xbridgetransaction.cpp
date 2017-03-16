@@ -4,7 +4,7 @@
 #include "xbridgetransaction.h"
 #include "util/logger.h"
 #include "util/xutil.h"
-// #include "bitcoinrpc.h"
+#include "bitcoinrpcconnector.h"
 
 
 //*****************************************************************************
@@ -478,23 +478,22 @@ xbridge::CPubKey XBridgeTransaction::b_pk1() const
 //*****************************************************************************
 std::string XBridgeTransaction::fromXAddr(const std::vector<unsigned char> & xaddr) const
 {
-    assert(!"rpc");
-//    if (rpc::toXAddr(m_a.source()) == xaddr)
-//    {
-//        return m_a.source();
-//    }
-//    else if (rpc::toXAddr(m_b.source()) == xaddr)
-//    {
-//        return m_b.source();
-//    }
-//    else if (rpc::toXAddr(m_a.dest()) == xaddr)
-//    {
-//        return m_a.dest();
-//    }
-//    else if (rpc::toXAddr(m_b.dest()) == xaddr)
-//    {
-//        return m_b.dest();
-//    }
+    if (rpc::toXAddr(m_a.source()) == xaddr)
+    {
+        return m_a.source();
+    }
+    else if (rpc::toXAddr(m_b.source()) == xaddr)
+    {
+        return m_b.source();
+    }
+    else if (rpc::toXAddr(m_a.dest()) == xaddr)
+    {
+        return m_a.dest();
+    }
+    else if (rpc::toXAddr(m_b.dest()) == xaddr)
+    {
+        return m_b.dest();
+    }
     return std::string();
 }
 

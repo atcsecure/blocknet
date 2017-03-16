@@ -14,6 +14,7 @@
 #include "net.h"
 #include "util.h"
 // #include "bitcoinrpcconnection.h"
+#include "xkey.h"
 
 //#ifndef NO_GUI
 //#include "../qt/xbridgeui/xbridgetransactionsview.h"
@@ -143,6 +144,9 @@ bool XBridgeApp::init(int argc, char *argv[])
         s.parseCmdLine(argc, argv);
     }
 
+    // init secp256
+    xbridge::ECC_Start();
+
     // init exchange
     XBridgeExchange & e = XBridgeExchange::instance();
     e.init();
@@ -244,6 +248,9 @@ bool XBridgeApp::stop()
     m_bridge->stop();
 
     m_threads.join_all();
+
+    // secp stop
+    xbridge::ECC_Stop();
 
     return true;
 }
