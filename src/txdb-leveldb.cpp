@@ -337,7 +337,7 @@ bool CTxDB::LoadBlockIndex()
     leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
     // Seek to start key.
     CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
-    ssStartKey << make_pair(string("blockindex"), uint256(0));
+    ssStartKey << make_pair(string("blockindex"), uint256());
     iterator->Seek(ssStartKey.str());
     // Now read each entry.
     while (iterator->Valid())
