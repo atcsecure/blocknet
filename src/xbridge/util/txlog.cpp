@@ -3,6 +3,9 @@
 
 #include "txlog.h"
 #include "settings.h"
+#include "xbridge/xuiconnector.h"
+
+#include "util.h"
 
 #include <string>
 #include <sstream>
@@ -11,6 +14,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/filesystem.hpp>
 
 boost::mutex txlogLocker;
 
@@ -82,12 +86,11 @@ TXLOG::~TXLOG()
 // static
 std::string TXLOG::makeFileName()
 {
-    const static std::string path     = settings().logPath().size() ?
-                                        settings().logPath() :
-                                        settings().appPath();
+    boost::filesystem::path directory = GetDataDir() / "log-tx";
+    boost::filesystem::create_directory(directory);
 
-    return path +
-            "/xbridgep2p_tx_" +
+    return directory.string() + "/" +
+            "xbridgep2p_" +
             boost::posix_time::to_iso_string(boost::posix_time::second_clock::local_time()) +
             ".log";
 }
