@@ -996,6 +996,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
     }
 
     // x key
+    uint256 datatxtd;
     if (role == 'A')
     {
         xbridge::CKey kx;
@@ -1003,6 +1004,18 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
 
         xtx->xPubKey = kx.GetPubKey();
         xtx->xSecret = xbridge::CBitcoinSecret(kx);
+
+        // send blocknet tx with hash of X
+        CKeyID xid = xtx->xPubKey.GetID();
+        std::string strtxid;
+        if (!rpc::storeDataIntoBlockchain(std::vector<unsigned char>(xid.begin(), xid.end()), strtxid))
+        {
+            ERR() << "error send blocknet tx " << __FUNCTION__;
+            sendCancelTransaction(txid, crBlocknetError);
+            return true;
+        }
+
+        datatxtd = uint256(strtxid);
     }
 
     // send initialized
@@ -1010,14 +1023,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
     reply->append(hubAddress);
     reply->append(thisAddress);
     reply->append(txid.begin(), 32);
-    if (role == 'A')
-    {
-        reply->append(xtx->xPubKey.GetID().begin(), 20);
-    }
-    else
-    {
-        reply->append(std::vector<unsigned char>(20, 0));
-    }
+    reply->append(datatxtd.begin(), 32);
     reply->append(xtx->mPubKey.begin(), xtx->mPubKey.size());
 
     sendPacket(hubAddress, reply);
@@ -1032,11 +1038,11 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
     // DEBUG_TRACE();
     DEBUG_TRACE_LOG(currencyToLog());
 
-    // size must be eq 125 bytes
-    if (packet->size() != 125)
+    // size must be eq 137 bytes
+    if (packet->size() != 137)
     {
         ERR() << "invalid packet size for xbcTransactionHoldApply "
-              << "need 138 received " << packet->size() << " "
+              << "need 137 received " << packet->size() << " "
               << __FUNCTION__;
         return false;
     }
@@ -1060,9 +1066,10 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
 
     uint32_t offset = 72;
 
-    // hash X
-    std::vector<unsigned char> hx(packet->data()+offset, packet->data()+offset+20);
-    offset += 20;
+    // data tx id
+    uint256 datatxid(packet->data() + offset);
+    // std::vector<unsigned char> hx(packet->data()+offset, packet->data()+offset+20);
+    offset += 32;
 
     // opponent publick key
     xbridge::CPubKey pk1(packet->data()+offset, packet->data()+offset+33);
@@ -1081,7 +1088,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
         return true;
     }
 
-    if (e.updateTransactionWhenInitializedReceived(tr, sfrom, hx, pk1))
+    if (e.updateTransactionWhenInitializedReceived(tr, sfrom, datatxid, pk1))
     {
         if (tr->state() == XBridgeTransaction::trInitialized)
         {
@@ -1102,7 +1109,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             reply1->append(tr->b_destination());
             reply1->append(tr->a_taxAddress());
             reply1->append(static_cast<uint32_t>(0));
-            reply1->append(tr->a_hx());
+            reply1->append(tr->a_datatxid().begin(), 20);
             reply1->append(tr->b_pk1().begin(), tr->b_pk1().size());
 
             sendPacket(tr->a_address(), reply1);
@@ -1119,7 +1126,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             reply2->append(tr->a_destination());
             reply2->append(tr->b_taxAddress());
             reply2->append(tr->tax());
-            reply2->append(tr->a_hx());
+            reply2->append(tr->a_datatxid().begin(), 20);
             reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
 
             sendPacket(tr->b_address(), reply2);
@@ -1232,10 +1239,10 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 {
     DEBUG_TRACE_LOG(currencyToLog());
 
-    if (packet->size() < 193)
+    if (packet->size() < 205)
     {
         ERR() << "incorrect packet size for xbcTransactionCreate "
-              << "need min 193 bytes, received " << packet->size() << " "
+              << "need min 205 bytes, received " << packet->size() << " "
               << __FUNCTION__;
         return false;
     }
@@ -1258,11 +1265,26 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     const uint32_t taxPercent = *reinterpret_cast<uint32_t *>(packet->data()+offset);
     offset += sizeof(uint32_t);
 
-    uint160 hx(packet->data()+offset);
-    offset += 20;
+    uint256 datatxid(packet->data()+offset);
+    offset += 32;
 
     xbridge::CPubKey mPubkey(packet->data()+offset, packet->data()+offset+33);
     // offset += 33;
+
+    std::vector<unsigned char> hx;
+    if (!rpc::getDataFromTx(datatxid.GetHex(), hx))
+    {
+        // no data, move to pending
+        boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+        XBridgeApp::m_pendingPackets[txid] = packet;
+        return true;
+    }
+    else
+    {
+        // remove from pending packets (if added)
+        boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+        XBridgeApp::m_pendingPackets.erase(txid);
+    }
 
     XBridgeTransactionDescrPtr xtx;
     {
@@ -2139,6 +2161,12 @@ bool XBridgeSession::processTransactionCancel(XBridgePacketPtr packet)
         xtx = XBridgeApp::m_transactions[txid];
     }
 
+    {
+        // remove from pending packets (if added)
+        boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+        XBridgeApp::m_pendingPackets.erase(txid);
+    }
+
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trCancelled;
 
@@ -2634,7 +2662,8 @@ bool XBridgeSession::revertXBridgeTransaction(const uint256 & id)
     }
 
     // rollback, commit revert transaction
-    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx))
+    std::string txid;
+    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx, txid))
     {
         // not commited....send cancel???
         // sendCancelTransaction(id);
@@ -2752,4 +2781,21 @@ bool XBridgeSession::makeNewPubKey(xbridge::CPubKey & newPKey) const
         newPKey = newKey.GetPubKey();
     }
     return newPKey.IsValid();
+}
+
+//******************************************************************************
+//******************************************************************************
+void XBridgeSession::processPendingPackets()
+{
+    std::map<uint256, XBridgePacketPtr> map;
+    {
+        boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+        map = XBridgeApp::m_pendingPackets;
+        XBridgeApp::m_pendingPackets.clear();
+    }
+
+    for (const std::pair<uint256, XBridgePacketPtr> & item : map)
+    {
+        processPacket(item.second);
+    }
 }

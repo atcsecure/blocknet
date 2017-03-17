@@ -378,9 +378,9 @@ std::string XBridgeTransaction::a_innerScript() const
 
 //*****************************************************************************
 //*****************************************************************************
-std::vector<unsigned char> XBridgeTransaction::a_hx() const
+uint256 XBridgeTransaction::a_datatxid() const
 {
-    return m_a_hx;
+    return m_a_datatxid;
 }
 
 //*****************************************************************************
@@ -462,9 +462,9 @@ std::string XBridgeTransaction::b_innerScript() const
 
 //*****************************************************************************
 //*****************************************************************************
-//std::vector<unsigned char> XBridgeTransaction::b_hx() const
+// uint256 XBridgeTransaction::b_datatxid() const
 //{
-//    return m_b_hx;
+//    return m_b_datatxid;
 //}
 
 //*****************************************************************************
@@ -592,19 +592,19 @@ bool XBridgeTransaction::tryJoin(const XBridgeTransactionPtr other)
 //*****************************************************************************
 //*****************************************************************************
 bool XBridgeTransaction::setKeys(const std::string & addr,
-                                 const std::vector<unsigned char> & hx,
+                                 const uint256 & datatxid,
                                  const xbridge::CPubKey & pk)
 {
     if (m_b.dest() == addr)
     {
-        m_b_hx  = hx;
-        m_b_pk1 = pk;
+        m_b_datatxid = datatxid;
+        m_b_pk1      = pk;
         return true;
     }
     else if (m_a.dest() == addr)
     {
-        m_a_hx  = hx;
-        m_a_pk1 = pk;
+        m_a_datatxid = datatxid;
+        m_a_pk1      = pk;
         return true;
     }
     return false;

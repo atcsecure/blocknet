@@ -46,21 +46,25 @@ public:
 
     bool processPacket(XBridgePacketPtr packet);
 
-    virtual void sendListOfWallets();
-    virtual void sendListOfTransactions();
-    virtual void checkFinishedTransactions();
-    virtual void eraseExpiredPendingTransactions();
+public:
+    // service functions
+    void sendListOfWallets();
+    void sendListOfTransactions();
+    void checkFinishedTransactions();
+    void eraseExpiredPendingTransactions();
 
-    virtual void resendAddressBook();
-    virtual void sendAddressbookEntry(const std::string & currency,
-                                      const std::string & name,
-                                      const std::string & address);
+    void resendAddressBook();
+    void sendAddressbookEntry(const std::string & currency,
+                              const std::string & name,
+                              const std::string & address);
 
-    virtual void getAddressBook();
-    virtual void requestAddressBook();
+    void getAddressBook();
+    void requestAddressBook();
 
     void checkUnconfirmedTx();
     void requestUnconfirmedTx();
+
+    void processPendingPackets();
 
 private:
     virtual void init();

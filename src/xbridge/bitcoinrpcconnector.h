@@ -89,7 +89,8 @@ namespace rpc
                             const std::string & rpcpasswd,
                             const std::string & rpcip,
                             const std::string & rpcport,
-                            const std::string & rawtx);
+                            const std::string & rawtx,
+                            std::string & txid);
 
     bool getNewAddress(const std::string & rpcuser,
                        const std::string & rpcpasswd,
@@ -150,6 +151,9 @@ namespace rpc
                              const uint64_t & amount,
                              const uint64_t & fee);
 
+    // helper fn-s
+    bool storeDataIntoBlockchain(const std::vector<unsigned char> & data, std::string & txid);
+    bool getDataFromTx(const std::string & txid, std::vector<unsigned char> & data);
 
 } // namespace rpc
 

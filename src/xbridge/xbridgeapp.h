@@ -190,6 +190,9 @@ public:
     static boost::mutex                                  m_txUnconfirmedLocker;
     static std::map<uint256, XBridgeTransactionDescrPtr> m_unconfirmed;
 
+    static boost::mutex                                  m_ppLocker;
+    static std::map<uint256, XBridgePacketPtr>           m_pendingPackets;
+
 //#ifndef NO_GUI
 //    std::shared_ptr<QCoreApplication> m_app;
 //#endif

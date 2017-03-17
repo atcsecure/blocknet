@@ -370,10 +370,10 @@ bool XBridgeExchange::updateTransactionWhenHoldApplyReceived(XBridgeTransactionP
 //*****************************************************************************
 bool XBridgeExchange::updateTransactionWhenInitializedReceived(XBridgeTransactionPtr tx,
                                                                const std::string & from,
-                                                               const std::vector<unsigned char> & hx,
+                                                               const uint256 & datatxid,
                                                                const xbridge::CPubKey & pk)
 {
-    if (!tx->setKeys(from, hx, pk))
+    if (!tx->setKeys(from, datatxid, pk))
     {
         // wtf?
         LOG() << "unknown sender address for transaction, id <" << tx->id().GetHex() << ">";

@@ -4,17 +4,10 @@
 #include "json/json_spirit_utils.h"
 
 #include <boost/asio.hpp>
-//#include <boost/asio/ip/v6_only.hpp>
-//#include <boost/bind.hpp>
-//#include <boost/filesystem.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/algorithm/string.hpp>
-//#include <boost/lexical_cast.hpp>
 #include <boost/asio/ssl.hpp>
-//#include <boost/filesystem/fstream.hpp>
-//#include <boost/shared_ptr.hpp>
-//#include <list>
 #include <stdio.h>
 
 #include "bitcoinrpcconnector.h"
@@ -24,6 +17,8 @@
 #include "base58.h"
 #include "bignum.h"
 #include "bitcoinrpc.h"
+#include "wallet.h"
+#include "init.h"
 
 #define HTTP_DEBUG
 
@@ -973,7 +968,8 @@ bool sendRawTransaction(const std::string & rpcuser,
                         const std::string & rpcpasswd,
                         const std::string & rpcip,
                         const std::string & rpcport,
-                        const std::string & rawtx)
+                        const std::string & rawtx,
+                        string & txid)
 {
     try
     {
@@ -994,6 +990,29 @@ bool sendRawTransaction(const std::string & rpcuser,
             // int code = find_value(error.get_obj(), "code").get_int();
             return false;
         }
+
+        const Value & result = find_value(reply, "result");
+        if (result.type() != obj_type)
+        {
+            // Result
+            LOG() << "result not an object " <<
+                     (result.type() == null_type ? "" :
+                      result.type() == str_type  ? result.get_str() :
+                                                   write_string(result, true));
+            return false;
+        }
+
+        const Value  & tx = find_value(result.get_obj(), "hex");
+        if (tx.type() != str_type)
+        {
+            LOG() << "bad hex " <<
+                     (tx.type() == null_type ? "" :
+                      tx.type() == str_type  ? tx.get_str() :
+                                                   write_string(tx, true));
+            return false;
+        }
+
+        txid = tx.get_str();
     }
     catch (std::exception & e)
     {
@@ -1525,6 +1544,184 @@ bool eth_sendTransaction(const std::string & rpcip,
     }
 
     return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
+                             string & txid)
+{
+    const static std::string createCommand("createrawtransaction");
+    const static std::string signCommand("signrawtransaction");
+    const static std::string sendCommand("sendrawtransaction");
+
+    int errCode = 0;
+    std::string errMessage;
+
+    try
+    {
+        Object outputs;
+
+        std::string strdata = HexStr(data.begin(), data.end());
+        outputs.push_back(Pair("data", strdata));
+
+        int64_t fee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (2 + (uint64_t)data.size() / 1000);
+
+        std::vector<COutput> vCoins;
+        pwalletMain->AvailableCoins(vCoins, true, nullptr);
+        // model->wallet->AvailableCoins(vCoins, true, nullptr);
+
+        int64_t amount = 0;
+        std::vector<COutput> used;
+
+        for (const COutput & out : vCoins)
+        {
+            amount += out.tx->vout[out.i].nValue;
+
+            used.push_back(out);
+
+            if (amount >= fee)
+            {
+                break;
+            }
+        }
+
+        if (amount < fee)
+        {
+            throw std::runtime_error("No money");
+        }
+        else if (amount > fee)
+        {
+            // rest
+            CReserveKey rkey(pwalletMain);
+            CPubKey pk = rkey.GetReservedKey();
+            CBitcoinAddress addr(pk.GetID());
+            uint64_t rest = amount - fee;
+            outputs.push_back(Pair(addr.ToString(), (double)rest/COIN));
+        }
+
+        Array inputs;
+        for (const COutput & out : used)
+        {
+            Object tmp;
+            tmp.push_back(Pair("txid", out.tx->GetHash().ToString()));
+            tmp.push_back(Pair("vout", out.i));
+            inputs.push_back(tmp);
+        }
+
+        Value result;
+        std::string rawtx;
+
+        {
+            Array params;
+            params.push_back(inputs);
+            params.push_back(outputs);
+
+            // call create
+            result = tableRPC.execute(createCommand, params);
+            if (result.type() != str_type)
+            {
+                throw std::runtime_error("Create transaction command finished with error");
+            }
+
+            rawtx = result.get_str();
+        }
+
+        {
+            std::vector<std::string> params;
+            params.push_back(rawtx);
+
+            result = tableRPC.execute(signCommand, RPCConvertValues(signCommand, params));
+            if (result.type() != obj_type)
+            {
+                throw std::runtime_error("Sign transaction command finished with error");
+            }
+
+            Object obj = result.get_obj();
+            const Value  & tx = find_value(obj, "hex");
+            const Value & cpl = find_value(obj, "complete");
+
+            if (tx.type() != str_type || cpl.type() != bool_type || !cpl.get_bool())
+            {
+                throw std::runtime_error("Sign transaction error or not completed");
+            }
+
+            rawtx = tx.get_str();
+        }
+
+        {
+            std::vector<std::string> params;
+            params.push_back(rawtx);
+
+            result = tableRPC.execute(sendCommand, RPCConvertValues(sendCommand, params));
+            if (result.type() != str_type)
+            {
+                throw std::runtime_error("Send transaction command finished with error");
+            }
+
+            txid = result.get_str();
+        }
+    }
+    catch (json_spirit::Object & obj)
+    {
+        //
+        errCode = find_value(obj, "code").get_int();
+        errMessage = find_value(obj, "message").get_str();
+    }
+    catch (std::runtime_error & e)
+    {
+        // specified error
+        errCode = -1;
+        errMessage = e.what();
+    }
+    catch (...)
+    {
+        errCode = -1;
+        errMessage = "unknown error";
+    }
+
+    if (errCode != 0)
+    {
+//        QMessageBox::warning(this,
+//                             trUtf8("Send Coins"),
+//                             trUtf8("Failed, code %1\n%2").arg(QString::number(errCode), QString::fromStdString(errMessage)),
+//                             QMessageBox::Ok,
+//                             QMessageBox::Ok);
+        return false;
+    }
+
+    return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+bool getDataFromTx(const std::string & strtxid, std::vector<unsigned char> & data)
+{
+    uint256 txid(strtxid);
+
+    CTransaction tx;
+    uint256 block;
+    if (!GetTransaction(txid, tx, block))
+    {
+        return false;
+    }
+
+    uint32_t cnt = 0;
+    const std::vector<CTxOut> & vout = tx.vout;
+    for (const CTxOut & out : vout)
+    {
+        auto it = out.scriptPubKey.begin();
+        opcodetype op;
+        out.scriptPubKey.GetOp(it, op);
+        if (op == OP_RETURN)
+        {
+            return out.scriptPubKey.GetOp(it, op, data);
+        }
+
+        ++cnt;
+    }
+
+    return false;
 }
 
 } // namespace rpc

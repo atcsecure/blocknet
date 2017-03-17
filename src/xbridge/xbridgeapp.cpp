@@ -47,6 +47,8 @@ std::map<uint256, XBridgeTransactionDescrPtr> XBridgeApp::m_pendingTransactions;
 std::map<uint256, XBridgeTransactionDescrPtr> XBridgeApp::m_transactions;
 boost::mutex                                  XBridgeApp::m_txUnconfirmedLocker;
 std::map<uint256, XBridgeTransactionDescrPtr> XBridgeApp::m_unconfirmed;
+static boost::mutex                           XBridgeApp::m_ppLocker;
+static std::map<uint256, XBridgePacketPtr>    XBridgeApp::m_pendingPackets;
 
 //*****************************************************************************
 //*****************************************************************************

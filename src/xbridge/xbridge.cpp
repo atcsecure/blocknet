@@ -167,6 +167,9 @@ void XBridge::onTimer()
         // resend addressbook
         // io->post(boost::bind(&XBridgeSession::resendAddressBook, session));
         io->post(boost::bind(&XBridgeSession::getAddressBook, session));
+
+        // pending unprocessed packets
+        io->post(boost::bind(&XBridgeSession::processPendingPackets, session));
     }
 
     m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(TIMER_INTERVAL));
