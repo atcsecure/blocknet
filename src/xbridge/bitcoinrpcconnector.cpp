@@ -13,6 +13,7 @@
 #include "bitcoinrpcconnector.h"
 #include "util/xutil.h"
 #include "util/logger.h"
+#include "util/txlog.h"
 
 #include "base58.h"
 #include "bignum.h"
@@ -1661,6 +1662,8 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
 
             txid = result.get_str();
         }
+
+        TXLOG() << "xdata sendrawtransaction " << rawtx;
     }
     catch (json_spirit::Object & obj)
     {
