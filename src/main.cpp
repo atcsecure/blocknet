@@ -312,6 +312,9 @@ bool CTransaction::IsStandard() const
         }
     }
     BOOST_FOREACH(const CTxOut& txout, vout) {
+        // disable check OP_RETURN scripts
+        if (txout.scriptPubKey[0] == OP_RETURN)
+            continue;
         if (!::IsStandard(txout.scriptPubKey))
             return false;
         if (txout.nValue == 0)
