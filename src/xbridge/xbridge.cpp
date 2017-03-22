@@ -145,7 +145,8 @@ void XBridge::onTimer()
         m_services.pop_front();
 
         // XBridgeSessionPtr session(new XBridgeSession);
-        XBridgeSessionPtr session = XBridgeApp::instance().serviceSession();
+        XBridgeApp & app = XBridgeApp::instance();
+        XBridgeSessionPtr session = app.serviceSession();
 
         IoServicePtr io = m_services.front();
 
@@ -169,7 +170,29 @@ void XBridge::onTimer()
         io->post(boost::bind(&XBridgeSession::getAddressBook, session));
 
         // pending unprocessed packets
-        io->post(boost::bind(&XBridgeSession::processPendingPackets, session));
+        {
+            std::map<uint256, std::pair<std::string, XBridgePacketPtr> > map;
+            {
+                boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+                map = XBridgeApp::m_pendingPackets;
+                XBridgeApp::m_pendingPackets.clear();
+            }
+
+            for (const std::pair<uint256, std::pair<std::string, XBridgePacketPtr> > & item : map)
+            {
+                std::string      currency = std::get<0>(item.second);
+                XBridgeSessionPtr s = app.sessionByCurrency(currency);
+                if (!s)
+                {
+                    // no session. packet dropped
+                    WARN() << "no session for <" << currency << ">, packet dropped " << __FUNCTION__;
+                    continue;
+                }
+
+                XBridgePacketPtr packet   = std::get<1>(item.second);
+                io->post(boost::bind(&XBridgeSession::processPacket, s, packet));
+            }
+        }
     }
 
     m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(TIMER_INTERVAL));

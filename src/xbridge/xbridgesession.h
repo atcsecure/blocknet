@@ -64,8 +64,6 @@ public:
     void checkUnconfirmedTx();
     void requestUnconfirmedTx();
 
-    void processPendingPackets();
-
 private:
     virtual void init();
 

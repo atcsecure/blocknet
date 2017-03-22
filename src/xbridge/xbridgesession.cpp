@@ -1276,7 +1276,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     {
         // no data, move to pending
         boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
-        XBridgeApp::m_pendingPackets[txid] = packet;
+        XBridgeApp::m_pendingPackets[txid] = std::make_pair(m_wallet.currency, packet);
         return true;
     }
     else
@@ -2782,21 +2782,4 @@ bool XBridgeSession::makeNewPubKey(xbridge::CPubKey & newPKey) const
         newPKey = newKey.GetPubKey();
     }
     return newPKey.IsValid();
-}
-
-//******************************************************************************
-//******************************************************************************
-void XBridgeSession::processPendingPackets()
-{
-    std::map<uint256, XBridgePacketPtr> map;
-    {
-        boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
-        map = XBridgeApp::m_pendingPackets;
-        XBridgeApp::m_pendingPackets.clear();
-    }
-
-    for (const std::pair<uint256, XBridgePacketPtr> & item : map)
-    {
-        processPacket(item.second);
-    }
 }
