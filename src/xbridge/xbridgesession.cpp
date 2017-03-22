@@ -1109,7 +1109,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             reply1->append(tr->b_destination());
             reply1->append(tr->a_taxAddress());
             reply1->append(static_cast<uint32_t>(0));
-            reply1->append(tr->a_datatxid().begin(), 20);
+            reply1->append(tr->a_datatxid().begin(), 32);
             reply1->append(tr->b_pk1().begin(), tr->b_pk1().size());
 
             sendPacket(tr->a_address(), reply1);
@@ -1126,7 +1126,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             reply2->append(tr->a_destination());
             reply2->append(tr->b_taxAddress());
             reply2->append(tr->tax());
-            reply2->append(tr->a_datatxid().begin(), 20);
+            reply2->append(tr->a_datatxid().begin(), 32);
             reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
 
             sendPacket(tr->b_address(), reply2);
@@ -1320,6 +1320,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                           m_wallet.ip, m_wallet.port, entries))
     {
         LOG() << "rpc::listUnspent failed" << __FUNCTION__;
+        sendCancelTransaction(txid, crRpcError);
         return true;
     }
 
