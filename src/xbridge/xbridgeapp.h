@@ -191,7 +191,7 @@ public:
     static std::map<uint256, XBridgeTransactionDescrPtr> m_unconfirmed;
 
     static boost::mutex                                  m_ppLocker;
-    static std::map<uint256, XBridgePacketPtr>           m_pendingPackets;
+    static std::map<uint256, std::pair<std::string, XBridgePacketPtr> > m_pendingPackets;
 
 //#ifndef NO_GUI
 //    std::shared_ptr<QCoreApplication> m_app;
