@@ -61,7 +61,8 @@ namespace Checkpoints
     {
         MapCheckpoints& checkpoints = (fTestNet ? mapCheckpointsTestnet : mapCheckpoints);
 
-        for (const MapCheckpoints::value_type& i : boost::adaptors::reversed(checkpoints))
+        // for (const MapCheckpoints::value_type& i : boost::adaptors::reversed(checkpoints))
+        for (const MapCheckpoints::value_type& i : checkpoints)
         {
             const uint256& hash = i.second;
             std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
@@ -269,7 +270,8 @@ namespace Checkpoints
             printf("ResetSyncCheckpoint: pending for sync-checkpoint %s\n", hashPendingCheckpoint.ToString().c_str());
         }
 
-        for (const MapCheckpoints::value_type& i : boost::adaptors::reversed(mapCheckpoints))
+        // for (const MapCheckpoints::value_type& i : boost::adaptors::reversed(mapCheckpoints))
+        for (const MapCheckpoints::value_type& i : mapCheckpoints)
         {
             const uint256& hash = i.second;
             if (mapBlockIndex.count(hash) && mapBlockIndex[hash]->IsInMainChain())
