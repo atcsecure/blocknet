@@ -160,7 +160,7 @@ bool Message::process(bool & isForMe)
 
         // send message received
         LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode * pnode, vNodes)
+        for (CNode * pnode : vNodes)
         {
             uint256 hash = getStaticHash();
             pnode->PushMessage("msgack", hash);
@@ -209,7 +209,7 @@ bool Message::relayTo(CNode * pnode) const
 bool Message::broadcast() const
 {
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode * pnode, vNodes)
+    for (CNode * pnode : vNodes)
     {
         relayTo(pnode);
     }

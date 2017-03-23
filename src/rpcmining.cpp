@@ -144,7 +144,7 @@ Value getworkex(const Array& params, bool fHelp)
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for (CBlock* pblock : vNewBlock)
                     delete pblock;
                 vNewBlock.clear();
             }
@@ -191,7 +191,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         Array merkle_arr;
 
-        BOOST_FOREACH(uint256 merkleh, merkle) {
+        for (uint256 merkleh : merkle) {
             merkle_arr.push_back(HexStr(BEGIN(merkleh), END(merkleh)));
         }
 
@@ -278,7 +278,7 @@ Value getwork(const Array& params, bool fHelp)
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for (CBlock* pblock : vNewBlock)
                     delete pblock;
                 vNewBlock.clear();
             }
@@ -443,7 +443,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     map<uint256, int64_t> setTxIndex;
     int i = 0;
     CTxDB txdb("r");
-    BOOST_FOREACH (CTransaction& tx, pblock->vtx)
+    for (CTransaction& tx : pblock->vtx)
     {
         uint256 txHash = tx.GetHash();
         setTxIndex[txHash] = i++;
@@ -467,7 +467,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
             entry.push_back(Pair("fee", (int64_t)(tx.GetValueIn(mapInputs) - tx.GetValueOut())));
 
             Array deps;
-            BOOST_FOREACH (MapPrevTx::value_type& inp, mapInputs)
+            for (MapPrevTx::value_type& inp : mapInputs)
             {
                 if (setTxIndex.count(inp.first))
                     deps.push_back(setTxIndex[inp.first]);

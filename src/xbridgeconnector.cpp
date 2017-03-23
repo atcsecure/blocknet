@@ -4,7 +4,6 @@
 #include "xbridgeconnector.h"
 #include "base58.h"
 
-#include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
 // TODO remove this
@@ -256,7 +255,7 @@ bool XBridgeConnector::announceLocalAddresses()
 
     std::vector<std::string> addresses = getLocalBitcoinAddresses();
 
-    BOOST_FOREACH(const std::string & addr, addresses)
+    for (const std::string & addr : addresses)
     {
         std::vector<unsigned char> tmp;
         DecodeBase58Check(addr, tmp);

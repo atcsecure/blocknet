@@ -247,7 +247,7 @@ bool MessagesDialog::loadMessages(const QString & address, std::vector<Message> 
         // return;
     }
 
-    BOOST_FOREACH(Message & msg, messages)
+    for (Message & msg : messages)
     {
         if (!msg.isExpired())
         {
@@ -605,7 +605,7 @@ void MessagesDialog::requestUndeliveredMessages()
     }
 
     // send empty message for all addresses
-    BOOST_FOREACH(std::string addr, addrs)
+    for (std::string addr : addrs)
     {
         Message m;
         m.from = addr;
@@ -708,7 +708,7 @@ bool MessagesDialog::resendUndelivered(const std::vector<std::string> & addresse
     }
 
     bool needToSaveUndelivered = false;
-    BOOST_FOREACH(const std::string addr, addresses)
+    for (const std::string addr : addresses)
     {
         for (UndeliveredMap::iterator i = map.begin(); i != map.end(); )
         {
