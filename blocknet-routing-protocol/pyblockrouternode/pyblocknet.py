@@ -307,6 +307,7 @@ class COutPoint(object):
         self.n = 0
 
     def deserialize(self, f):
+        print "coutpoint debug"
         self.hash = deser_uint256(f)
         self.n = struct.unpack("<I", f.read(4))[0]
 
@@ -330,7 +331,11 @@ class CTxIn(object):
         self.prevout = COutPoint()
         self.prevout.deserialize(f)
         self.scriptSig = deser_string(f)
-        self.nSequence = struct.unpack("<I", f.read(4))[0]
+        print "debug!!!"
+        try:
+            self.nSequence = struct.unpack("<I", f.read(4))[0]
+        except:
+            print "error"
 
     def serialize(self):
         r = ""
@@ -671,7 +676,7 @@ class msg_inv(object):
 
 class msg_getdata(object):
     command = "getdata"
-
+    print "debug msg_getdata"
     def __init__(self):
         self.inv = []
 
@@ -724,6 +729,7 @@ class msg_tx(object):
 
 
 class msg_block(object):
+    print "msg_block"
     command = "block"
 
     def __init__(self):
