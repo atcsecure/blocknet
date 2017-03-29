@@ -1,0 +1,4 @@
+## xbridge build steps
+
+# Install libbitcoin
+- https://github.com/libbitcoin/libbitcoin/tree/version2#debianubuntu
