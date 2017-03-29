@@ -11,7 +11,9 @@
 
 #include <stdint.h>
 
+#ifdef WIN32
 #include "../compat/endian.h"
+#endif
 
 uint16_t static inline ReadLE16(const unsigned char* ptr)
 {
