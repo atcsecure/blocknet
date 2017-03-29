@@ -144,7 +144,7 @@ bool XBridgeApp::init(int argc, char *argv[])
         path += "/xbridge.conf";
         s.read(path.c_str());
         s.parseCmdLine(argc, argv);
-        LOG() << "Finished loading config" << path
+        LOG() << "Finished loading config" << path;
     }
 
     // init secp256
