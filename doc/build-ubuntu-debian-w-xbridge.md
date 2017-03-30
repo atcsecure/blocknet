@@ -34,9 +34,6 @@ QRENCODE
 --------
 sudo apt-get install libqrencode-dev (optional)
 
-Once these are installed, they will be found by configure and a bitcoin-qt executable will be built by default.
-
-
 secp256k1
 ---------
 sudo apt-get install libsecp256k1-dev
