@@ -65,9 +65,9 @@ BUILD
 =====
 ```bash
  git clone https://github.com/atcsecure/blocknet.git
- git checkout xbridge-new-2
  cd /path/to/blocknet
+ git checkout xbridge-new-2
  cp config.orig.pri config.pri
- /usr/lib/x86_64-linux-gnu/qt5/bin/qmake blocknet-qt.pro
+ /path/to/qmake blocknet-qt.pro (etc. /usr/lib/x86_64-linux-gnu/qt5/bin on ubuntu)
  make
 ```
