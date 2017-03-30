@@ -22,10 +22,6 @@
 // #include <Ws2tcpip.h>
 #endif
 
-#ifndef NO_GUI
-#include <QApplication>
-#endif
-
 namespace rpc
 {
 class AcceptedConnection;
@@ -192,10 +188,6 @@ public:
 
     static boost::mutex                                  m_ppLocker;
     static std::map<uint256, std::pair<std::string, XBridgePacketPtr> > m_pendingPackets;
-
-//#ifndef NO_GUI
-//    std::shared_ptr<QCoreApplication> m_app;
-//#endif
 };
 
 #endif // XBRIDGEAPP_H
