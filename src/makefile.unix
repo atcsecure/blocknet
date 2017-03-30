@@ -31,7 +31,8 @@ LIBS += \
    -l boost_thread$(BOOST_LIB_SUFFIX) \
    -l db_cxx$(BDB_LIB_SUFFIX) \
    -l ssl \
-   -l crypto
+   -l crypto \
+   -l secp256k1
 
 ifndef USE_UPNP
 	override USE_UPNP = -
@@ -96,7 +97,7 @@ endif
 
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
-xCXXFLAGS=-O2 $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter \
+xCXXFLAGS=-std=c++11 -O2 $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter \
     $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
@@ -152,7 +153,29 @@ OBJS= \
     obj/scrypt.o \
     obj/scrypt-arm.o \
     obj/scrypt-x86.o \
-    obj/scrypt-x86_64.o 
+    obj/scrypt-x86_64.o \
+    obj/xbridge/util/logger.o \
+    obj/xbridge/util/settings.o \
+    obj/xbridge/util/txlog.o \
+    obj/xbridge/config.o \
+    obj/xbridge/xbridgeexchange.o \
+    obj/xbridge/xbridgeapp.o \
+    obj/xbridge/xbridge.o \
+    obj/xbridge/xbridgesession.o \
+    obj/xbridge/util/xutil.o \
+    obj/xbridge/bitcoinrpcconnector.o \
+    obj/xbridge/xbitcoinsecret.o \
+    obj/xbridge/xbitcointransaction.o \
+    obj/xbridge/xkey.o \
+    obj/xbridge/xpubkey.o \
+    obj/xbridge/support/cleanse.o \
+    obj/xbridge/crypto/sha256.o \
+    obj/xbridge/random.o \
+    obj/xbridge/crypto/sha512.o \
+    obj/xbridge/xbitcoinaddress.o \
+    obj/xbridge/xbridgesessionbtc.o \
+    obj/xbridge/xbridgetransaction.o \
+    obj/xbridge/xbridgetransactionmember.o
 
 all: blocknetd
 
@@ -186,10 +209,10 @@ obj/%.o: %.c
 	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
 	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
               -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
-	      
 	rm -f $(@:%.o=%.d)	
+
 obj/%.o: %.cpp
-	$(CXX) -c $(xCXXFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
+	$(CXX) -c $(xCXXFLAGS) -fpermissive -MMD -MF $(@:%.o=%.d) -o $@ $<
 	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
 	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
