@@ -6,19 +6,13 @@
 #include "util/xutil.h"
 #include "util/logger.h"
 #include "util/settings.h"
-// #include "dht/dht.h"
 #include "version.h"
 #include "config.h"
 #include "xuiconnector.h"
 #include "bitcoinrpc.h"
 #include "net.h"
 #include "util.h"
-// #include "bitcoinrpcconnection.h"
 #include "xkey.h"
-
-//#ifndef NO_GUI
-//#include "../qt/xbridgeui/xbridgetransactionsview.h"
-//#endif
 
 #include <thread>
 #include <chrono>
@@ -106,17 +100,6 @@ std::string XBridgeApp::version()
 //*****************************************************************************
 bool XBridgeApp::start()
 {
-//#ifdef NO_GUI
-//    m_threads.join_all();
-//    return 0;
-
-//#else
-//    MainWindow view;
-//    view.show();
-
-//    return m_app->exec();
-//#endif
-
     m_serviceSession.reset(new XBridgeSession);
 
     // start xbrige

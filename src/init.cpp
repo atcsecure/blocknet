@@ -177,7 +177,9 @@ bool AppInit(int argc, char* argv[])
             exit(ret);
         }
 
-        assert(!"init xbridge");
+        // init xbridge
+        XBridgeApp & xapp = XBridgeApp::instance();
+        xapp.init(argc, argv);
 
         fRet = AppInit2();
     }
