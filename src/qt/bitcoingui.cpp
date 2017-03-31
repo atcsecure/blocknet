@@ -32,6 +32,7 @@
 #include "bitcoinrpc.h"
 #include "messagedialog/messagedialog.h"
 #include "xbridgeui/xbridgetransactionsview.h"
+#include "xbridge/xbridgeexchange.h"
 #include "util/verify.h"
 
 #ifdef Q_OS_MAC
@@ -90,7 +91,15 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     rpcConsole(0)
 {
     setFixedSize(970, 550);
-    setWindowTitle(tr("blocknet") + " " + tr("Wallet"));
+
+    QString title = tr("blocknet") + " " + tr("Wallet");
+    XBridgeExchange & e = XBridgeExchange::instance();
+    if (e.isEnabled())
+    {
+        title += QString(" [%1] ").arg(tr("exchange mode"));
+    }
+    setWindowTitle(title);
+
     qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; } #frame { } QToolBar QLabel { padding-top:15px;padding-bottom:10px;margin:0px; } #spacer { background:rgb(16,19,65);border:none; } #toolbar3 { border:none;width:1px; background-color: rgb(56,56,56); } #toolbar2 { border:none;width:28px; background-color:rgb(56,56,56); } #toolbar { border:none;height:100%;padding-top:20px; background: rgb(16,19,65); text-align: left; color: white;min-width:150px;max-width:150px;} QToolBar QToolButton:hover {background-color:qlineargradient(x1: 0, y1: 0, x2: 2, y2: 2,stop: 0 rgb(16,19,65), stop: 1 rgb(216,252,251),stop: 2 rgb(59,62,65));} QToolBar QToolButton { font-family:Century Gothic;padding-left:20px;padding-right:150px;padding-top:10px;padding-bottom:10px; width:100%; color: white; text-align: left; background-color: rgb(16,19,65) } #labelMiningIcon { padding-left:5px;font-family:Century Gothic;width:100%;font-size:10px;text-align:center;color:white; } QMenu { background: rgb(16,19,65); color:white; padding-bottom:10px; } QMenu::item { color:white; background-color: transparent; } QMenu::item:selected { background-color:qlineargradient(x1: 0, y1: 0, x2: 0.5, y2: 0.5,stop: 0 rgb(16,19,65), stop: 1 rgb(149,204,244)); } QMenuBar { background: rgb(16,19,65); color:white; } QMenuBar::item { font-size:12px;padding-bottom:8px;padding-top:8px;padding-left:15px;padding-right:15px;color:white; background-color: transparent; } QMenuBar::item:selected { background-color:qlineargradient(x1: 0, y1: 0, x2: 0.5, y2: 0.5,stop: 0 rgb(16,19,65), stop: 1 rgb(149,204,244)); }");
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
