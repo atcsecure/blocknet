@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 
 CONFIG += no_include_pwd
 
+CONFIG(release, debug|release): DEFINES += NDEBUG
+
 # UNCOMMENT THIS SECTION TO BUILD ON WINDOWS
 # Change paths if needed, these use the foocoin/deps.git repository locations
 
