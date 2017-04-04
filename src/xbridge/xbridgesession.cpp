@@ -2783,3 +2783,30 @@ bool XBridgeSession::makeNewPubKey(xbridge::CPubKey & newPKey) const
     }
     return newPKey.IsValid();
 }
+
+//******************************************************************************
+//******************************************************************************
+bool XBridgeSession::checkAmount(const uint64_t _amount) const
+{
+    double amount = _amount / XBridgeTransactionDescr::COIN;
+
+    std::vector<rpc::Unspent> entries;
+    if (!rpc::listUnspent(m_wallet.user, m_wallet.passwd,
+                          m_wallet.ip, m_wallet.port, entries))
+    {
+        LOG() << "rpc::listUnspent failed" << __FUNCTION__;
+        return false;
+    }
+
+    double funds = 0;
+    for (const rpc::Unspent & entry : entries)
+    {
+        funds += entry.amount;
+        if (amount < funds)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}

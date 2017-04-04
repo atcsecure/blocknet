@@ -64,6 +64,8 @@ public:
     void checkUnconfirmedTx();
     void requestUnconfirmedTx();
 
+    bool checkAmount(const uint64_t amount) const;
+
 private:
     virtual void init();
 

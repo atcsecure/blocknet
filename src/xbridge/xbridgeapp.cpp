@@ -13,6 +13,7 @@
 #include "net.h"
 #include "util.h"
 #include "xkey.h"
+#include "ui_interface.h"
 
 #include <thread>
 #include <chrono>
@@ -623,6 +624,29 @@ uint256 XBridgeApp::sendXBridgeTransaction(const std::string & from,
         return uint256();
     }
 
+    // check amount
+    XBridgeSessionPtr s = sessionByCurrency(fromCurrency);
+    if (!s)
+    {
+        // no session
+        uiInterface.ThreadSafeMessageBox(_("No session for ") + fromCurrency,
+                                         "blocknet",
+                                         CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+
+        WARN() << "no session for <" << fromCurrency << "> " << __FUNCTION__;
+        return uint256();
+    }
+
+    if (!s->checkAmount(fromAmount))
+    {
+        uiInterface.ThreadSafeMessageBox(_("Insufficient funds"),
+                                         "blocknet",
+                                         CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+
+        LOG() << "insufficient funds for <" << fromCurrency << "> " << __FUNCTION__;
+        return uint256();
+    }
+
     boost::uint32_t timestamp = time(0);
     uint256 id = Hash(from.begin(), from.end(),
                       fromCurrency.begin(), fromCurrency.end(),
@@ -716,14 +740,41 @@ uint256 XBridgeApp::acceptXBridgeTransaction(const uint256 & id,
         boost::mutex::scoped_lock l(m_txLocker);
         if (!m_pendingTransactions.count(id))
         {
+            uiInterface.ThreadSafeMessageBox(_("Transaction not foud"),
+                                             "blocknet",
+                                             CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
             return uint256();
         }
         ptr = m_pendingTransactions[id];
-        ptr->from = from;
-        ptr->to   = to;
-        std::swap(ptr->fromCurrency, ptr->toCurrency);
-        std::swap(ptr->fromAmount,   ptr->toAmount);
     }
+
+    // check amount
+    XBridgeSessionPtr s = sessionByCurrency(ptr->toCurrency);
+    if (!s)
+    {
+        // no session
+        uiInterface.ThreadSafeMessageBox(_("No session for ") + ptr->toCurrency,
+                                         "blocknet",
+                                         CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+
+        WARN() << "no session for <" << ptr->toCurrency << "> " << __FUNCTION__;
+        return uint256();
+    }
+
+    if (!s->checkAmount(ptr->toAmount))
+    {
+        uiInterface.ThreadSafeMessageBox(_("Insufficient funds"),
+                                         "blocknet",
+                                         CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
+
+        LOG() << "insufficient funds for <" << ptr->toCurrency << "> " << __FUNCTION__;
+        return uint256();
+    }
+
+    ptr->from = from;
+    ptr->to   = to;
+    std::swap(ptr->fromCurrency, ptr->toCurrency);
+    std::swap(ptr->fromAmount,   ptr->toAmount);
 
     // try send immediatelly
     sendAcceptingTransaction(ptr);
