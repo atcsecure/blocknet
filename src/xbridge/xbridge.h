@@ -16,7 +16,7 @@ class XBridge
     enum
     {
         THREAD_COUNT = 2,
-        TIMER_INTERVAL = 20
+        TIMER_INTERVAL = 60
     };
 
     typedef std::shared_ptr<boost::asio::io_service>       IoServicePtr;
