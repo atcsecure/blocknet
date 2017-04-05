@@ -349,6 +349,8 @@ bool XBridgeSession::processPacket(XBridgePacketPtr packet)
         return false;
     }
 
+    TRACE() << "received packet, command code <" << c << ">";
+
     if (!m_handlers[c](packet))
     {
         ERR() << "packet processing error <" << c << "> " << __FUNCTION__;
