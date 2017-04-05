@@ -291,6 +291,12 @@ void XBridgeApp::onSend(const XBridgePacketPtr & packet)
 void XBridgeApp::onSend(const UcharVector & id, const UcharVector & message)
 {
     UcharVector msg(id);
+    if (msg.size() != 20)
+    {
+        assert(!"bad address");
+        ERR() << "bad send address " << __FUNCTION__;
+        return;
+    }
 
     // timestamp
     time_t timestamp = std::time(0);
@@ -335,7 +341,11 @@ void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & m
     static UcharVector localid(m_myid, m_myid+20);
 
     XBridgePacketPtr packet(new XBridgePacket);
-    packet->copyFrom(message);
+    if (!packet->copyFrom(message))
+    {
+        LOG() << "incorrect packet received";
+        return;
+    }
 
     LOG() << "received message to" << util::base64_encode(std::string((char *)&id[0], 20)).c_str()
              << " command " << packet->command();
@@ -396,7 +406,11 @@ void XBridgeApp::onBroadcastReceived(const std::vector<unsigned char> & message)
 
     // process message
     XBridgePacketPtr packet(new XBridgePacket);
-    packet->copyFrom(message);
+    if (!packet->copyFrom(message))
+    {
+        LOG() << "incorrect broadcast packet received";
+        return;
+    }
 
     LOG() << "broadcast message, command " << packet->command();
 
@@ -843,7 +857,8 @@ bool XBridgeApp::sendCancelTransaction(const uint256 & txid,
     reply->append(txid.begin(), 32);
     reply->append(static_cast<uint32_t>(reason));
 
-    onSend(std::vector<unsigned char>(), reply);
+    static UcharVector addr(20, 0);
+    onSend(addr, reply);
 
     // cancelled
     return true;

@@ -5,6 +5,7 @@
 #define XBRIDGEPACKET_H
 
 #include "version.h"
+#include "util/logger.h"
 
 #include <vector>
 #include <deque>
@@ -417,6 +418,7 @@ public:
 
         if (sizeField() != static_cast<uint32_t>(data.size())-headerSize)
         {
+            ERR() << "incorrect data size in XBridgePacket::copyFrom";
             assert(!"incorrect data size in XBridgePacket::copyFrom");
             return false;
         }

@@ -151,6 +151,8 @@ QMenu * XBridgeTransactionsView::setupContextMenu(QModelIndex & index)
 //******************************************************************************
 void XBridgeTransactionsView::onNewTransaction()
 {
+    assert(false);
+
     m_dlg.setPendingId(uint256(), std::vector<unsigned char>());
     m_dlg.show();
 }

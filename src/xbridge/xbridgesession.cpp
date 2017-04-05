@@ -432,7 +432,11 @@ bool XBridgeSession::takeXBridgeMessage(const std::vector<unsigned char> & messa
 
     XBridgePacketPtr packet(new XBridgePacket());
     // packet->setData(message);
-    packet->copyFrom(message);
+    if (!packet->copyFrom(message))
+    {
+        ERR() << "incorrect packet " << __FUNCTION__;
+        return;
+    }
 
     // return sendXBridgeMessage(packet);
     return processPacket(packet);
