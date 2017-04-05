@@ -131,9 +131,12 @@ bool XBridgeExchange::createTransaction(const uint256     & id,
                                         const std::string & destAddr,
                                         const std::string & destCurrency,
                                         const uint64_t    & destAmount,
-                                        uint256           & pendingId)
+                                        uint256           & pendingId,
+                                        bool              & isCreated)
 {
     DEBUG_TRACE();
+
+    isCreated = false;
 
     if (!haveConnectedWallet(sourceCurrency) || !haveConnectedWallet(destCurrency))
     {
@@ -200,7 +203,8 @@ bool XBridgeExchange::createTransaction(const uint256     & id,
 
         if (!m_pendingTransactions.count(h))
         {
-            // new transaction or update existing (update timestamp)
+            // new transaction
+            isCreated = true;
             pendingId = h = tr->hash1();
             m_pendingTransactions[h] = tr;
         }

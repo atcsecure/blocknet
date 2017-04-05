@@ -46,7 +46,8 @@ public:
                            const std::string & destAddr,
                            const std::string & destCurrency,
                            const uint64_t    & destAmount,
-                           uint256           & pendingId);
+                           uint256           & pendingId,
+                           bool              & isCreated);
 
     bool acceptTransaction(const uint256     & id,
                            const std::string & sourceAddr,

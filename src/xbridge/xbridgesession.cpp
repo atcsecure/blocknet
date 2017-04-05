@@ -527,11 +527,12 @@ bool XBridgeSession::processTransaction(XBridgePacketPtr packet)
           << "             " << dcurrency << " : " << damount << std::endl;
 
     {
+        bool isCreated = false;
         uint256 pendingId;
         if (!e.createTransaction(id,
                                  saddr, scurrency, samount,
                                  daddr, dcurrency, damount,
-                                 pendingId))
+                                 pendingId, isCreated))
         {
             // not created, send cancel
             sendCancelTransaction(id, crXbridgeRejected);
@@ -564,26 +565,29 @@ bool XBridgeSession::processTransaction(XBridgePacketPtr packet)
         LOG() << "transaction created, id "
               << util::base64_encode(std::string((char *)id.begin(), 32));
 
-        boost::mutex::scoped_lock l(tr->m_lock);
+        if (isCreated)
+        {
+            boost::mutex::scoped_lock l(tr->m_lock);
 
-        std::string firstCurrency = tr->a_currency();
-        std::vector<unsigned char> fc(8, 0);
-        std::copy(firstCurrency.begin(), firstCurrency.end(), fc.begin());
-        std::string secondCurrency = tr->b_currency();
-        std::vector<unsigned char> sc(8, 0);
-        std::copy(secondCurrency.begin(), secondCurrency.end(), sc.begin());
+            std::string firstCurrency = tr->a_currency();
+            std::vector<unsigned char> fc(8, 0);
+            std::copy(firstCurrency.begin(), firstCurrency.end(), fc.begin());
+            std::string secondCurrency = tr->b_currency();
+            std::vector<unsigned char> sc(8, 0);
+            std::copy(secondCurrency.begin(), secondCurrency.end(), sc.begin());
 
-        // broadcast send pending transaction packet
-        XBridgePacketPtr reply(new XBridgePacket(xbcPendingTransaction));
-        reply->append(tr->id().begin(), 32);
-        reply->append(fc);
-        reply->append(tr->a_amount());
-        reply->append(sc);
-        reply->append(tr->b_amount());
-        reply->append(sessionAddr(), 20);
-        reply->append(tr->tax());
+            // broadcast send pending transaction packet
+            XBridgePacketPtr reply(new XBridgePacket(xbcPendingTransaction));
+            reply->append(tr->id().begin(), 32);
+            reply->append(fc);
+            reply->append(tr->a_amount());
+            reply->append(sc);
+            reply->append(tr->b_amount());
+            reply->append(sessionAddr(), 20);
+            reply->append(tr->tax());
 
-        sendPacketBroadcast(reply);
+            sendPacketBroadcast(reply);
+        }
     }
 
     return true;
