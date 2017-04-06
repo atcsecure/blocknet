@@ -124,7 +124,7 @@ bool XBridgeApp::init(int argc, char *argv[])
     // init xbridge settings
     Settings & s = settings();
     {
-        std::string path(GetDataDir().string());
+        std::string path(GetDataDir(false).string());
         path += "/xbridge.conf";
         s.read(path.c_str());
         s.parseCmdLine(argc, argv);

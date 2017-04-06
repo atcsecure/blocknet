@@ -90,7 +90,7 @@ LOG::~LOG()
 // static
 std::string LOG::makeFileName()
 {
-    boost::filesystem::path directory = GetDataDir() / "log";
+    boost::filesystem::path directory = GetDataDir(false) / "log";
     boost::filesystem::create_directory(directory);
 
     return directory.string() + "/" +

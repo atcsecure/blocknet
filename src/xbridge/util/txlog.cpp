@@ -86,7 +86,7 @@ TXLOG::~TXLOG()
 // static
 std::string TXLOG::makeFileName()
 {
-    boost::filesystem::path directory = GetDataDir() / "log-tx";
+    boost::filesystem::path directory = GetDataDir(false) / "log-tx";
     boost::filesystem::create_directory(directory);
 
     return directory.string() + "/" +

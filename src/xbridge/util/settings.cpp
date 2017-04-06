@@ -143,7 +143,7 @@ std::string Settings::logPath() const
 //    try { return m_pt.get<std::string>("Main.LogPath"); }
 //    catch (std::exception &) {} return std::string();
 
-    return std::string(GetDataDir().string()) + "/";
+    return std::string(GetDataDir(false).string()) + "/";
 }
 
 //******************************************************************************
