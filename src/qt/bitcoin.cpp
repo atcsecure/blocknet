@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
     // Command-line options take precedence:
     ParseParameters(argc, argv);
 
+    fTestNet = GetBoolArg("-testnet");
+
     // ... then bitcoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(false)))
     {
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
     // as it is used to locate QSettings)
     app.setOrganizationName("blocknet");
     //XXX app.setOrganizationDomain("");
-    if(GetBoolArg("-testnet")) // Separate UI settings for testnet
+    if(fTestNet) // Separate UI settings for testnet
         app.setApplicationName("blocknet-Qt-testnet");
     else
         app.setApplicationName("blocknet-Qt");
