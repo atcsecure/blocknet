@@ -299,9 +299,9 @@ void XBridgeApp::onSend(const UcharVector & id, const UcharVector & message)
     }
 
     // timestamp
-    time_t timestamp = std::time(0);
+    uint64_t timestamp = std::time(0);
     unsigned char * ptr = reinterpret_cast<unsigned char *>(&timestamp);
-    msg.insert(msg.end(), ptr, ptr + sizeof(time_t));
+    msg.insert(msg.end(), ptr, ptr + sizeof(uint64_t));
 
     // body
     msg.insert(msg.end(), message.begin(), message.end());

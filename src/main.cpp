@@ -3492,7 +3492,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 // remove addr from raw
                 raw.erase(raw.begin(), raw.begin()+20);
                 // remove timestamp from raw
-                raw.erase(raw.begin(), raw.begin()+sizeof(time_t));
+                raw.erase(raw.begin(), raw.begin()+sizeof(uint64_t));
 
                 XBridgeApp & app = XBridgeApp::instance();
 
