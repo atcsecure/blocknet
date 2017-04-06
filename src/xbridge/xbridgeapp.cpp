@@ -347,7 +347,7 @@ void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & m
         return;
     }
 
-    LOG() << "received message to" << util::base64_encode(std::string((char *)&id[0], 20)).c_str()
+    LOG() << "received message to " << util::base64_encode(std::string((char *)&id[0], 20)).c_str()
              << " command " << packet->command();
 
     if (!XBridgeSession::checkXBridgePacketVersion(packet))

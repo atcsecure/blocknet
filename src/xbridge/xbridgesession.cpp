@@ -894,7 +894,7 @@ bool XBridgeSession::processTransactionHoldApply(XBridgePacketPtr packet)
             // first
             // TODO remove this log
             LOG() << "send xbcTransactionInit to "
-                  << util::base64_encode(std::string((char *)&tr->a_destination()[0], 20));
+                  << tr->a_destination();
 
             XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionInit));
             reply1->append(rpc::toXAddr(tr->a_destination()));
@@ -913,7 +913,7 @@ bool XBridgeSession::processTransactionHoldApply(XBridgePacketPtr packet)
             // second
             // TODO remove this log
             LOG() << "send xbcTransactionInit to "
-                  << util::base64_encode(std::string((char *)&tr->b_destination()[0], 20));
+                  << tr->b_destination();
 
             XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionInit));
             reply2->append(rpc::toXAddr(tr->b_destination()));
@@ -1107,7 +1107,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             // first
             // TODO remove this log
             LOG() << "send xbcTransactionCreate to "
-                  << util::base64_encode(std::string((char *)&tr->a_address()[0], 20));
+                  << tr->a_address();
 
             // send xbcTransactionCreate
             // with nLockTime == lockTime*2 for first client,
@@ -1127,7 +1127,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             // second
             // TODO remove this log
             LOG() << "send xbcTransactionCreate to "
-                  << util::base64_encode(std::string((char *)&tr->b_address()[0], 20));
+                  << tr->b_address();
 
             XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionCreate));
             reply2->append(rpc::toXAddr(tr->b_address()));
@@ -1678,7 +1678,7 @@ bool XBridgeSession::processTransactionCreated(XBridgePacketPtr packet)
 
             // TODO remove this log
             LOG() << "send xbcTransactionConfirmA to "
-                  << util::base64_encode(std::string((char *)&tr->a_destination()[0], 20));
+                  << tr->a_destination();
 
             XBridgePacketPtr reply(new XBridgePacket(xbcTransactionConfirmA));
             reply->append(rpc::toXAddr(tr->a_destination()));
@@ -1905,7 +1905,7 @@ bool XBridgeSession::processTransactionConfirmedA(XBridgePacketPtr packet)
 
     // TODO remove this log
     LOG() << "send xbcTransactionConfirmB to "
-          << util::base64_encode(std::string((char *)&tr->b_destination()[0], 20));
+          << tr->b_destination();
 
     XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionConfirmB));
     reply2->append(rpc::toXAddr(tr->b_destination()));
