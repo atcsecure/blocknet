@@ -45,7 +45,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
 
 double GetPoWMHashPS()
 {
-    if (pindexBest->GetBlockTime() >= LAST_POW_TIME)
+    if (!fTestNet && (pindexBest->GetBlockTime() >= LAST_POW_TIME))
         return 0;
 
     int nPoWInterval = 72;
