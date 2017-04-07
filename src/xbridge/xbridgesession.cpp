@@ -1584,13 +1584,18 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 
     // send transactions
     {
-//        if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                     m_wallet.ip, m_wallet.port, xtx->binTx))
-//        {
-//            LOG() << "deposit tx not send, transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crRpcError);
-//            return true;
-//        }
+        std::string sentid;
+        if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
+                                    m_wallet.ip, m_wallet.port, xtx->binTx, sentid))
+        {
+            LOG() << "deposit " << xtx->role << " " << sentid;
+        }
+        else
+        {
+            LOG() << "deposit tx not send, transaction canceled " << __FUNCTION__;
+            sendCancelTransaction(txid, crRpcError);
+            return true;
+        }
 
 //        if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
 //                                     m_wallet.ip, m_wallet.port, xtx->refTx))
@@ -1823,13 +1828,18 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
     } // payTx
 
     // send pay tx
-//    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                 m_wallet.ip, m_wallet.port, xtx->payTx))
-//    {
-//        LOG() << "payment A tx not send, transaction canceled " << __FUNCTION__;
-//        sendCancelTransaction(txid, crRpcError);
-//        return true;
-//    }
+    std::string sentid;
+    if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
+                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid))
+    {
+        LOG() << "payment A " << sentid;
+    }
+    else
+    {
+        LOG() << "payment A tx not send, transaction canceled " << __FUNCTION__;
+        sendCancelTransaction(txid, crRpcError);
+        return true;
+    }
 
     xtx->state = XBridgeTransactionDescr::trCommited;
 
@@ -2053,13 +2063,18 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
     } // payTx
 
     // send pay tx
-//    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                 m_wallet.ip, m_wallet.port, xtx->payTx))
-//    {
-//        LOG() << "payment B tx not send, transaction canceled " << __FUNCTION__;
-//        sendCancelTransaction(txid, crRpcError);
-//        return true;
-//    }
+    std::string sentid;
+    if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
+                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid))
+    {
+        LOG() << "payment B " << sentid;
+    }
+    else
+    {
+        LOG() << "payment B tx not send, transaction canceled " << __FUNCTION__;
+        sendCancelTransaction(txid, crRpcError);
+        return true;
+    }
 
     xtx->state = XBridgeTransactionDescr::trCommited;
 
