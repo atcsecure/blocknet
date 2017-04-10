@@ -1021,7 +1021,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
         if (!rpc::storeDataIntoBlockchain(std::vector<unsigned char>(xid.begin(), xid.end()), strtxid))
         {
             ERR() << "storeDataIntoBlockchain failed, error send blocknet tx " << __FUNCTION__;
-            sendCancelTransaction(txid, crBlocknetError);
+            sendCancelTransaction(xtx, crBlocknetError);
             return true;
         }
 
@@ -1330,7 +1330,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                           m_wallet.ip, m_wallet.port, entries))
     {
         LOG() << "rpc::listUnspent failed" << __FUNCTION__;
-        sendCancelTransaction(txid, crRpcError);
+        sendCancelTransaction(xtx, crRpcError);
         return true;
     }
 
@@ -1362,7 +1362,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     {
         // no money, cancel transaction
         LOG() << "no money, transaction canceled " << __FUNCTION__;
-        sendCancelTransaction(txid, crNoMoney);
+        sendCancelTransaction(xtx, crNoMoney);
         return true;
     }
 
@@ -1371,7 +1371,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     if (lTime == 0)
     {
         LOG() << "lockTime error, transaction canceled " << __FUNCTION__;
-        sendCancelTransaction(txid, crRpcError);
+        sendCancelTransaction(xtx, crRpcError);
         return true;
     }
 
@@ -1429,7 +1429,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             {
                 // cancel transaction
                 LOG() << "rpc error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crRpcError);
+                sendCancelTransaction(xtx, crRpcError);
                 return true;
             }
 
@@ -1444,7 +1444,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         {
             // cancel transaction
             LOG() << "create transaction error, transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crRpcError);
+            sendCancelTransaction(xtx, crRpcError);
             return true;
         }
 
@@ -1456,7 +1456,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         {
             // do not sign, cancel
             LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crNotSigned);
+            sendCancelTransaction(xtx, crNotSigned);
             return true;
         }
 
@@ -1468,7 +1468,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                                        bintx, bintxid, binjson))
         {
             LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crRpcError);
+            sendCancelTransaction(xtx, crRpcError);
             return true;
         }
 
@@ -1495,7 +1495,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             {
                 // cancel transaction
                 LOG() << "rpc error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crRpcError);
+                sendCancelTransaction(xtx, crRpcError);
                 return true;
             }
 
@@ -1516,7 +1516,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         {
             // cancel transaction
             LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crNotSigned);
+            sendCancelTransaction(xtx, crNotSigned);
             return true;
         }
 
@@ -1533,7 +1533,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                 {
                     // cancel transaction
                     LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-                    sendCancelTransaction(txid, crNotSigned);
+                    sendCancelTransaction(xtx, crNotSigned);
                     return true;
                 }
 
@@ -1566,7 +1566,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
                                        reftx, reftxid, json))
         {
             LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crRpcError);
+            sendCancelTransaction(xtx, crRpcError);
             return true;
         }
 
@@ -1593,7 +1593,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         else
         {
             LOG() << "deposit tx not send, transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crRpcError);
+            sendCancelTransaction(xtx, crRpcError);
             return true;
         }
 
@@ -1768,7 +1768,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
         {
             // cancel transaction
             LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crNotSigned);
+            sendCancelTransaction(xtx, crNotSigned);
             return true;
         }
 
@@ -1779,7 +1779,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
             {
                 // cancel transaction
                 LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crNotSigned);
+                sendCancelTransaction(xtx, crNotSigned);
                 return true;
             }
 
@@ -1813,7 +1813,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                                            paytx, paytxid, json))
             {
                 LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crRpcError);
+                sendCancelTransaction(xtx, crRpcError);
                 return true;
             }
 
@@ -1837,7 +1837,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
     else
     {
         LOG() << "payment A tx not send, transaction canceled " << __FUNCTION__;
-        sendCancelTransaction(txid, crRpcError);
+        sendCancelTransaction(xtx, crRpcError);
         return true;
     }
 
@@ -2002,7 +2002,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
         {
             // cancel transaction
             LOG() << "sign transaction error (SetSecret failed), transaction canceled " << __FUNCTION__;
-            sendCancelTransaction(txid, crNotSigned);
+            sendCancelTransaction(xtx, crNotSigned);
             return true;
         }
 
@@ -2013,7 +2013,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
             {
                 // cancel transaction
                 LOG() << "sign transaction error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crNotSigned);
+                sendCancelTransaction(xtx, crNotSigned);
                 return true;
             }
 
@@ -2048,7 +2048,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                                            paytx, paytxid, json))
             {
                 LOG() << "decode signed transaction error, transaction canceled " << __FUNCTION__;
-                sendCancelTransaction(txid, crRpcError);
+                sendCancelTransaction(xtx, crRpcError);
                 return true;
             }
 
@@ -2072,7 +2072,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
     else
     {
         LOG() << "payment B tx not send, transaction canceled " << __FUNCTION__;
-        sendCancelTransaction(txid, crRpcError);
+        sendCancelTransaction(xtx, crRpcError);
         return true;
     }
 
@@ -2195,7 +2195,6 @@ bool XBridgeSession::processTransactionCancel(XBridgePacketPtr packet)
 
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trCancelled;
-
     xuiConnector.NotifyXBridgeTransactionCancelled(txid, XBridgeTransactionDescr::trCancelled, reason);
 
     // ..and retranslate
@@ -2257,6 +2256,19 @@ bool XBridgeSession::sendCancelTransaction(const uint256 & txid,
 
     // sendPacket(to, reply);
     sendPacketBroadcast(reply);
+    return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+bool XBridgeSession::sendCancelTransaction(const XBridgeTransactionDescrPtr & tx,
+                                           const TxCancelReason & reason)
+{
+    sendCancelTransaction(tx->id, reason);
+
+    // update transaction state for gui
+    tx->state = XBridgeTransactionDescr::trCancelled;
+    xuiConnector.NotifyXBridgeTransactionCancelled(tx->id, XBridgeTransactionDescr::trCancelled, reason);
 
     return true;
 }
