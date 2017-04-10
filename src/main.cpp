@@ -3856,14 +3856,3 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     }
     return true;
 }
-
-const int getLastPowTime()
-{
-    // to make the PoS stable, PoW with 0 in rewards 72 + 36 hours post ICO
-    // 08 Nov 2014, 23:59:59 GMT
-    static const int LAST_POW_TIME    = 1415491199;
-    // 31 dec 2017 23:59:59 GMT
-    static const int LAST_POW_TIME_TN = 1514764799;
-
-    return fTestNet ? LAST_POW_TIME_TN : LAST_POW_TIME;
-}
