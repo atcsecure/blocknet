@@ -1020,7 +1020,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
         std::string strtxid;
         if (!rpc::storeDataIntoBlockchain(std::vector<unsigned char>(xid.begin(), xid.end()), strtxid))
         {
-            ERR() << "error send blocknet tx " << __FUNCTION__;
+            ERR() << "storeDataIntoBlockchain failed, error send blocknet tx " << __FUNCTION__;
             sendCancelTransaction(txid, crBlocknetError);
             return true;
         }

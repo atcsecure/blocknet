@@ -993,27 +993,14 @@ bool sendRawTransaction(const std::string & rpcuser,
         }
 
         const Value & result = find_value(reply, "result");
-        if (result.type() != obj_type)
+        if (result.type() != str_type)
         {
             // Result
-            LOG() << "result not an object " <<
-                     (result.type() == null_type ? "" :
-                      result.type() == str_type  ? result.get_str() :
-                                                   write_string(result, true));
+            LOG() << "result not an string " << write_string(result, true);
             return false;
         }
 
-        const Value  & tx = find_value(result.get_obj(), "hex");
-        if (tx.type() != str_type)
-        {
-            LOG() << "bad hex " <<
-                     (tx.type() == null_type ? "" :
-                      tx.type() == str_type  ? tx.get_str() :
-                                                   write_string(tx, true));
-            return false;
-        }
-
-        txid = tx.get_str();
+        txid = result.get_str();
     }
     catch (std::exception & e)
     {
