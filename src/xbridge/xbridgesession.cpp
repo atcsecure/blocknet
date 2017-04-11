@@ -1473,7 +1473,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         }
 
         TXLOG() << "deposit sendrawtransaction " << bintx;
-        TXLOG() << binjson;
+        // TXLOG() << binjson;
 
         xtx->binTx   = bintx;
         xtx->binTxId = bintxid;
@@ -1571,7 +1571,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         }
 
         TXLOG() << "refund sendrawtransaction " << reftx;
-        TXLOG() << json;
+        // TXLOG() << json;
 
         xtx->refTx   = reftx;
         xtx->refTxId = reftxid;
@@ -1818,8 +1818,8 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                 return true;
             }
 
-            TXLOG() << "payment A sendrawtransaction " << paytx;
-            TXLOG() << json;
+            // TXLOG() << "payment A sendrawtransaction " << paytx;
+            // TXLOG() << json;
 
             xtx->payTx   = paytx;
             xtx->payTxId = paytxid;
@@ -1835,6 +1835,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                                 m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment A " << sentid;
+        TXLOG() << "payment A sendrawtransaction " << xtx->payTx;
     }
     else
     {
@@ -2065,8 +2066,8 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                 return true;
             }
 
-            TXLOG() << "payment B sendrawtransaction " << paytx;
-            TXLOG() << json;
+            // TXLOG() << "payment B sendrawtransaction " << paytx;
+            // TXLOG() << json;
 
             xtx->payTx   = paytx;
             xtx->payTxId = paytxid;
@@ -2082,6 +2083,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                                 m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment B " << sentid;
+        TXLOG() << "payment B sendrawtransaction " << xtx->payTx;
     }
     else
     {
