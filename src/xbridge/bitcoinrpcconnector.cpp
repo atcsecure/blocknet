@@ -970,11 +970,14 @@ bool sendRawTransaction(const std::string & rpcuser,
                         const std::string & rpcip,
                         const std::string & rpcport,
                         const std::string & rawtx,
-                        string & txid)
+                        string & txid,
+                        int32_t & errorCode)
 {
     try
     {
         LOG() << "rpc call <sendrawtransaction>";
+
+        errorCode = 0;
 
         Array params;
         params.push_back(rawtx);
@@ -988,7 +991,7 @@ bool sendRawTransaction(const std::string & rpcuser,
         {
             // Error
             LOG() << "error: " << write_string(error, false);
-            // int code = find_value(error.get_obj(), "code").get_int();
+            errorCode = find_value(error.get_obj(), "code").get_int();
             return false;
         }
 
@@ -1004,6 +1007,8 @@ bool sendRawTransaction(const std::string & rpcuser,
     }
     catch (std::exception & e)
     {
+        errorCode = -1;
+
         LOG() << "sendrawtransaction exception " << e.what();
         return false;
     }

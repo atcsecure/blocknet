@@ -1585,8 +1585,9 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     // send transactions
     {
         std::string sentid;
+        int32_t errCode = 0;
         if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-                                    m_wallet.ip, m_wallet.port, xtx->binTx, sentid))
+                                    m_wallet.ip, m_wallet.port, xtx->binTx, sentid, errCode))
         {
             LOG() << "deposit " << xtx->role << " " << sentid;
         }
@@ -1829,13 +1830,25 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
 
     // send pay tx
     std::string sentid;
+    int32_t errCode = 0;
     if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid))
+                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment A " << sentid;
     }
     else
     {
+        if (errCode == -25)
+        {
+            // missing inputs, wait deposit tx
+            // move packet to pending
+            LOG() << "payment A not send, no deposit tx, move to pending";
+
+            boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+            XBridgeApp::m_pendingPackets[txid] = std::make_pair(m_wallet.currency, packet);
+            return true;
+        }
+
         LOG() << "payment A tx not send, transaction canceled " << __FUNCTION__;
         sendCancelTransaction(xtx, crRpcError);
         return true;
@@ -2064,13 +2077,25 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
 
     // send pay tx
     std::string sentid;
+    int32_t errCode = 0;
     if (rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid))
+                                m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment B " << sentid;
     }
     else
     {
+        if (errCode == -25)
+        {
+            // missing inputs, wait deposit tx
+            // move packet to pending
+            LOG() << "payment B not send, no deposit tx, move to pending";
+
+            boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+            XBridgeApp::m_pendingPackets[txid] = std::make_pair(m_wallet.currency, packet);
+            return true;
+        }
+
         LOG() << "payment B tx not send, transaction canceled " << __FUNCTION__;
         sendCancelTransaction(xtx, crRpcError);
         return true;
@@ -2701,7 +2726,8 @@ bool XBridgeSession::revertXBridgeTransaction(const uint256 & id)
 
     // rollback, commit revert transaction
     std::string txid;
-    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx, txid))
+    int32_t errCode = 0;
+    if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, xtx->refTx, txid, errCode))
     {
         // not commited....send cancel???
         // sendCancelTransaction(id);

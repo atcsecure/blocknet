@@ -90,7 +90,8 @@ namespace rpc
                             const std::string & rpcip,
                             const std::string & rpcport,
                             const std::string & rawtx,
-                            std::string & txid);
+                            std::string & txid,
+                            int32_t & errorCode);
 
     bool getNewAddress(const std::string & rpcuser,
                        const std::string & rpcpasswd,
