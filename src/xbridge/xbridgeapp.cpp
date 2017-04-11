@@ -653,7 +653,7 @@ uint256 XBridgeApp::sendXBridgeTransaction(const std::string & from,
 
     if (!s->checkAmount(fromAmount))
     {
-        uiInterface.ThreadSafeMessageBox(_("Insufficient funds"),
+        uiInterface.ThreadSafeMessageBox(_("Insufficient funds for ") + fromCurrency,
                                          "blocknet",
                                          CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
 
@@ -777,7 +777,7 @@ uint256 XBridgeApp::acceptXBridgeTransaction(const uint256 & id,
 
     if (!s->checkAmount(ptr->toAmount))
     {
-        uiInterface.ThreadSafeMessageBox(_("Insufficient funds"),
+        uiInterface.ThreadSafeMessageBox(_("Insufficient funds for ") + ptr->toCurrency,
                                          "blocknet",
                                          CClientUIInterface::OK | CClientUIInterface::ICON_EXCLAMATION | CClientUIInterface::MODAL);
 
