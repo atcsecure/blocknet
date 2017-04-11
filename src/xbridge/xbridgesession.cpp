@@ -1472,7 +1472,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             return true;
         }
 
-        TXLOG() << "bailin sendrawtransaction " << bintx;
+        TXLOG() << "deposit sendrawtransaction " << bintx;
         TXLOG() << binjson;
 
         xtx->binTx   = bintx;
@@ -1539,7 +1539,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 
                 signature2.push_back((unsigned char)SIGHASH_ALL);
 
-                TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
+                // TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
             }
 
             redeem << signature2;
@@ -1547,8 +1547,8 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         }
 
         std::vector<unsigned char> raw(xtx->mPubKey.begin(), xtx->mPubKey.end());
-        TXLOG() << "xtx->mPubKey " << HexStr(raw.begin(), raw.end());
-        TXLOG() << "xtx->mPubKey->GetID " << xtx->mPubKey.GetID().GetHex();
+        // TXLOG() << "xtx->mPubKey " << HexStr(raw.begin(), raw.end());
+        // TXLOG() << "xtx->mPubKey->GetID " << xtx->mPubKey.GetID().GetHex();
         // TXLOG() << "inner " << HexStr(inner.begin(), inner.end());
 
         xbridge::CTransactionPtr tx(createTransaction());
@@ -1570,7 +1570,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             return true;
         }
 
-        TXLOG() << "refund2 sendrawtransaction " << reftx;
+        TXLOG() << "refund sendrawtransaction " << reftx;
         TXLOG() << json;
 
         xtx->refTx   = reftx;
@@ -1786,7 +1786,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
 
             signature2.push_back((unsigned char)SIGHASH_ALL);
 
-            TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
+            // TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
         }
 
         // sign2
@@ -1798,8 +1798,8 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                    << signature2 << rawm
                    << OP_FALSE << inner;
 
-            TXLOG() << "xtx->mPubKey " << HexStr(rawm.begin(), rawm.end());
-            TXLOG() << "inner " << HexStr(inner.begin(), inner.end());
+            // TXLOG() << "xtx->mPubKey " << HexStr(rawm.begin(), rawm.end());
+            // TXLOG() << "inner " << HexStr(inner.begin(), inner.end());
 
             xbridge::CTransactionPtr tx(createTransaction());
             tx->nVersion  = txUnsigned->nVersion;
@@ -1818,7 +1818,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                 return true;
             }
 
-            TXLOG() << "payment sendrawtransaction " << paytx;
+            TXLOG() << "payment A sendrawtransaction " << paytx;
             TXLOG() << json;
 
             xtx->payTx   = paytx;
@@ -2032,7 +2032,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
 
             signature2.push_back((unsigned char)SIGHASH_ALL);
 
-            TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
+            // TXLOG() << "signature2 " << HexStr(signature2.begin(), signature2.end());
         }
 
         // sign2
@@ -2045,8 +2045,8 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                    << signature2 << rawm
                    << OP_FALSE << inner;
 
-            TXLOG() << "xtx->mPubKey " << HexStr(rawm.begin(), rawm.end());
-            TXLOG() << "inner " << HexStr(inner.begin(), inner.end());
+            // TXLOG() << "xtx->mPubKey " << HexStr(rawm.begin(), rawm.end());
+            // TXLOG() << "inner " << HexStr(inner.begin(), inner.end());
 
             xbridge::CTransactionPtr tx(createTransaction());
             tx->nVersion  = txUnsigned->nVersion;
@@ -2065,7 +2065,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                 return true;
             }
 
-            TXLOG() << "payment sendrawtransaction " << paytx;
+            TXLOG() << "payment B sendrawtransaction " << paytx;
             TXLOG() << json;
 
             xtx->payTx   = paytx;
