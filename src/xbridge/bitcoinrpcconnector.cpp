@@ -1677,6 +1677,7 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
 
     if (errCode != 0)
     {
+        LOG() << "error send xdata transaction, code " << errCode << " " << errMessage << " " << __FUNCTION__;
 //        QMessageBox::warning(this,
 //                             trUtf8("Send Coins"),
 //                             trUtf8("Failed, code %1\n%2").arg(QString::number(errCode), QString::fromStdString(errMessage)),
