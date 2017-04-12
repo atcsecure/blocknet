@@ -1217,6 +1217,7 @@ xbridge::CTransactionPtr XBridgeSession::createTransaction(const std::vector<std
                                                            const uint32_t lockTime)
 {
     xbridge::CTransactionPtr tx(new xbridge::CXCTransaction);
+    tx->nVersion  = m_wallet.txVersion;
     tx->nLockTime = lockTime;
 
     for (const std::pair<std::string, int> & in : inputs)
