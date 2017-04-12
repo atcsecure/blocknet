@@ -91,7 +91,6 @@ xbridge::CTransactionPtr XBridgeSessionBtc::createTransaction(const std::vector<
                                                               const uint32_t lockTime)
 {
     xbridge::CTransactionPtr tx(new xbridge::CBTCTransaction);
-    tx->nVersion  = 2;
     tx->nLockTime = lockTime;
 
 //    uint32_t sequence = lockTime ? std::numeric_limits<uint32_t>::max() - 1 : std::numeric_limits<uint32_t>::max();
