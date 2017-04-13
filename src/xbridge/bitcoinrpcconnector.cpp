@@ -243,7 +243,7 @@ string JSONRPCRequest(const string& strMethod, const Array& params, const Value&
     request.push_back(Pair("method", strMethod));
     request.push_back(Pair("params", params));
     request.push_back(Pair("id", id));
-    return write_string(Value(request), json_spirit::none, 6) + "\n";
+    return write_string(Value(request), json_spirit::none, 8) + "\n";
 }
 
 //******************************************************************************

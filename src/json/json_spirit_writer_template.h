@@ -192,7 +192,7 @@ namespace json_spirit
 
         void output( double d )
         {
-            os_ << std::setprecision( precision_of_doubles_ ) << d;
+            os_ << std::fixed << std::setprecision( precision_of_doubles_ ) << d;
         }
 
         static bool contains_composite_elements( const Array_type& arr )
