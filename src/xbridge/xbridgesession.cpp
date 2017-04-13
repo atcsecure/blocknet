@@ -1756,7 +1756,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
             CScript scr;
             scr.SetDestination(xbridge::CBitcoinAddress(xtx->to).Get());
 
-            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
+            double outAmount = static_cast<double>(xtx->toAmount)/XBridgeTransactionDescr::COIN;
             outputs.push_back(std::make_pair(scr, outAmount));
         }
 
@@ -2003,7 +2003,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
             CScript scr;
             scr.SetDestination(CBitcoinAddress(xtx->to).Get());
 
-            double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
+            double outAmount = static_cast<double>(xtx->toAmount)/XBridgeTransactionDescr::COIN;
             outputs.push_back(std::make_pair(scr, outAmount));
         }
 
