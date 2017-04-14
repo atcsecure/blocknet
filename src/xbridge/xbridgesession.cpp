@@ -1147,10 +1147,26 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
 }
 
 //******************************************************************************
+// calculate tx fee for deposit tx
+// output count always 1
 //******************************************************************************
-uint64_t XBridgeSession::minTxFee(const uint32_t inputCount, const uint32_t outputCount)
+uint64_t XBridgeSession::minTxFee1(const uint32_t inputCount, const uint32_t outputCount)
 {
     uint64_t fee = 148*inputCount + 34*outputCount + 10;
+    if (m_wallet.minTxFee)
+    {
+        return std::max(fee, m_wallet.minTxFee);
+    }
+    return fee;
+}
+
+//******************************************************************************
+// calculate tx fee for payment/refund tx
+// input count always 1
+//******************************************************************************
+uint64_t XBridgeSession::minTxFee2(const uint32_t inputCount, const uint32_t outputCount)
+{
+    uint64_t fee = 180*inputCount + 34*outputCount + 10;
     if (m_wallet.minTxFee)
     {
         return std::max(fee, m_wallet.minTxFee);
@@ -1335,11 +1351,11 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         return true;
     }
 
-    double outAmount = static_cast<double>(xtx->fromAmount)/XBridgeTransactionDescr::COIN;
+    double outAmount = static_cast<double>(xtx->fromAmount) / XBridgeTransactionDescr::COIN;
     double taxToSend = outAmount*(taxPercent/100000);
 
     double fee1      = 0;
-    double fee2      = static_cast<double>(minTxFee(1, 1))/XBridgeTransactionDescr::COIN;
+    double fee2      = static_cast<double>(minTxFee2(1, 1)) / m_wallet.COIN;
     double inAmount  = 0;
 
     std::vector<rpc::Unspent> usedInTx;
@@ -1347,7 +1363,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     {
         usedInTx.push_back(entry);
         inAmount += entry.amount;
-        fee1 = static_cast<double>(minTxFee(usedInTx.size(), taxToSend > 0 ? 4 : 3)) / XBridgeTransactionDescr::COIN;
+        fee1 = static_cast<double>(minTxFee1(usedInTx.size(), taxToSend > 0 ? 4 : 3)) / m_wallet.COIN;
 
         LOG() << "USED FOR TX <" << entry.txId << "> amount " << entry.amount << " " << entry.vout << " fee " << fee1;
 
