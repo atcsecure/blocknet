@@ -1835,7 +1835,7 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                 return true;
             }
 
-            // TXLOG() << "payment A sendrawtransaction " << paytx;
+            TXLOG() << "payment A sendrawtransaction " << paytx;
             // TXLOG() << json;
 
             xtx->payTx   = paytx;
@@ -1852,7 +1852,6 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
                                 m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment A " << sentid;
-        TXLOG() << "payment A sendrawtransaction " << xtx->payTx;
     }
     else
     {
@@ -2083,7 +2082,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                 return true;
             }
 
-            // TXLOG() << "payment B sendrawtransaction " << paytx;
+            TXLOG() << "payment B sendrawtransaction " << paytx;
             // TXLOG() << json;
 
             xtx->payTx   = paytx;
@@ -2100,7 +2099,6 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
                                 m_wallet.ip, m_wallet.port, xtx->payTx, sentid, errCode))
     {
         LOG() << "payment B " << sentid;
-        TXLOG() << "payment B sendrawtransaction " << xtx->payTx;
     }
     else
     {
