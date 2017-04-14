@@ -55,6 +55,7 @@ XBridge::XBridge()
                 wp.COIN                        = s.get<uint64_t>(*i + ".COIN", 0);
                 wp.txVersion                   = s.get<uint32_t>(*i + ".TxVersion", 1);
                 wp.minTxFee                    = s.get<uint64_t>(*i + ".MinTxFee", 0);
+                wp.feePerByte                  = s.get<uint64_t>(*i + ".FeePerByte", 200);
                 wp.minAmount                   = s.get<uint64_t>(*i + ".MinimumAmount", 0);
                 wp.dustAmount                  = s.get<uint64_t>(*i + ".DustAmount", 0);
                 wp.method                      = s.get<std::string>(*i + ".CreateTxMethod");

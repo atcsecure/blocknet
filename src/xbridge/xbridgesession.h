@@ -104,8 +104,8 @@ protected:
 
     bool makeNewPubKey(xbridge::CPubKey & newPKey) const;
 
-    uint64_t minTxFee1(const uint32_t inputCount, const uint32_t outputCount);
-    uint64_t minTxFee2(const uint32_t inputCount, const uint32_t outputCount);
+    double minTxFee1(const uint32_t inputCount, const uint32_t outputCount);
+    double minTxFee2(const uint32_t inputCount, const uint32_t outputCount);
 
     std::string round_x(const long double val, uint32_t prec);
 

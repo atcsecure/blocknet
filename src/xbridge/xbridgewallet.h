@@ -27,6 +27,7 @@ struct WalletParam
     uint32_t                   txVersion;
     uint64_t                   COIN;
     uint64_t                   minTxFee;
+    uint64_t                   feePerByte;
     uint64_t                   minAmount;
     uint64_t                   dustAmount;
     std::string                method;
@@ -37,10 +38,11 @@ struct WalletParam
     uint32_t                   blockTime;
 
     WalletParam()
-        : fee(300)
+        : fee(0)
         , txVersion(1)
         , COIN(0)
         , minTxFee(0)
+        , feePerByte(200)
         , minAmount(0)
         , dustAmount(0)
         , isGetNewPubKeySupported(false)

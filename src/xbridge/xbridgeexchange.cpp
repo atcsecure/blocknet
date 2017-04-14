@@ -55,6 +55,8 @@ bool XBridgeExchange::init()
         uint64_t    minAmount  = s.get<uint64_t>(*i + ".MinimumAmount", 0);
         uint64_t    dustAmount = s.get<uint64_t>(*i + ".DustAmount", 0);
         uint32_t    txVersion  = s.get<uint32_t>(*i + ".TxVersion", 1);
+        uint64_t    minTxFee   = s.get<uint64_t>(*i + ".MinTxFee", 0);
+        uint64_t    feePerByte = s.get<uint64_t>(*i + ".FeePerByte", 200);
 
 
         if (/*address.empty() || */ip.empty() || port.empty() ||
@@ -84,6 +86,8 @@ bool XBridgeExchange::init()
         wp.dustAmount = dustAmount;
         wp.taxaddr    = feeAddress;
         wp.txVersion  = txVersion;
+        wp.minTxFee   = minTxFee;
+        wp.feePerByte = feePerByte;
 
         LOG() << "read wallet " << *i << " \"" << label << "\" address <" << address << ">";
     }
