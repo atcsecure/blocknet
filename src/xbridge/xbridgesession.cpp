@@ -1152,12 +1152,12 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
 //******************************************************************************
 double XBridgeSession::minTxFee1(const uint32_t inputCount, const uint32_t outputCount)
 {
-    uint64_t fee = 148*inputCount + 34*outputCount + 10;
+    uint64_t fee = (148*inputCount + 34*outputCount + 10) * m_wallet.feePerByte;
     if (fee < m_wallet.minTxFee)
     {
         fee = m_wallet.minTxFee;
     }
-    return (double)fee * m_wallet.feePerByte / m_wallet.COIN;
+    return (double)fee / m_wallet.COIN;
 }
 
 //******************************************************************************
@@ -1166,12 +1166,12 @@ double XBridgeSession::minTxFee1(const uint32_t inputCount, const uint32_t outpu
 //******************************************************************************
 double XBridgeSession::minTxFee2(const uint32_t inputCount, const uint32_t outputCount)
 {
-    uint64_t fee = 180*inputCount + 34*outputCount + 10;
+    uint64_t fee = (180*inputCount + 34*outputCount + 10) * m_wallet.feePerByte;
     if (fee < m_wallet.minTxFee)
     {
         fee = m_wallet.minTxFee;
     }
-    return (double)fee * m_wallet.feePerByte / m_wallet.COIN;
+    return (double)fee / m_wallet.COIN;
 }
 
 //******************************************************************************
@@ -2016,7 +2016,7 @@ bool XBridgeSession::processTransactionConfirmB(XBridgePacketPtr packet)
         // outputs
         {
             CScript scr;
-            scr.SetDestination(CBitcoinAddress(xtx->to).Get());
+            scr.SetDestination(xbridge::CBitcoinAddress(xtx->to).Get());
 
             double outAmount = static_cast<double>(xtx->toAmount)/XBridgeTransactionDescr::COIN;
             outputs.push_back(std::make_pair(scr, outAmount));
