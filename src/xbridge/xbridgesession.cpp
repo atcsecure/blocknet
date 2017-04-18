@@ -75,9 +75,9 @@ void XBridgeSession::init()
 {
     assert(!m_handlers.size());
 
-    RAND_bytes(m_myid, sizeof(m_myid));
+    m_myid = rpc::getNewAddress();
     LOG() << "session <" << m_wallet.currency << "> generated id <"
-          << util::base64_encode(std::string((char *)m_myid, sizeof(m_myid))).c_str()
+          << m_myid
           << ">";
 
     // process invalid
@@ -303,7 +303,8 @@ bool XBridgeSession::checkPacketAddress(XBridgePacketPtr packet)
     }
 
     // check address
-    if (memcmp(packet->data(), m_myid, 20) == 0)
+    std::vector myid = rpc::toXAddr(m_myid);
+    if (memcmp(packet->data(), &myid[0], 20) == 0)
     {
         // this session address, need to process
         return true;

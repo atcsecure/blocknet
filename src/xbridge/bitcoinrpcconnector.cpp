@@ -1541,6 +1541,13 @@ bool eth_sendTransaction(const std::string & rpcip,
 
 //*****************************************************************************
 //*****************************************************************************
+std::string getNewAddress()
+{
+    return pwalletMain->GenerateNewKey().GetID().ToString();
+}
+
+//*****************************************************************************
+//*****************************************************************************
 bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
                              string & txid)
 {

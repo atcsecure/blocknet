@@ -33,7 +33,8 @@ public:
     XBridgeSession(const WalletParam & wallet);
     virtual ~XBridgeSession();
 
-    const unsigned char * sessionAddr() const { return m_myid; }
+    const std::string sessionAddr() const { return m_myid; }
+
     std::string currency() const  { return m_wallet.currency; }
     double      minAmount() const { return (double)m_wallet.minAmount / 100000; }
 
@@ -161,7 +162,7 @@ protected:
     virtual bool processTransactionDropped(XBridgePacketPtr packet);
 
 protected:
-    unsigned char     m_myid[20];
+    std::string m_myid;
 
     XBridge::SocketPtr m_socket;
 

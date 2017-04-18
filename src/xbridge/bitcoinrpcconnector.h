@@ -153,6 +153,7 @@ namespace rpc
                              const uint64_t & fee);
 
     // helper fn-s
+    std::string getNewAddress();
     bool storeDataIntoBlockchain(const std::vector<unsigned char> & data, std::string & txid);
     bool getDataFromTx(const std::string & txid, std::vector<unsigned char> & data);
 
