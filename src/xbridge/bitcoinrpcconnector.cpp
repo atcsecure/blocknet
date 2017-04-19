@@ -20,6 +20,7 @@
 #include "bitcoinrpc.h"
 #include "wallet.h"
 #include "init.h"
+#include "key.h"
 
 #define HTTP_DEBUG
 
@@ -1541,14 +1542,19 @@ bool eth_sendTransaction(const std::string & rpcip,
 
 //*****************************************************************************
 //*****************************************************************************
-std::string getNewAddress()
+std::vector<unsigned char> getNewAddress()
 {
-    return pwalletMain->GenerateNewKey().GetID().ToString();
+    CKeyID id = pwalletMain->GenerateNewKey().GetID();
+    std::vector<unsigned char> addr;
+    std::copy(id.begin(), id.end(), std::back_inserter(addr));
+    return addr;
 }
 
 //*****************************************************************************
 //*****************************************************************************
-bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
+bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
+                             const double amount,
+                             const std::vector<unsigned char> & data,
                              string & txid)
 {
     const static std::string createCommand("createrawtransaction");
@@ -1565,38 +1571,43 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & data,
         std::string strdata = HexStr(data.begin(), data.end());
         outputs.push_back(Pair("data", strdata));
 
+        uint160 id(dstAddress);
+        CBitcoinAddress addr;
+        addr.Set(CKeyID(id));
+        outputs.push_back(Pair(addr.ToString(), amount));
+
         int64_t fee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (2 + (uint64_t)data.size() / 1000);
 
         std::vector<COutput> vCoins;
         pwalletMain->AvailableCoins(vCoins, true, nullptr);
         // model->wallet->AvailableCoins(vCoins, true, nullptr);
 
-        int64_t amount = 0;
+        int64_t inamount = 0;
         std::vector<COutput> used;
 
         for (const COutput & out : vCoins)
         {
-            amount += out.tx->vout[out.i].nValue;
+            inamount += out.tx->vout[out.i].nValue;
 
             used.push_back(out);
 
-            if (amount >= fee)
+            if (amount >= (fee + amount*COIN))
             {
                 break;
             }
         }
 
-        if (amount < fee)
+        if (inamount < (fee + amount*COIN))
         {
             throw std::runtime_error("No money");
         }
-        else if (amount > fee)
+        else if (inamount > (fee + amount*COIN))
         {
             // rest
             CReserveKey rkey(pwalletMain);
             CPubKey pk = rkey.GetReservedKey();
             CBitcoinAddress addr(pk.GetID());
-            uint64_t rest = amount - fee;
+            uint64_t rest = inamount - (fee + amount*COIN);
             outputs.push_back(Pair(addr.ToString(), (double)rest/COIN));
         }
 
