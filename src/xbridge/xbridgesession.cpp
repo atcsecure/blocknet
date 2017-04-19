@@ -1017,7 +1017,7 @@ bool XBridgeSession::processTransactionInit(XBridgePacketPtr packet)
         // send blocknet tx with hash of X
         CKeyID xid = xtx->xPubKey.GetID();
         std::string strtxid;
-        if (!rpc::storeDataIntoBlockchain(hubAddress, .01, std::vector<unsigned char>(xid.begin(), xid.end()), strtxid))
+        if (!rpc::storeDataIntoBlockchain(hubAddress, 1, std::vector<unsigned char>(xid.begin(), xid.end()), strtxid))
         {
             ERR() << "storeDataIntoBlockchain failed, error send blocknet tx " << __FUNCTION__;
             sendCancelTransaction(xtx, crBlocknetError);
