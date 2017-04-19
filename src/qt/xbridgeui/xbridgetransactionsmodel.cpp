@@ -19,8 +19,7 @@ XBridgeTransactionsModel::XBridgeTransactionsModel()
     m_columns << trUtf8("Created")
               << trUtf8("From") << trUtf8("Sell amount")
               << trUtf8("To") << trUtf8("Buy amount")
-              << trUtf8("State")
-              << trUtf8("Fee");
+              << trUtf8("State");
 
     xuiConnector.NotifyXBridgePendingTransactionReceived.connect
             (boost::bind(&XBridgeTransactionsModel::onTransactionReceived, this, _1));
@@ -121,10 +120,6 @@ QVariant XBridgeTransactionsModel::data(const QModelIndex & idx, int role) const
             case State:
             {
                 return QVariant(transactionState(d.state));
-            }
-            case Tax:
-            {
-                return QString("%1%").arg(QString::number((double)d.tax / 1000, 10, 2));
             }
 
             default:

@@ -34,8 +34,7 @@ public:
         AddressTo    = 3,
         AmountTo     = 4,
         State        = 5,
-        Tax          = 6,
-        LastColumn   = Tax
+        LastColumn   = State
     };
 
 public:
