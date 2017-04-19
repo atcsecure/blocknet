@@ -72,6 +72,7 @@ void XBridgeTransactionsView::setupUi()
 #endif
     header->resizeSection(XBridgeTransactionsModel::AmountTo,    80);
     header->resizeSection(XBridgeTransactionsModel::State,       128);
+    header->resizeSection(XBridgeTransactionsModel::Tax,         64);
     vbox->addWidget(m_transactionsList);
 
     QHBoxLayout * hbox = new QHBoxLayout;

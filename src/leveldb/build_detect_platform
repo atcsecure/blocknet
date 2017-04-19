@@ -14,7 +14,7 @@
 #                               of the shared library without intervening spaces
 #   PLATFORM_SHARED_CFLAGS      Flags for compiling objects for shared library
 #   PLATFORM_CCFLAGS            C compiler flags
-#   PLATFORM_CXXFLAGS           C++ compiler flags.  Will contain
+#   PLATFORM_CXXFLAGS           C++ compiler flags.  Will contain:
 #   PLATFORM_SHARED_VERSIONED   Set to 'true' if platform supports versioned
 #                               shared libraries, empty otherwise.
 #
