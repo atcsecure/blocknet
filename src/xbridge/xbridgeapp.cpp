@@ -367,7 +367,7 @@ void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & m
     }
 
     // check service session
-    else if (memcmp(m_serviceSession->sessionAddr(), &id[0], 20) == 0)
+    else if (m_serviceSession->sessionAddr() == id)
     {
         serviceSession()->processPacket(packet);
     }
@@ -474,15 +474,8 @@ void XBridgeApp::addSession(XBridgeSessionPtr session)
 
 //*****************************************************************************
 //*****************************************************************************
-void XBridgeApp::storageStore(XBridgeSessionPtr session, const unsigned char * data)
+void XBridgeApp::storageStore(XBridgeSessionPtr session, const std::vector<unsigned char> & id)
 {
-    if (!data)
-    {
-        return;
-    }
-
-    std::vector<unsigned char> id(data, data+20);
-
     // TODO :)
     // if (m_sessionAddrs.contains(id))
 
@@ -533,7 +526,7 @@ bool XBridgeApp::isLocalAddress(const std::vector<unsigned char> & id)
     }
 
     // check service session address
-    else if (memcmp(m_serviceSession->sessionAddr(), &id[0], 20) == 0)
+    else if (m_serviceSession->sessionAddr() == id)
     {
         return true;
     }

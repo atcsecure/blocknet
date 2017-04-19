@@ -248,6 +248,8 @@ bool XBridgeConnector::processXChatMessage(XBridgePacketPtr packet)
 //******************************************************************************
 bool XBridgeConnector::announceLocalAddresses()
 {
+    assert(!"not used");
+
     if (!isConnected())
     {
         return false;

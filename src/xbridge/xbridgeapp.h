@@ -81,7 +81,7 @@ public:
     // store session
     void addSession(XBridgeSessionPtr session);
     // store session addresses in local table
-    void storageStore(XBridgeSessionPtr session, const unsigned char * data);
+    void storageStore(XBridgeSessionPtr session, const std::vector<unsigned char> & id);
     // clear local table
     void storageClean(XBridgeSessionPtr session);
 

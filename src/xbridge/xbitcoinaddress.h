@@ -13,7 +13,7 @@ namespace xbridge
 
 //*****************************************************************************
 //*****************************************************************************
-class CBitcoinAddress : public CBase58Data
+class XBitcoinAddress : public CBase58Data
 {
 public:
     enum
@@ -73,7 +73,7 @@ public:
         return fExpectTestNet == fTestNet && vchData.size() == nExpectedSize;
     }
 
-    CBitcoinAddress()
+    XBitcoinAddress()
     {
     }
 
@@ -82,12 +82,12 @@ public:
 //        Set(dest);
 //    }
 
-    CBitcoinAddress(const std::string& strAddress)
+    XBitcoinAddress(const std::string& strAddress)
     {
         SetString(strAddress);
     }
 
-    CBitcoinAddress(const char* pszAddress)
+    XBitcoinAddress(const char* pszAddress)
     {
         SetString(pszAddress);
     }

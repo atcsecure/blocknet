@@ -53,15 +53,13 @@ struct XBridgeTransactionDescr
 
     std::string                from;
     std::string                fromCurrency;
-    boost::uint64_t            fromAmount;
+    uint64_t                   fromAmount;
     std::string                to;
     std::string                toCurrency;
-    boost::uint64_t            toAmount;
+    uint64_t                   toAmount;
 
-    boost::uint32_t            tax;
-
-    boost::uint32_t            lockTimeTx1;
-    boost::uint32_t            lockTimeTx2;
+    uint32_t                   lockTimeTx1;
+    uint32_t                   lockTimeTx2;
 
     State                      state;
     uint32_t                   reason;
@@ -96,7 +94,6 @@ struct XBridgeTransactionDescr
 
     XBridgeTransactionDescr()
         : role(0)
-        , tax(0)
         , state(trNew)
         , reason(0)
         , created(boost::posix_time::second_clock::universal_time())
@@ -166,7 +163,6 @@ private:
         to           = d.to;
         toCurrency   = d.toCurrency;
         toAmount     = d.toAmount;
-        tax          = d.tax;
         lockTimeTx1  = d.lockTimeTx1;
         lockTimeTx2  = d.lockTimeTx2;
         state        = d.state;
