@@ -57,7 +57,7 @@ TXLOG::~TXLOG()
         m_logFileName    = makeFileName();
     }
 
-    std::cout << str().c_str();
+    // std::cout << str().c_str();
 
     try
     {
