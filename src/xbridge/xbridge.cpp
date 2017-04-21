@@ -123,6 +123,7 @@ void XBridge::stop()
     m_timer.cancel();
     m_timerIo.stop();
     m_timerIoWork.reset();
+    m_timerThread.join();
 
 //    for (IoServicePtr & i : m_services)
 //    {

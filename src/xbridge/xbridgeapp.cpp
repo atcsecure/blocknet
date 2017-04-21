@@ -70,6 +70,8 @@ XBridgeApp::XBridgeApp()
 //*****************************************************************************
 XBridgeApp::~XBridgeApp()
 {
+    stop();
+
 #ifdef WIN32
     WSACleanup();
 #endif
