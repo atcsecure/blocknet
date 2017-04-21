@@ -76,8 +76,9 @@ void XBridgeSession::init()
     assert(!m_handlers.size());
 
     m_myid = rpc::getNewAddress();
+    // RAND_bytes(m_myid, sizeof(m_myid));
     LOG() << "session <" << m_wallet.currency << "> generated id <"
-          << m_myid
+          << util::base64_encode(m_myid).c_str()
           << ">";
 
     // process invalid
