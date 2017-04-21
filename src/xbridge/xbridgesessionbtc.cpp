@@ -61,14 +61,12 @@ uint32_t XBridgeSessionBtc::lockTime(const char role) const
     if (role == 'A')
     {
         // 72h in seconds
-        // lt = info.blocks + 259200 / m_wallet.blockTime;
-        lt = info.blocks + 120 / m_wallet.blockTime;
+        lt = info.blocks + 259200 / m_wallet.blockTime;
     }
     else if (role == 'B')
     {
         // 36h in seconds
-        // lt = info.blocks + 259200 / 2 / m_wallet.blockTime;
-        lt = info.blocks + 60 / 2 / m_wallet.blockTime;
+        lt = info.blocks + 259200 / 2 / m_wallet.blockTime;
     }
 
     return lt;
