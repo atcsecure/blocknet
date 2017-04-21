@@ -1564,6 +1564,8 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
     int errCode = 0;
     std::string errMessage;
 
+    static CTransaction txDummy;
+
     try
     {
         Object outputs;
@@ -1576,13 +1578,12 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
         addr.Set(CKeyID(id));
         outputs.push_back(Pair(addr.ToString(), amount));
 
-        int64_t fee = (nTransactionFee == 0 ? MIN_TX_FEE : nTransactionFee) * (2 + (uint64_t)data.size() / 1000);
-
         std::vector<COutput> vCoins;
         pwalletMain->AvailableCoins(vCoins, true, nullptr);
         // model->wallet->AvailableCoins(vCoins, true, nullptr);
 
-        int64_t inamount = 0;
+        uint64_t inamount = 0;
+        uint64_t fee = 0;
         std::vector<COutput> used;
 
         for (const COutput & out : vCoins)
@@ -1590,6 +1591,10 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
             inamount += out.tx->vout[out.i].nValue;
 
             used.push_back(out);
+
+            // (148*inputCount + 34*outputCount + 10) + data
+            uint32_t bytes = (148*used.size()) + (34) + 10 + data.size();
+            fee = txDummy.GetMinFee(1, GMF_SEND, bytes);
 
             if (amount >= (fee + amount*COIN))
             {
