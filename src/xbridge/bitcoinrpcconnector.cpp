@@ -1594,7 +1594,7 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
 
             // (148*inputCount + 34*outputCount + 10) + data
             uint32_t bytes = (148*used.size()) + (34) + 10 + data.size();
-            fee = txDummy.GetMinFee(1, GMF_SEND, bytes);
+            fee = std::max(txDummy.GetMinFee(1, GMF_SEND, bytes), MIN_TX_FEE);
 
             if (amount >= (fee + amount*COIN))
             {
