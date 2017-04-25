@@ -44,7 +44,7 @@ windows {
         -lgdi32
 }
 
-unix {
+unix:!macx {
     LIBS += \
         -lboost_system \
         -lboost_filesystem \

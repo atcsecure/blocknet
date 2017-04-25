@@ -258,7 +258,7 @@ public:
 //    {
 //        std::string str;
 //        str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-//        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d)\n",
+//        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%" PRIszu ", vout.size=%" PRIszu ", nLockTime=%d)\n",
 //            GetHash().ToString().substr(0,10).c_str(),
 //            nTime,
 //            nVersion,
