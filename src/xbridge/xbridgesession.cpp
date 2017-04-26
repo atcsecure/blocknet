@@ -1353,7 +1353,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     }
 
     double outAmount = static_cast<double>(xtx->fromAmount) / XBridgeTransactionDescr::COIN;
-    double taxToSend = outAmount * taxPercent / 100000;
+    double taxToSend = std::max(outAmount * taxPercent / 100000, (double)m_wallet.dustAmount / m_wallet.COIN);
 
     double fee1      = 0;
     double fee2      = minTxFee2(1, 1);
