@@ -42,6 +42,11 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     // Message from network thread
     if(guiref)
     {
+#ifdef __APPLE__
+        if(splashref)
+            splashref->finish(guiref);
+#endif
+
         bool modal = (style & CClientUIInterface::MODAL);
         // in case of modal message, use blocking connection to wait for user to click OK
         QMetaObject::invokeMethod(guiref, "error",
