@@ -436,7 +436,7 @@ bool XBridgeSession::takeXBridgeMessage(const std::vector<unsigned char> & messa
     if (!packet->copyFrom(message))
     {
         ERR() << "incorrect packet " << __FUNCTION__;
-        return;
+        return false;
     }
 
     // return sendXBridgeMessage(packet);

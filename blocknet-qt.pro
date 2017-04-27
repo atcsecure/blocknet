@@ -44,7 +44,7 @@ windows {
         -lgdi32
 }
 
-unix {
+unix:!macx {
     LIBS += \
         -lboost_system \
         -lboost_filesystem \
@@ -131,7 +131,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
 }
 
 INCLUDEPATH += src/leveldb/include src/leveldb/helpers
-#LIBS += $$PWD/src/leveldb/libleveldb.a #$$PWD/src/leveldb/libmemenv.a
+unix: LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
 LIBS += \
     -L$$PWD/src/leveldb \
     -lleveldb \
@@ -206,10 +206,13 @@ SOURCES += src/txdb-leveldb.cpp \
 }
 genleveldb.target = $$PWD/src/leveldb/libleveldb.a
 genleveldb.depends = FORCE
-# PRE_TARGETDEPS += $$PWD/src/leveldb/libleveldb.a
-#QMAKE_EXTRA_TARGETS += genleveldb
-# Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-#QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
+
+unix {
+    PRE_TARGETDEPS += $$PWD/src/leveldb/libleveldb.a
+    QMAKE_EXTRA_TARGETS += genleveldb
+    # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
+    QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) clean
+}
 
 # regenerate src/build.h
 #!windows|contains(USE_BUILD_INFO, 1) {
