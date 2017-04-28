@@ -30,7 +30,9 @@ enum TxCancelReason
     crRpcRequest      = 8,
     crXbridgeRejected = 9,
     crInvalidAddress  = 10,
-    crBlocknetError   = 11
+    crBlocknetError   = 11,
+    crBadADepositTx   = 12,
+    crBadBDepositTx   = 13
 };
 
 //******************************************************************************
@@ -152,7 +154,7 @@ enum XBridgeCommand
     xbcTransactionInitialized = 9,
 
     //
-    // xbcTransactionCreate (205 bytes min)
+    // xbcTransactionCreateA (205 bytes min)
     //    uint160  client address
     //    uint160  hub address
     //    uint256  hub transaction id
@@ -161,14 +163,26 @@ enum XBridgeCommand
     //    uint32_t fee in percent, *1000 (0.3% == 300)
     //    uint256 data tx id, 32 bytes
     //    opponent public key, 33 bytes
-    xbcTransactionCreate = 10,
+    xbcTransactionCreateA = 10,
     //
-    // xbcTransactionCreated (72 bytes min)
+    // xbcTransactionCreatedA (72 bytes min)
     //    uint160 hub address
     //    uint160 client address
     //    uint256 hub transaction id
     //    string deposit tx id
-    xbcTransactionCreated = 11,
+    xbcTransactionCreatedA = 11,
+    //
+    // xbcTransactionCreateB (205 bytes min)
+    //    uint160  client address
+    //    uint160  hub address
+    //    uint256  hub transaction id
+    //    string destination address (33-34 byte + 0)
+    //    string hub wallet address (33-34 byte + 0)
+    //    uint32_t fee in percent, *1000 (0.3% == 300)
+    //    uint256 data tx id, 32 bytes
+    //    opponent public key, 33 bytes
+    //    string A deposit tx id
+    xbcTransactionCreateB = 12,
 
     //
     // xbcTransactionConfirmA (72 bytes min)

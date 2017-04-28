@@ -105,8 +105,10 @@ void XBridgeSession::init()
         m_handlers[xbcTransactionInit]       .bind(this, &XBridgeSession::processTransactionInit);
         m_handlers[xbcTransactionInitialized].bind(this, &XBridgeSession::processTransactionInitialized);
 
-        m_handlers[xbcTransactionCreate]     .bind(this, &XBridgeSession::processTransactionCreate);
-        m_handlers[xbcTransactionCreated]    .bind(this, &XBridgeSession::processTransactionCreated);
+        m_handlers[xbcTransactionCreateA]    .bind(this, &XBridgeSession::processTransactionCreate);
+        m_handlers[xbcTransactionCreateB]    .bind(this, &XBridgeSession::processTransactionCreate);
+        m_handlers[xbcTransactionCreatedA]   .bind(this, &XBridgeSession::processTransactionCreatedA);
+        m_handlers[xbcTransactionCreatedA]   .bind(this, &XBridgeSession::processTransactionCreatedB);
 
         m_handlers[xbcTransactionConfirmA]   .bind(this, &XBridgeSession::processTransactionConfirmA);
         m_handlers[xbcTransactionConfirmB]   .bind(this, &XBridgeSession::processTransactionConfirmB);
@@ -1113,7 +1115,7 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             // send xbcTransactionCreate
             // with nLockTime == lockTime*2 for first client,
             // with nLockTime == lockTime*4 for second
-            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionCreate));
+            XBridgePacketPtr reply1(new XBridgePacket(xbcTransactionCreateA));
             reply1->append(rpc::toXAddr(tr->a_address()));
             reply1->append(sessionAddr());
             reply1->append(id.begin(), 32);
@@ -1124,23 +1126,6 @@ bool XBridgeSession::processTransactionInitialized(XBridgePacketPtr packet)
             reply1->append(tr->b_pk1().begin(), tr->b_pk1().size());
 
             sendPacket(tr->a_address(), reply1);
-
-            // second
-            // TODO remove this log
-            LOG() << "send xbcTransactionCreate to "
-                  << tr->b_address();
-
-            XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionCreate));
-            reply2->append(rpc::toXAddr(tr->b_address()));
-            reply2->append(sessionAddr());
-            reply2->append(id.begin(), 32);
-            reply2->append(tr->a_destination());
-            reply2->append(tr->b_taxAddress());
-            reply2->append(tr->tax());
-            reply2->append(tr->a_datatxid().begin(), 32);
-            reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
-
-            sendPacket(tr->b_address(), reply2);
         }
     }
 
@@ -1263,6 +1248,13 @@ std::string XBridgeSession::createRawTransaction(const std::vector<std::pair<std
 
 //******************************************************************************
 //******************************************************************************
+bool XBridgeSession::checkDepositTx(const XBridgeTransactionDescrPtr & /*xtx*/, const std::string & /*depositTxId*/)
+{
+    return true;
+}
+
+//******************************************************************************
+//******************************************************************************
 bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 {
     DEBUG_TRACE_LOG(currencyToLog());
@@ -1328,20 +1320,30 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
         xtx = XBridgeApp::m_transactions[txid];
     }
 
-#ifdef _DEBUG
-    if (xtx->role == 'A')
+    if (xtx->role == 'B')
     {
-        assert((xtx->xPubKey.GetID() == uint160(hx)) && "invalid hx for role A");
+        // for B need to check A deposit tx
+        // check packet length
+
+        std::string binATxId(reinterpret_cast<const char *>(packet->data()+offset));
+        offset += binATxId.size()+1;
+
+        if (binATxId.size() == 0)
+        {
+            LOG() << "bad A deposit tx id received for " << util::to_str(txid) << " " << __FUNCTION__;
+            sendCancelTransaction(xtx, crBadADepositTx);
+            return true;
+        }
+
+        // TODO check tx in blockchain and move packet to pending if not
+
+        if (!checkDepositTx(xtx, binATxId))
+        {
+            LOG() << "check A deposit tx error for " << util::to_str(txid) << " " << __FUNCTION__;
+            sendCancelTransaction(xtx, crBadADepositTx);
+            return true;
+        }
     }
-    else if (xtx->role == 'B')
-    {
-        assert(!xtx->xPubKey.IsValid() && "invalid hx for role b");
-    }
-    else
-    {
-        assert(!"invalid role");
-    }
-#endif
 
     std::vector<rpc::Unspent> entries;
     if (!rpc::listUnspent(m_wallet.user, m_wallet.passwd,
@@ -1626,7 +1628,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     }
 
     // send reply
-    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionCreated));
+    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionCreatedA));
     reply->append(hubAddress);
     reply->append(thisAddress);
     reply->append(txid.begin(), 32);
@@ -1640,7 +1642,93 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
 
 //*****************************************************************************
 //*****************************************************************************
-bool XBridgeSession::processTransactionCreated(XBridgePacketPtr packet)
+bool XBridgeSession::processTransactionCreatedA(XBridgePacketPtr packet)
+{
+    // DEBUG_TRACE();
+    DEBUG_TRACE_LOG(currencyToLog());
+
+    // size must be > 72 bytes
+    if (packet->size() < 72)
+    {
+        ERR() << "invalid packet size for xbcTransactionCreated "
+              << "need more than 74 received " << packet->size() << " "
+              << __FUNCTION__;
+        return false;
+    }
+
+    // check is for me
+    if (!checkPacketAddress(packet))
+    {
+        return true;
+    }
+
+    XBridgeExchange & e = XBridgeExchange::instance();
+    if (!e.isEnabled())
+    {
+        return true;
+    }
+
+    size_t offset = 20;
+
+    std::vector<unsigned char> from(packet->data()+offset, packet->data()+offset+20);
+    offset += 20;
+
+    uint256 txid(packet->data()+offset);
+    offset += 32;
+
+    std::string binTxId(reinterpret_cast<const char *>(packet->data()+offset));
+    offset += binTxId.size()+1;
+
+    std::string innerScript(reinterpret_cast<const char *>(packet->data()+offset));
+    // offset += innerScript.size()+1;
+
+    XBridgeTransactionPtr tr = e.transaction(txid);
+    boost::mutex::scoped_lock l(tr->m_lock);
+
+    tr->updateTimestamp();
+
+    std::string sfrom = tr->fromXAddr(from);
+    if (!sfrom.size())
+    {
+        ERR() << "invalid transaction address " << __FUNCTION__;
+        sendCancelTransaction(txid, crInvalidAddress);
+        return true;
+    }
+
+    if (!e.updateTransactionWhenCreatedReceived(tr, sfrom, binTxId, innerScript))
+    {
+        // wtf ?
+        assert(!"invalid createdA");
+
+        ERR() << "invalid createdA " << __FUNCTION__;
+        sendCancelTransaction(txid, crInvalidAddress);
+        return true;
+    }
+
+    // second
+    // TODO remove this log
+    LOG() << "send xbcTransactionCreate to "
+          << tr->b_address();
+
+    XBridgePacketPtr reply2(new XBridgePacket(xbcTransactionCreateB));
+    reply2->append(rpc::toXAddr(tr->b_address()));
+    reply2->append(sessionAddr());
+    reply2->append(txid.begin(), 32);
+    reply2->append(tr->a_destination());
+    reply2->append(tr->b_taxAddress());
+    reply2->append(tr->tax());
+    reply2->append(tr->a_datatxid().begin(), 32);
+    reply2->append(tr->a_pk1().begin(), tr->a_pk1().size());
+    reply2->append(binTxId);
+
+    sendPacket(tr->b_address(), reply2);
+
+    return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+bool XBridgeSession::processTransactionCreatedB(XBridgePacketPtr packet)
 {
     // DEBUG_TRACE();
     DEBUG_TRACE_LOG(currencyToLog());
@@ -1758,6 +1846,19 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
         }
 
         xtx = XBridgeApp::m_transactions[txid];
+    }
+
+    // check B deposit tx
+    {
+        // TODO check tx in blockchain and move packet to pending if not
+
+        if (!checkDepositTx(xtx, binTxId))
+        {
+            LOG() << "check B deposit tx error for " << util::to_str(txid) << " " << __FUNCTION__;
+            sendCancelTransaction(xtx, crBadBDepositTx);
+            return true;
+        }
+
     }
 
     // payTx

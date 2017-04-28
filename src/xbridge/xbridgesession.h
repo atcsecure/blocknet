@@ -119,6 +119,8 @@ protected:
                                              const std::vector<std::pair<CScript, double> > & outputs,
                                              const uint32_t lockTime = 0);
 
+    bool checkDepositTx(const XBridgeTransactionDescrPtr & xtx, const std::string & depositTxId);
+
 protected:
     virtual bool processInvalid(XBridgePacketPtr packet);
     virtual bool processZero(XBridgePacketPtr packet);
@@ -140,7 +142,8 @@ protected:
     virtual bool processTransactionInitialized(XBridgePacketPtr packet);
 
     virtual bool processTransactionCreate(XBridgePacketPtr packet);
-    virtual bool processTransactionCreated(XBridgePacketPtr packet);
+    virtual bool processTransactionCreatedA(XBridgePacketPtr packet);
+    virtual bool processTransactionCreatedB(XBridgePacketPtr packet);
 
     virtual bool processTransactionConfirmA(XBridgePacketPtr packet);
     virtual bool processTransactionConfirmedA(XBridgePacketPtr packet);
