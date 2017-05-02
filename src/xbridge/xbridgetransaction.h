@@ -99,8 +99,7 @@ public:
     std::string                a_address() const;
     std::string                a_destination() const;
     std::string                a_currency() const;
-    boost::uint64_t            a_amount() const;
-    std::string                a_prevtxs() const;
+    uint64_t                   a_amount() const;
     std::string                a_payTx() const;
     std::string                a_refTx() const;
     std::string                a_bintxid() const;
@@ -113,8 +112,7 @@ public:
     std::string                b_address() const;
     std::string                b_destination() const;
     std::string                b_currency() const;
-    boost::uint64_t            b_amount() const;
-    std::string                b_prevtxs() const;
+    uint64_t                   b_amount() const;
     std::string                b_payTx() const;
     std::string                b_refTx() const;
     std::string                b_bintxid() const;
@@ -136,12 +134,6 @@ public:
     bool                       setKeys(const std::string & addr,
                                        const uint256 & datatxid,
                                        const xbridge::CPubKey & pk);
-    bool                       setPayTx(const std::string & addr,
-                                        const std::string & prevtxs,
-                                        const std::string & payTx);
-    bool                       setRefTx(const std::string & addr,
-                                        const std::string & prevtxs,
-                                        const std::string & refTx);
     bool                       setBinTxId(const std::string & addr,
                                           const std::string & id,
                                           const std::string & innerScript);
@@ -155,7 +147,7 @@ private:
     boost::posix_time::ptime   m_created;
 
     State                      m_state;
-    // unsigned int               m_stateCounter;
+
     bool                       m_a_stateChanged;
     bool                       m_b_stateChanged;
 
@@ -164,16 +156,8 @@ private:
     std::string                m_sourceCurrency;
     std::string                m_destCurrency;
 
-    boost::uint64_t            m_sourceAmount;
-    boost::uint64_t            m_destAmount;
-
-    std::string                m_prevtxs1;
-    std::string                m_prevtxs2;
-
-    std::string                m_rawpaytx1;
-    std::string                m_rawrevtx1;
-    std::string                m_rawpaytx2;
-    std::string                m_rawrevtx2;
+    uint64_t                   m_sourceAmount;
+    uint64_t                   m_destAmount;
 
     std::string                m_bintxid1;
     std::string                m_bintxid2;

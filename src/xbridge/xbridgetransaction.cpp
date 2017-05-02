@@ -274,7 +274,7 @@ void XBridgeTransaction::finish()
 //*****************************************************************************
 bool XBridgeTransaction::confirm(const std::string & id)
 {
-    if (m_bintxid1 == id || m_bintxid1 == id)
+    if (m_bintxid1 == id || m_bintxid2 == id)
     {
         if (++m_confirmationCounter >= 2)
         {
@@ -336,30 +336,9 @@ std::string XBridgeTransaction::a_currency() const
 
 //*****************************************************************************
 //*****************************************************************************
-boost::uint64_t XBridgeTransaction::a_amount() const
+uint64_t XBridgeTransaction::a_amount() const
 {
     return m_sourceAmount;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::a_prevtxs() const
-{
-    return m_prevtxs1;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::a_payTx() const
-{
-    return m_rawpaytx1;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::a_refTx() const
-{
-    return m_rawrevtx1;
 }
 
 //*****************************************************************************
@@ -420,30 +399,9 @@ std::string XBridgeTransaction::b_currency() const
 
 //*****************************************************************************
 //*****************************************************************************
-boost::uint64_t XBridgeTransaction::b_amount() const
+uint64_t XBridgeTransaction::b_amount() const
 {
     return m_destAmount;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::b_prevtxs() const
-{
-    return m_prevtxs2;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::b_payTx() const
-{
-    return m_rawpaytx2;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-std::string XBridgeTransaction::b_refTx() const
-{
-    return m_rawrevtx2;
 }
 
 //*****************************************************************************
@@ -605,60 +563,6 @@ bool XBridgeTransaction::setKeys(const std::string & addr,
     {
         m_a_datatxid = datatxid;
         m_a_pk1      = pk;
-        return true;
-    }
-    return false;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-bool XBridgeTransaction::setPayTx(const std::string & addr,
-                                  const std::string & prevtxs,
-                                  const std::string & payTx)
-{
-    if (m_b.source() == addr || m_a.dest() == addr)
-    {
-        if (prevtxs.size())
-        {
-            m_prevtxs2  = prevtxs;
-        }
-        m_rawpaytx2 = payTx;
-        return true;
-    }
-    else if (m_a.source() == addr || m_b.dest() == addr)
-    {
-        if (prevtxs.size())
-        {
-            m_prevtxs1  = prevtxs;
-        }
-        m_rawpaytx1 = payTx;
-        return true;
-    }
-    return false;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-bool XBridgeTransaction::setRefTx(const std::string & addr,
-                                  const std::string & prevtxs,
-                                  const std::string & refTx)
-{
-    if (m_b.source() == addr || m_a.dest() == addr)
-    {
-        if (prevtxs.size())
-        {
-            m_prevtxs2  = prevtxs;
-        }
-        m_rawrevtx2 = refTx;
-        return true;
-    }
-    else if (m_a.source() == addr || m_b.dest() == addr)
-    {
-        if (prevtxs.size())
-        {
-            m_prevtxs1  = prevtxs;
-        }
-        m_rawrevtx1 = refTx;
         return true;
     }
     return false;

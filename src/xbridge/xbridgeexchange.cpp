@@ -422,56 +422,6 @@ bool XBridgeExchange::updateTransactionWhenCreatedReceived(XBridgeTransactionPtr
 
 //*****************************************************************************
 //*****************************************************************************
-bool XBridgeExchange::updateTransactionWhenSignedReceived(XBridgeTransactionPtr tx,
-                                                          const std::string & from,
-                                                          const std::string & refTx)
-{
-    if (!tx->setRefTx(from, std::string(), refTx))
-    {
-        // wtf?
-        LOG() << "unknown sender address for transaction, id <" << tx->id().GetHex() << ">";
-        return false;
-    }
-
-    // update transaction state
-    if (tx->increaseStateCounter(XBridgeTransaction::trCreated, from) == XBridgeTransaction::trSigned)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-//*****************************************************************************
-//*****************************************************************************
-bool XBridgeExchange::updateTransactionWhenCommitedStage1Received(XBridgeTransactionPtr tx,
-                                                                  const std::string & from,
-                                                                  const std::string & prevtxs,
-                                                                  const std::string & rawpaytx)
-{
-    if (!tx->setPayTx(from, prevtxs, rawpaytx))
-    {
-        // wtf?
-        LOG() << "unknown sender address for transaction, id <" << tx->id().GetHex() << ">";
-        return false;
-    }
-
-//    {
-//        boost::mutex::scoped_lock l (m_unconfirmedLock);
-//        m_unconfirmed[txid] = tx->id();
-//    }
-
-    // update transaction state
-    if (tx->increaseStateCounter(XBridgeTransaction::trSigned, from) == XBridgeTransaction::trCommited)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-//*****************************************************************************
-//*****************************************************************************
 bool XBridgeExchange::updateTransactionWhenConfirmedReceived(XBridgeTransactionPtr tx,
                                                              const std::string & from)
 {

@@ -71,13 +71,6 @@ public:
                                               const std::string & from,
                                               const std::string & binTxId,
                                               const std::string & innerScript);
-    bool updateTransactionWhenSignedReceived(XBridgeTransactionPtr tx,
-                                             const std::string & from,
-                                             const std::string & refTx);
-    bool updateTransactionWhenCommitedStage1Received(XBridgeTransactionPtr tx,
-                                                     const std::string & from,
-                                                     const std::string & prevtxs,
-                                                     const std::string & rawpaytx);
     bool updateTransactionWhenConfirmedReceived(XBridgeTransactionPtr tx,
                                                 const std::string & from);
 

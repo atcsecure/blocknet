@@ -50,6 +50,13 @@ namespace rpc
                      const std::string & rpcport,
                      std::vector<Unspent> & entries);
 
+    bool getRawTransaction(const std::string & rpcuser,
+                           const std::string & rpcpasswd,
+                           const std::string & rpcip,
+                           const std::string & rpcport,
+                           const std::string & txid,
+                           std::string & tx);
+
     bool createRawTransaction(const std::string & rpcuser,
                               const std::string & rpcpasswd,
                               const std::string & rpcip,

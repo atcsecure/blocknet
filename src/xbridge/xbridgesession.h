@@ -119,7 +119,9 @@ protected:
                                              const std::vector<std::pair<CScript, double> > & outputs,
                                              const uint32_t lockTime = 0);
 
-    bool checkDepositTx(const XBridgeTransactionDescrPtr & xtx, const std::string & depositTxId);
+    bool checkDepositTx(const XBridgeTransactionDescrPtr & xtx,
+                        const std::string & depositTxId,
+                        bool & isGood);
 
 protected:
     virtual bool processInvalid(XBridgePacketPtr packet);

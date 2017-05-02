@@ -588,7 +588,7 @@ bool getInfo(const std::string & rpcuser,
     }
     catch (std::exception & e)
     {
-        LOG() << "listunspent exception " << e.what();
+        LOG() << "getinfo exception " << e.what();
         return false;
     }
 
@@ -671,6 +671,54 @@ bool listUnspent(const std::string & rpcuser,
     catch (std::exception & e)
     {
         LOG() << "listunspent exception " << e.what();
+        return false;
+    }
+
+    return true;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+bool getRawTransaction(const std::string & rpcuser,
+                       const std::string & rpcpasswd,
+                       const std::string & rpcip,
+                       const std::string & rpcport,
+                       const std::string & txid,
+                       std::string & tx)
+{
+    try
+    {
+        LOG() << "rpc call <getrawtransaction>";
+
+        Array params;
+        params.push_back(txid);
+        Object reply = CallRPC(rpcuser, rpcpasswd, rpcip, rpcport,
+                               "getrawtransaction", params);
+
+        // Parse reply
+        const Value & result = find_value(reply, "result");
+        const Value & error  = find_value(reply, "error");
+
+        if (error.type() != null_type)
+        {
+            // Error
+            LOG() << "error: " << write_string(error, false);
+            // int code = find_value(error.get_obj(), "code").get_int();
+            return false;
+        }
+        else if (result.type() != str_type)
+        {
+            // Result
+            LOG() << "result not an string " << write_string(result, true);
+            return false;
+        }
+
+        // transaction exists, success
+        tx = result.get_str();
+    }
+    catch (std::exception & e)
+    {
+        LOG() << "getrawtransaction exception " << e.what();
         return false;
     }
 
@@ -1312,12 +1360,11 @@ bool getTransaction(const std::string & rpcuser,
     }
     catch (std::exception & e)
     {
-        LOG() << "signrawtransaction exception " << e.what();
+        LOG() << "gettransaction exception " << e.what();
         return false;
     }
 
     return true;
-
 }
 
 

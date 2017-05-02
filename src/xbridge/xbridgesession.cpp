@@ -108,7 +108,7 @@ void XBridgeSession::init()
         m_handlers[xbcTransactionCreateA]    .bind(this, &XBridgeSession::processTransactionCreate);
         m_handlers[xbcTransactionCreateB]    .bind(this, &XBridgeSession::processTransactionCreate);
         m_handlers[xbcTransactionCreatedA]   .bind(this, &XBridgeSession::processTransactionCreatedA);
-        m_handlers[xbcTransactionCreatedA]   .bind(this, &XBridgeSession::processTransactionCreatedB);
+        m_handlers[xbcTransactionCreatedB]   .bind(this, &XBridgeSession::processTransactionCreatedB);
 
         m_handlers[xbcTransactionConfirmA]   .bind(this, &XBridgeSession::processTransactionConfirmA);
         m_handlers[xbcTransactionConfirmB]   .bind(this, &XBridgeSession::processTransactionConfirmB);
@@ -1247,9 +1247,37 @@ std::string XBridgeSession::createRawTransaction(const std::vector<std::pair<std
 }
 
 //******************************************************************************
+// return false if deposit tx not found (need wait tx)
+// true if tx found and checked
+// isGood == true id depost tx is OK
 //******************************************************************************
-bool XBridgeSession::checkDepositTx(const XBridgeTransactionDescrPtr & /*xtx*/, const std::string & /*depositTxId*/)
+bool XBridgeSession::checkDepositTx(const XBridgeTransactionDescrPtr & /*xtx*/,
+                                    const std::string & depositTxId,
+                                    bool & isGood)
 {
+    isGood  = false;
+
+    std::string rawtx;
+    if (!rpc::getRawTransaction(m_wallet.user, m_wallet.passwd,
+                                m_wallet.ip, m_wallet.port,
+                                depositTxId, rawtx))
+    {
+        LOG() << "no tx found " << depositTxId << " " << __FUNCTION__;
+        return false;
+    }
+
+    std::string txid;
+    std::string txjson;
+    if (!rpc::decodeRawTransaction(m_wallet.user, m_wallet.passwd,
+                                   m_wallet.ip, m_wallet.port,
+                                   rawtx, txid, txjson))
+    {
+        LOG() << "transaction decode error " << depositTxId << " " << __FUNCTION__;
+        return false;
+    }
+
+    // TODO check amount in tx
+
     return true;
 }
 
@@ -1335,9 +1363,23 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             return true;
         }
 
-        // TODO check tx in blockchain and move packet to pending if not
+        XBridgeSessionPtr receiver = XBridgeApp::instance().sessionByCurrency(xtx->toCurrency);
+        if (!receiver)
+        {
+            LOG() << "no active session for " << xtx->toCurrency << " " << __FUNCTION__;
+            sendCancelTransaction(xtx, crBadADepositTx);
+            return true;
+        }
 
-        if (!checkDepositTx(xtx, binATxId))
+        bool isGood = false;
+        if (!receiver->checkDepositTx(xtx, binATxId, isGood))
+        {
+            // move packet to pending
+            boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+            XBridgeApp::m_pendingPackets[txid] = std::make_pair(m_wallet.currency, packet);
+            return true;
+        }
+        else if (!isGood)
         {
             LOG() << "check A deposit tx error for " << util::to_str(txid) << " " << __FUNCTION__;
             sendCancelTransaction(xtx, crBadADepositTx);
@@ -1617,18 +1659,25 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
             sendCancelTransaction(xtx, crRpcError);
             return true;
         }
-
-//        if (!rpc::sendRawTransaction(m_wallet.user, m_wallet.passwd,
-//                                     m_wallet.ip, m_wallet.port, xtx->refTx))
-//        {
-//            LOG() << "refund tx not send, transaction canceled " << __FUNCTION__;
-//            sendCancelTransaction(txid, crRpcError);
-//            return true;
-//        }
     }
 
     // send reply
-    XBridgePacketPtr reply(new XBridgePacket(xbcTransactionCreatedA));
+    XBridgePacketPtr reply;
+    if (xtx->role == 'A')
+    {
+        reply.reset(new XBridgePacket(xbcTransactionCreatedA));
+    }
+    else if (xtx->role == 'B')
+    {
+        reply.reset(new XBridgePacket(xbcTransactionCreatedB));
+    }
+    else
+    {
+        assert(!"unknown role");
+        ERR() << "unknown role " << __FUNCTION__;
+        return false;
+    }
+
     reply->append(hubAddress);
     reply->append(thisAddress);
     reply->append(txid.begin(), 32);
@@ -1650,7 +1699,7 @@ bool XBridgeSession::processTransactionCreatedA(XBridgePacketPtr packet)
     // size must be > 72 bytes
     if (packet->size() < 72)
     {
-        ERR() << "invalid packet size for xbcTransactionCreated "
+        ERR() << "invalid packet size for xbcTransactionCreatedA "
               << "need more than 74 received " << packet->size() << " "
               << __FUNCTION__;
         return false;
@@ -1705,7 +1754,6 @@ bool XBridgeSession::processTransactionCreatedA(XBridgePacketPtr packet)
         return true;
     }
 
-    // second
     // TODO remove this log
     LOG() << "send xbcTransactionCreate to "
           << tr->b_address();
@@ -1852,7 +1900,15 @@ bool XBridgeSession::processTransactionConfirmA(XBridgePacketPtr packet)
     {
         // TODO check tx in blockchain and move packet to pending if not
 
-        if (!checkDepositTx(xtx, binTxId))
+        bool isGood = false;
+        if (!checkDepositTx(xtx, binTxId, isGood))
+        {
+            // move packet to pending
+            boost::mutex::scoped_lock l(XBridgeApp::m_ppLocker);
+            XBridgeApp::m_pendingPackets[txid] = std::make_pair(m_wallet.currency, packet);
+            return true;
+        }
+        else if (!isGood)
         {
             LOG() << "check B deposit tx error for " << util::to_str(txid) << " " << __FUNCTION__;
             sendCancelTransaction(xtx, crBadBDepositTx);
