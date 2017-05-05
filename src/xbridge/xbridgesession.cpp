@@ -1278,6 +1278,8 @@ bool XBridgeSession::checkDepositTx(const XBridgeTransactionDescrPtr & /*xtx*/,
 
     // TODO check amount in tx
 
+    isGood = true;
+
     return true;
 }
 
@@ -1317,7 +1319,7 @@ bool XBridgeSession::processTransactionCreate(XBridgePacketPtr packet)
     offset += 32;
 
     xbridge::CPubKey mPubkey(packet->data()+offset, packet->data()+offset+33);
-    // offset += 33;
+    offset += 33;
 
     std::vector<unsigned char> hx;
     if (!rpc::getDataFromTx(datatxid.GetHex(), hx))
@@ -1744,7 +1746,7 @@ bool XBridgeSession::processTransactionCreatedA(XBridgePacketPtr packet)
         return true;
     }
 
-    if (!e.updateTransactionWhenCreatedReceived(tr, sfrom, binTxId, innerScript))
+    if (e.updateTransactionWhenCreatedReceived(tr, sfrom, binTxId, innerScript))
     {
         // wtf ?
         assert(!"invalid createdA");

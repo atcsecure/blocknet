@@ -358,33 +358,39 @@ void XBridgeApp::onMessageReceived(const UcharVector & id, const UcharVector & m
         return;
     }
 
-    boost::mutex::scoped_lock l(m_sessionsLock);
-    if (m_sessionAddrs.count(id))
+    XBridgeSessionPtr ptr;
+
     {
-        // found local client
-        XBridgeSessionPtr ptr = m_sessionAddrs[id];
+        boost::mutex::scoped_lock l(m_sessionsLock);
+        if (m_sessionAddrs.count(id))
+        {
+            // found local client
+            ptr = m_sessionAddrs[id];
+        }
+
+        // check service session
+        else if (m_serviceSession->sessionAddr() == id)
+        {
+            ptr = serviceSession();
+        }
+
+        // check local address
+        else if (id == localid)
+        {
+            // process packet
+            // XBridgeSessionPtr ptr(new XBridgeSession);
+            ptr = serviceSession();
+        }
+
+        else
+        {
+            // LOG() << "process message for unknown address";
+        }
+    }
+
+    if (ptr)
+    {
         ptr->processPacket(packet);
-
-        // ptr->sendXBridgeMessage(message);
-    }
-
-    // check service session
-    else if (m_serviceSession->sessionAddr() == id)
-    {
-        serviceSession()->processPacket(packet);
-    }
-
-    // check local address
-    else if (id == localid)
-    {
-        // process packet
-        // XBridgeSessionPtr ptr(new XBridgeSession);
-        serviceSession()->processPacket(packet);
-    }
-
-    else
-    {
-        // LOG() << "process message for unknown address";
     }
 }
 
