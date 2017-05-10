@@ -75,7 +75,13 @@ void XBridgeSession::init()
 {
     assert(!m_handlers.size());
 
-    m_myid = rpc::getNewAddress();
+    if (!rpc::getNewAddress(m_myid))
+    {
+        m_myid = std::vector<unsigned char>(20, 0);
+        LOG() << "fail generate address for <" << m_wallet.currency << "> session " << __FUNCTION__;
+        return;
+    }
+
     // RAND_bytes(m_myid, sizeof(m_myid));
     LOG() << "session <" << m_wallet.currency << "> generated id <"
           << util::base64_encode(m_myid).c_str()

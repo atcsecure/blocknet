@@ -1589,12 +1589,24 @@ bool eth_sendTransaction(const std::string & rpcip,
 
 //*****************************************************************************
 //*****************************************************************************
-std::vector<unsigned char> getNewAddress()
+bool getNewAddress(std::vector<unsigned char> & addr)
 {
-    CKeyID id = pwalletMain->GenerateNewKey().GetID();
-    std::vector<unsigned char> addr;
+    CPubKey pub;
+    if (!pwalletMain->GetKeyFromPool(pub, false))
+    {
+        // try allow reuse
+        if (!pwalletMain->GetKeyFromPool(pub, true))
+        {
+            LOG() << "failed generate new key " << __FUNCTION__;
+            return false;
+        }
+
+        LOG() << "generate new key failed, use default key " << __FUNCTION__;
+    }
+
+    CKeyID id = pub.GetID();
     std::copy(id.begin(), id.end(), std::back_inserter(addr));
-    return addr;
+    return true;
 }
 
 //*****************************************************************************
