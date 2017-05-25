@@ -229,6 +229,10 @@ public:
     {
         return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10).c_str(), n);
     }
+    std::string ToStringShort() const
+    {
+        return ToString();
+    }
 
     void print() const
     {
@@ -291,6 +295,11 @@ public:
     friend bool operator!=(const CTxIn& a, const CTxIn& b)
     {
         return !(a == b);
+    }
+
+    friend bool operator<(const CTxIn& a, const CTxIn& b)
+    {
+        return a.prevout<b.prevout;
     }
 
     std::string ToStringShort() const
@@ -423,7 +432,16 @@ typedef std::map<uint256, std::pair<CTxIndex, CTransaction> > MapPrevTx;
 class CTransaction
 {
 public:
-    static const int CURRENT_VERSION=1;
+    // Default transaction version.
+    static const int32_t CURRENT_VERSION = 1;
+
+    // Changing the default transaction version requires a two step process: first
+    // adapting relay policy by bumping MAX_STANDARD_VERSION, and then later date
+    // bumping the default CURRENT_VERSION at which point both CURRENT_VERSION and
+    // MAX_STANDARD_VERSION will be equal.
+    static const int32_t MAX_STANDARD_VERSION = 2;
+
+
     int nVersion;
     unsigned int nTime;
     std::vector<CTxIn> vin;
@@ -692,8 +710,8 @@ protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
 };
 
-
-
+// for masternodes
+typedef CTransaction CMutableTransaction;
 
 
 /** A transaction with a merkle branch linking it to the block chain. */
@@ -1597,5 +1615,11 @@ public:
 };
 
 extern CTxMemPool mempool;
+
+/**
+ * Return true if hash can be found in chainActive at nBlockHeight height.
+ * Fills hashRet with found hash, if no nBlockHeight is specified - chainActive.Height() is used.
+ */
+bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
 
 #endif

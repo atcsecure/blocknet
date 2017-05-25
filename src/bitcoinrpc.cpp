@@ -305,6 +305,20 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
+
+    // masternodes
+//    { "masternode",             &masternode,             true,  true},
+    { "masternodelist",         &masternodelist,         true,  true},
+//    { "masternodebroadcast",    &masternodebroadcast,    true,  true},
+//    { "gobject",                &gobject,                true,  true},
+//    { "getgovernanceinfo",      &getgovernanceinfo,      true,  true},
+//    { "getsuperblockbudget",    &getsuperblockbudget,    true,  true},
+//    { "voteraw",                &voteraw,                true,  true},
+//    { "mnsync",                 &mnsync,                 true,  true},
+//    { "spork",                  &spork,                  true,  true},
+//    { "getpoolinfo",            &getpoolinfo,            true,  true},
+    // #ifdef ENABLE_WALLET
+//    { "privatesend",            &privatesend,            false, true},
 };
 
 CRPCTable::CRPCTable()

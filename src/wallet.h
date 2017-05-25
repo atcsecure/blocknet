@@ -37,6 +37,17 @@ enum WalletFeature
     FEATURE_LATEST = 60000
 };
 
+struct CompactTallyItem
+{
+    CBitcoinAddress address;
+    CAmount nAmount;
+    std::vector<CTxIn> vecTxIn;
+    CompactTallyItem()
+    {
+        nAmount = 0;
+    }
+};
+
 /** A key pool entry */
 class CKeyPool
 {

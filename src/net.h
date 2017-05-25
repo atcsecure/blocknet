@@ -18,6 +18,10 @@
 #include "protocol.h"
 #include "addrman.h"
 
+typedef int NodeId;
+extern NodeId nLastNodeId;
+extern CCriticalSection cs_nLastNodeId;
+
 class CRequestTracker;
 class CNode;
 class CBlockIndex;
@@ -34,7 +38,7 @@ bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool fConnectToMasternode = false);
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -71,6 +75,27 @@ enum
 {
     MSG_TX = 1,
     MSG_BLOCK,
+    // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
+    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
+    MSG_FILTERED_BLOCK,
+    // Dash message types
+    // NOTE: declare non-implmented here, we must keep this enum consistent and backwards compatible
+    MSG_TXLOCK_REQUEST,
+    MSG_TXLOCK_VOTE,
+    MSG_SPORK,
+    MSG_MASTERNODE_PAYMENT_VOTE,
+    MSG_MASTERNODE_PAYMENT_BLOCK, // reusing, was MSG_MASTERNODE_SCANNING_ERROR previousely, was NOT used in 12.0
+    MSG_BUDGET_VOTE, // depreciated since 12.1
+    MSG_BUDGET_PROPOSAL, // depreciated since 12.1
+    MSG_BUDGET_FINALIZED, // depreciated since 12.1
+    MSG_BUDGET_FINALIZED_VOTE, // depreciated since 12.1
+    MSG_MASTERNODE_QUORUM, // not implemented
+    MSG_MASTERNODE_ANNOUNCE,
+    MSG_MASTERNODE_PING,
+    MSG_DSTX,
+    MSG_GOVERNANCE_OBJECT,
+    MSG_GOVERNANCE_OBJECT_VOTE,
+    MSG_MASTERNODE_VERIFY,
 };
 
 class CRequestTracker
@@ -175,8 +200,10 @@ public:
     bool fNetworkNode;
     bool fSuccessfullyConnected;
     bool fDisconnect;
+    bool fMasternode;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
+    NodeId id;
 protected:
 
     // Denial-of-service detection/prevention
@@ -204,51 +231,11 @@ public:
     mruset<CInv> setInventoryKnown;
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
+    std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
 
-    CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : vSend(SER_NETWORK, MIN_PROTO_VERSION), vRecv(SER_NETWORK, MIN_PROTO_VERSION)
-    {
-        nServices = 0;
-        hSocket = hSocketIn;
-        nLastSend = 0;
-        nLastRecv = 0;
-        nLastSendEmpty = GetTime();
-        nTimeConnected = GetTime();
-        nHeaderStart = -1;
-        nMessageStart = -1;
-        addr = addrIn;
-        addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-        nVersion = 0;
-        strSubVer = "";
-        fOneShot = false;
-        fClient = false; // set by version message
-        fInbound = fInboundIn;
-        fNetworkNode = false;
-        fSuccessfullyConnected = false;
-        fDisconnect = false;
-        nRefCount = 0;
-        hashContinue = 0;
-        pindexLastGetBlocksBegin = 0;
-        hashLastGetBlocksEnd = 0;
-        nStartingHeight = -1;
-        fGetAddr = false;
-        nMisbehavior = 0;
-        hashCheckpointKnown = 0;
-        setInventoryKnown.max_size(SendBufferSize() / 1000);
-
-        // Be shy and don't send version until we hear
-        if (hSocket != INVALID_SOCKET && !fInbound)
-            PushVersion();
-    }
-
-    ~CNode()
-    {
-        if (hSocket != INVALID_SOCKET)
-        {
-            closesocket(hSocket);
-            hSocket = INVALID_SOCKET;
-        }
-    }
+    CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false);
+    ~CNode();
 
 private:
     CNode(const CNode&);
@@ -649,5 +636,7 @@ class CTransaction;
 void RelayTransaction(const CTransaction& tx, const uint256& hash);
 void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
 
+// for masternodes
+#define RelayInv RelayInventory
 
 #endif

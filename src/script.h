@@ -56,6 +56,12 @@ typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 
 const char* GetTxnOutputType(txnouttype t);
 
+template <typename T>
+std::vector<unsigned char> ToByteVector(const T& in)
+{
+    return std::vector<unsigned char>(in.begin(), in.end());
+}
+
 /** Script opcodes */
 enum opcodetype
 {
@@ -233,6 +239,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 
 
 
+typedef std::vector<unsigned char> CScriptBase;
 
 
 /** Serialized script, used inside transaction inputs and outputs */
@@ -610,5 +617,9 @@ bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsig
 // Given two sets of signatures for scriptPubKey, possibly with OP_0 placeholders,
 // combine them intelligently and return the result.
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
+
+CScript GetScriptForDestination(const CTxDestination& dest);
+CScript GetScriptForRawPubKey(const CPubKey& pubkey);
+CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 
 #endif

@@ -218,4 +218,17 @@ extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value getblockbynumber(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool fHelp);
 
+// masternodes rpc
+//extern UniValue privatesend(const UniValue& params, bool fHelp);
+//extern UniValue getpoolinfo(const UniValue& params, bool fHelp);
+//extern UniValue spork(const UniValue& params, bool fHelp);
+//extern json_spirit::Value masternode(const json_spirit::Array & params, bool fHelp);
+extern json_spirit::Value masternodelist(const json_spirit::Array & params, bool fHelp);
+//extern UniValue masternodebroadcast(const UniValue& params, bool fHelp);
+//extern UniValue gobject(const UniValue& params, bool fHelp);
+//extern UniValue getgovernanceinfo(const UniValue& params, bool fHelp);
+//extern UniValue getsuperblockbudget(const UniValue& params, bool fHelp);
+//extern UniValue voteraw(const UniValue& params, bool fHelp);
+//extern UniValue mnsync(const UniValue& params, bool fHelp);
+
 #endif

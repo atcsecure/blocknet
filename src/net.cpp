@@ -74,6 +74,9 @@ CCriticalSection cs_vOneShots;
 set<CNetAddr> setservAddNodeAddresses;
 CCriticalSection cs_setservAddNodeAddresses;
 
+NodeId nLastNodeId = 0;
+CCriticalSection cs_nLastNodeId;
+
 static CSemaphore *semOutbound = NULL;
 
 void AddOneShot(string strDest)
@@ -85,6 +88,57 @@ void AddOneShot(string strDest)
 unsigned short GetListenPort()
 {
     return (unsigned short)(GetArg("-port", GetDefaultPort()));
+}
+
+CNode::CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false)
+    : vSend(SER_NETWORK, MIN_PROTO_VERSION), vRecv(SER_NETWORK, MIN_PROTO_VERSION)
+{
+    nServices = 0;
+    hSocket = hSocketIn;
+    nLastSend = 0;
+    nLastRecv = 0;
+    nLastSendEmpty = GetTime();
+    nTimeConnected = GetTime();
+    nHeaderStart = -1;
+    nMessageStart = -1;
+    addr = addrIn;
+    addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
+    nVersion = 0;
+    strSubVer = "";
+    fOneShot = false;
+    fClient = false; // set by version message
+    fInbound = fInboundIn;
+    fNetworkNode = false;
+    fSuccessfullyConnected = false;
+    fDisconnect = false;
+    nRefCount = 0;
+    hashContinue = 0;
+    pindexLastGetBlocksBegin = 0;
+    hashLastGetBlocksEnd = 0;
+    nStartingHeight = -1;
+    fGetAddr = false;
+    nMisbehavior = 0;
+    hashCheckpointKnown = 0;
+    setInventoryKnown.max_size(SendBufferSize() / 1000);
+    fMasternode = false;
+
+    {
+        LOCK(cs_nLastNodeId);
+        id = nLastNodeId++;
+    }
+
+    // Be shy and don't send version until we hear
+    if (hSocket != INVALID_SOCKET && !fInbound)
+        PushVersion();
+}
+
+CNode::~CNode()
+{
+    if (hSocket != INVALID_SOCKET)
+    {
+        closesocket(hSocket);
+        hSocket = INVALID_SOCKET;
+    }
 }
 
 void CNode::PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd)
@@ -465,21 +519,29 @@ CNode* FindNode(const CService& addr)
     return NULL;
 }
 
-CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
+CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToMasternode)
 {
     if (pszDest == NULL) {
-        if (IsLocal(addrConnect))
+        // we clean masternode connections in CMasternodeMan::ProcessMasternodeConnections()
+        // so should be safe to skip this and connect to local Hot MN on CActiveMasternode::ManageState()
+        if (IsLocal(addrConnect) && !fConnectToMasternode)
             return NULL;
+
+        LOCK(cs_vNodes);
 
         // Look for an existing connection
         CNode* pnode = FindNode((CService)addrConnect);
         if (pnode)
         {
-            pnode->AddRef();
+            // we have existing connection to this node but it was not a connection to masternode,
+            // change flag and add reference so that we can correctly clear it later
+            if(fConnectToMasternode && !pnode->fMasternode) {
+                pnode->AddRef();
+                pnode->fMasternode = true;
+            }
             return pnode;
         }
     }
-
 
     /// debug print
     printf("trying connection %s lastseen=%.1fhrs\n",
@@ -488,8 +550,17 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
 
     // Connect
     SOCKET hSocket;
-    if (pszDest ? ConnectSocketByName(addrConnect, hSocket, pszDest, GetDefaultPort()) : ConnectSocket(addrConnect, hSocket))
+    if (pszDest ? ConnectSocketByName(addrConnect, hSocket, pszDest, GetDefaultPort())
+                : ConnectSocket(addrConnect, hSocket))
+//    if (pszDest ? ConnectSocketByName(addrConnect, hSocket, pszDest, Params().GetDefaultPort(), nConnectTimeout, &proxyConnectionFailed) :
+//                  ConnectSocket(addrConnect, hSocket, nConnectTimeout, &proxyConnectionFailed))
     {
+        if (!IsSelectableSocket(hSocket)) {
+            printf("Cannot create connection: non-selectable socket created (fd >= FD_SETSIZE ?)\n");
+            CloseSocket(hSocket);
+            return NULL;
+        }
+
         addrman.Attempt(addrConnect);
 
         /// debug print
@@ -506,17 +577,27 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest)
 #endif
 
         // Add node
-        CNode* pnode = new CNode(hSocket, addrConnect, pszDest ? pszDest : "", false);
-        pnode->AddRef();
+        CNode* pnode = new CNode(hSocket, addrConnect, pszDest ? pszDest : "", false, true);
+        pnode->nTimeConnected = GetTime();
+
+        if(fConnectToMasternode) {
+            pnode->AddRef();
+            pnode->fMasternode = true;
+        }
 
         {
             LOCK(cs_vNodes);
             vNodes.push_back(pnode);
         }
 
-        pnode->nTimeConnected = GetTime();
         return pnode;
     }
+//    else if (!proxyConnectionFailed)
+//    {
+//        // If connecting to the node failed, and failure is not caused by a problem connecting to
+//        // the proxy, mark this as an attempt.
+//        addrman.Attempt(addrConnect);
+//    }
     else
     {
         return NULL;

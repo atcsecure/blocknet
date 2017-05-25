@@ -2021,3 +2021,27 @@ void CScript::SetMultisig(int nRequired, const std::vector<CKey>& keys)
         *this << key.GetPubKey();
     *this << EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
 }
+
+CScript GetScriptForDestination(const CTxDestination& dest)
+{
+    CScript script;
+
+    boost::apply_visitor(CScriptVisitor(&script), dest);
+    return script;
+}
+
+CScript GetScriptForRawPubKey(const CPubKey& pubKey)
+{
+    return CScript() << std::vector<unsigned char>(pubKey.begin(), pubKey.end()) << OP_CHECKSIG;
+}
+
+CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys)
+{
+    CScript script;
+
+    script << CScript::EncodeOP_N(nRequired);
+    for (const CPubKey & key : keys)
+        script << ToByteVector(key);
+    script << CScript::EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
+    return script;
+}

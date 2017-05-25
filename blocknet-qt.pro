@@ -191,7 +191,12 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/random.cpp \
     src/xbridge/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
-    src/xbridge/xbridgesessionbtc.cpp
+    src/xbridge/xbridgesessionbtc.cpp \
+    src/rpcgovernance.cpp \
+    src/rpcmasternode.cpp \
+    src/masternodes/masternodeman.cpp \
+    src/random.cpp \
+    src/arith_uint256.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -423,7 +428,10 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/random.h \
     src/xbridge/crypto/sha512.h \
     src/xbridge/xbitcoinaddress.h \
-    src/xbridge/xbridgesessionbtc.h
+    src/xbridge/xbridgesessionbtc.h \
+    src/masternodes/masternodeman.h \
+    src/random.h \
+    src/arith_uint256.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

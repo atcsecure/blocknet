@@ -241,9 +241,79 @@ uint64_t ReadCompactSize(Stream& is)
     return nSizeRet;
 }
 
+/**
+ * Variable-length integers: bytes are a MSB base-128 encoding of the number.
+ * The high bit in each byte signifies whether another digit follows. To make
+ * sure the encoding is one-to-one, one is subtracted from all but the last digit.
+ * Thus, the byte sequence a[] with length len, where all but the last byte
+ * has bit 128 set, encodes the number:
+ *
+ *  (a[len-1] & 0x7F) + sum(i=1..len-1, 128^i*((a[len-i-1] & 0x7F)+1))
+ *
+ * Properties:
+ * * Very small (0-127: 1 byte, 128-16511: 2 bytes, 16512-2113663: 3 bytes)
+ * * Every integer has exactly one encoding
+ * * Encoding does not depend on size of original integer type
+ * * No redundancy: every (infinite) byte sequence corresponds to a list
+ *   of encoded integers.
+ *
+ * 0:         [0x00]  256:        [0x81 0x00]
+ * 1:         [0x01]  16383:      [0xFE 0x7F]
+ * 127:       [0x7F]  16384:      [0xFF 0x00]
+ * 128:  [0x80 0x00]  16511: [0x80 0xFF 0x7F]
+ * 255:  [0x80 0x7F]  65535: [0x82 0xFD 0x7F]
+ * 2^32:           [0x8E 0xFE 0xFE 0xFF 0x00]
+ */
+
+template<typename I>
+inline unsigned int GetSizeOfVarInt(I n)
+{
+    int nRet = 0;
+    while(true) {
+        nRet++;
+        if (n <= 0x7F)
+            break;
+        n = (n >> 7) - 1;
+    }
+    return nRet;
+}
+
+template<typename Stream, typename I>
+void WriteVarInt(Stream& os, I n)
+{
+    unsigned char tmp[(sizeof(n)*8+6)/7];
+    int len=0;
+    while(true) {
+        tmp[len] = (n & 0x7F) | (len ? 0x80 : 0x00);
+        if (n <= 0x7F)
+            break;
+        n = (n >> 7) - 1;
+        len++;
+    }
+    do {
+        ser_writedata8(os, tmp[len]);
+    } while(len--);
+}
+
+template<typename Stream, typename I>
+I ReadVarInt(Stream& is)
+{
+    I n = 0;
+    while(true) {
+        unsigned char chData = ser_readdata8(is);
+        n = (n << 7) | (chData & 0x7F);
+        if (chData & 0x80)
+            n++;
+        else
+            return n;
+    }
+}
+
 
 
 #define FLATDATA(obj)   REF(CFlatData((char*)&(obj), (char*)&(obj) + sizeof(obj)))
+#define VARINT(obj) REF(WrapVarInt(REF(obj)))
+#define LIMITED_STRING(obj,n) REF(LimitedString< n >(REF(obj)))
 
 /** Wrapper for serializing arrays and POD.
  */
@@ -276,6 +346,66 @@ public:
         s.read(pbegin, pend - pbegin);
     }
 };
+
+template<typename I>
+class CVarInt
+{
+protected:
+    I &n;
+public:
+    CVarInt(I& nIn) : n(nIn) { }
+
+    unsigned int GetSerializeSize(int, int) const {
+        return GetSizeOfVarInt<I>(n);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream &s, int, int) const {
+        WriteVarInt<Stream,I>(s, n);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int, int) {
+        n = ReadVarInt<Stream,I>(s);
+    }
+};
+
+template<size_t Limit>
+class LimitedString
+{
+protected:
+    std::string& string;
+public:
+    LimitedString(std::string& string) : string(string) {}
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int, int=0)
+    {
+        size_t size = ReadCompactSize(s);
+        if (size > Limit) {
+            throw std::ios_base::failure("String length limit exceeded");
+        }
+        string.resize(size);
+        if (size != 0)
+            s.read((char*)&string[0], size);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream& s, int, int=0) const
+    {
+        WriteCompactSize(s, string.size());
+        if (!string.empty())
+            s.write((char*)&string[0], string.size());
+    }
+
+    unsigned int GetSerializeSize(int, int=0) const
+    {
+        return GetSizeOfCompactSize(string.size()) + string.size();
+    }
+};
+
+template<typename I>
+CVarInt<I> WrapVarInt(I& n) { return CVarInt<I>(n); }
 
 //
 // Forward declarations
@@ -664,9 +794,18 @@ void Unserialize(Stream& is, std::set<K, Pred, A>& m, int nType, int nVersion)
 //
 // Support for IMPLEMENT_SERIALIZE and READWRITE macro
 //
-class CSerActionGetSerializeSize { };
-class CSerActionSerialize { };
-class CSerActionUnserialize { };
+struct CSerActionGetSerializeSize
+{
+    bool ForRead() const { return false; }
+};
+struct CSerActionSerialize
+{
+    bool ForRead() const { return false; }
+};
+struct CSerActionUnserialize
+{
+    bool ForRead() const { return true; }
+};
 
 template<typename Stream, typename T>
 inline unsigned int SerReadWrite(Stream& s, const T& obj, int nType, int nVersion, CSerActionGetSerializeSize ser_action)

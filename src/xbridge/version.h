@@ -1,5 +1,5 @@
-#ifndef VERSION
-#define VERSION
+#ifndef VERSION_H
+#define VERSION_H
 
 #define XBRIDGE_VERSION_MAJOR 0
 #define XBRIDGE_VERSION_MINOR 67
@@ -10,5 +10,5 @@
 
 #define XBRIDGE_PROTOCOL_VERSION 0xff000011
 
-#endif // VERSION
+#endif // VERSION_H
 
