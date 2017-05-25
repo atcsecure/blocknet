@@ -25,6 +25,12 @@ int GetRandInt(int nMax);
 uint256 GetRandHash();
 
 /**
+ * Function to gather random data from multiple sources, failing whenever any
+ * of those source fail to provide a result.
+ */
+void GetStrongRandBytes(unsigned char* buf, int num);
+
+/**
  * Seed insecure_rand using the random pool.
  * @param Deterministic Use a deterministic seed
  */

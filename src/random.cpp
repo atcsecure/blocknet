@@ -11,7 +11,9 @@
 #endif
 #include "serialize.h"        // for begin_ptr(vec)
 #include "util.h"             // for LogPrint()
-#include "utilstrencodings.h" // for GetTime()
+// #include "utilstrencodings.h" // for GetTime()
+#include "ptr.h"
+#include "crypto/sha512.h"
 
 #include <limits>
 
@@ -19,20 +21,17 @@
 #include <sys/time.h>
 #endif
 
+#ifdef WIN32
+#include <Wincrypt.h>
+#endif
+
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
-static inline int64_t GetPerformanceCounter()
+static void RandFailure()
 {
-    int64_t nCounter = 0;
-#ifdef WIN32
-    QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
-#else
-    timeval t;
-    gettimeofday(&t, NULL);
-    nCounter = (int64_t)(t.tv_sec * 1000000 + t.tv_usec);
-#endif
-    return nCounter;
+    printf("Failed to read randomness, aborting\n");
+    abort();
 }
 
 void RandAddSeed()
@@ -72,23 +71,74 @@ void RandAddSeedPerfmon()
     if (ret == ERROR_SUCCESS) {
         RAND_add(begin_ptr(vData), nSize, nSize / 100.0);
         memory_cleanse(begin_ptr(vData), nSize);
-        LogPrint("rand", "%s: %lu bytes\n", __func__, nSize);
+        printf("%s: %lu bytes\n", __func__, nSize);
     } else {
         static bool warned = false; // Warn only once
         if (!warned) {
-            LogPrintf("%s: Warning: RegQueryValueExA(HKEY_PERFORMANCE_DATA) failed with code %i\n", __func__, ret);
+            printf("%s: Warning: RegQueryValueExA(HKEY_PERFORMANCE_DATA) failed with code %i\n", __func__, ret);
             warned = true;
         }
     }
 #endif
 }
 
+/** Get 32 bytes of system entropy. */
+static void GetOSRand(unsigned char *ent32)
+{
+#ifdef WIN32
+    HCRYPTPROV hProvider;
+    int ret = CryptAcquireContextW(&hProvider, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT);
+    if (!ret) {
+        RandFailure();
+    }
+    ret = CryptGenRandom(hProvider, 32, ent32);
+    if (!ret) {
+        RandFailure();
+    }
+    CryptReleaseContext(hProvider, 0);
+#else
+    int f = open("/dev/urandom", O_RDONLY);
+    if (f == -1) {
+        RandFailure();
+    }
+    int have = 0;
+    do {
+        ssize_t n = read(f, ent32 + have, 32 - have);
+        if (n <= 0 || n + have > 32) {
+            RandFailure();
+        }
+        have += n;
+    } while (have < 32);
+    close(f);
+#endif
+}
+
 void GetRandBytes(unsigned char* buf, int num)
 {
     if (RAND_bytes(buf, num) != 1) {
-        LogPrintf("%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
-        assert(false);
+        RandFailure();
     }
+}
+
+void GetStrongRandBytes(unsigned char* out, int num)
+{
+    assert(num <= 32);
+    CSHA512 hasher;
+    unsigned char buf[64];
+
+    // First source: OpenSSL's RNG
+    RandAddSeedPerfmon();
+    GetRandBytes(buf, 32);
+    hasher.Write(buf, 32);
+
+    // Second source: OS RNG
+    GetOSRand(buf);
+    hasher.Write(buf, 32);
+
+    // Produce output
+    hasher.Finalize(buf);
+    memcpy(out, buf, num);
+    memory_cleanse(buf, 64);
 }
 
 uint64_t GetRand(uint64_t nMax)

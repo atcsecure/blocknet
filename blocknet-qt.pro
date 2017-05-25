@@ -186,17 +186,28 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/xbitcointransaction.cpp \
     src/xbridge/xkey.cpp \
     src/xbridge/xpubkey.cpp \
-    src/xbridge/support/cleanse.cpp \
-    src/xbridge/crypto/sha256.cpp \
-    src/xbridge/random.cpp \
-    src/xbridge/crypto/sha512.cpp \
+    src/support/cleanse.cpp \
+    src/crypto/sha256.cpp \
+    src/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
     src/xbridge/xbridgesessionbtc.cpp \
     src/rpcgovernance.cpp \
     src/rpcmasternode.cpp \
     src/masternodes/masternodeman.cpp \
     src/random.cpp \
-    src/arith_uint256.cpp
+    src/arith_uint256.cpp \
+    src/masternodes/governance-vote.cpp \
+    src/masternodes/masternode.cpp \
+    src/primitives/block.cpp \
+    src/primitives/transaction.cpp \
+    src/amount.cpp \
+    src/masternodes/masternodeconfig.cpp \
+    src/masternodes/masternode-payments.cpp \
+    src/masternodes/masternode-sync.cpp \
+    src/masternodes/netfulfilledman.cpp \
+    src/coins.cpp \
+    src/compressor.cpp \
+    src/uint256.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -421,17 +432,34 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/xbitcointransaction.h \
     src/xbridge/xkey.h \
     src/xbridge/xpubkey.h \
-    src/xbridge/support/cleanse.h \
-    src/xbridge/crypto/sha256.h \
-    src/xbridge/crypto/common.h \
-    src/xbridge/ptr.h \
-    src/xbridge/random.h \
-    src/xbridge/crypto/sha512.h \
+    src/support/cleanse.h \
+    src/crypto/sha256.h \
+    src/crypto/common.h \
+    src/ptr.h \
+    src/crypto/sha512.h \
     src/xbridge/xbitcoinaddress.h \
     src/xbridge/xbridgesessionbtc.h \
     src/masternodes/masternodeman.h \
     src/random.h \
-    src/arith_uint256.h
+    src/arith_uint256.h \
+    src/masternodes/governance-vote.h \
+    src/compat/endian.h \
+    src/masternodes/masternode.h \
+    src/primitives/block.h \
+    src/primitives/transaction.h \
+    src/amount.h \
+    src/masternodes/masternodeconfig.h \
+    src/masternodes/masternode-payments.h \
+    src/masternodes/masternode-sync.h \
+    src/masternodes/netfulfilledman.h \
+    src/consensus/params.h \
+    src/consensus/validation.h \
+    src/tinyformat.h \
+    src/coins.h \
+    src/compressor.h \
+    src/tinyformat.h \
+    src/core_memusage.h \
+    src/memusage.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

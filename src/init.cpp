@@ -66,6 +66,11 @@ void StartShutdown()
     NewThread(Shutdown, NULL);
 #endif
 }
+bool ShutdownRequested()
+{
+    return fRequestShutdown || fRestartRequested;
+}
+
 
 void Shutdown(void* parg)
 {

@@ -33,6 +33,8 @@ set<CWallet*> setpwalletRegistered;
 
 CCriticalSection cs_main;
 
+CChain chainActive;
+
 CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
@@ -77,6 +79,8 @@ const string strMessageMagic = "blocknet Signed Message:\n";
 int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
+
+CCoinsViewCache *pcoinsTip = NULL;
 
 extern enum Checkpoints::CPMode CheckpointsMode;
 
@@ -2821,7 +2825,7 @@ std::vector<std::string> getLocalBitcoinAddresses()
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xa1, 0xa0, 0xa2, 0xa3 };
+// unsigned char pchMessageStart[4] = { 0xa1, 0xa0, 0xa2, 0xa3 };
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {

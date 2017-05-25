@@ -7,6 +7,7 @@
 
 #include "masternode.h"
 #include "wallet.h"
+#include "chainparams.h"
 
 class CDarksendPool;
 class CDarkSendSigner;

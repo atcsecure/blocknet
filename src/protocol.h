@@ -22,7 +22,9 @@ static inline unsigned short GetDefaultPort(const bool testnet = fTestNet)
 }
 
 
-extern unsigned char pchMessageStart[4];
+#define MESSAGE_START_SIZE 4
+
+// extern unsigned char pchMessageStart[4];
 
 /** Message header.
  * (4) message start.
@@ -32,36 +34,37 @@ extern unsigned char pchMessageStart[4];
  */
 class CMessageHeader
 {
-    public:
-        CMessageHeader();
-        CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
+public:
+    typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
 
-        std::string GetCommand() const;
-        bool IsValid() const;
+    CMessageHeader();
+    CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
 
-        IMPLEMENT_SERIALIZE
-            (
-             READWRITE(FLATDATA(pchMessageStart));
-             READWRITE(FLATDATA(pchCommand));
-             READWRITE(nMessageSize);
-             READWRITE(nChecksum);
-            )
+    std::string GetCommand() const;
+    bool IsValid() const;
 
-    // TODO: make private (improves encapsulation)
-    public:
-        enum {
-            MESSAGE_START_SIZE=sizeof(::pchMessageStart),
-            COMMAND_SIZE=12,
-            MESSAGE_SIZE_SIZE=sizeof(int),
-            CHECKSUM_SIZE=sizeof(int),
+    IMPLEMENT_SERIALIZE
+        (
+         READWRITE(FLATDATA(pchMessageStart));
+         READWRITE(FLATDATA(pchCommand));
+         READWRITE(nMessageSize);
+         READWRITE(nChecksum);
+        )
 
-            MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
-            CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE
-        };
-        char pchMessageStart[MESSAGE_START_SIZE];
-        char pchCommand[COMMAND_SIZE];
-        unsigned int nMessageSize;
-        unsigned int nChecksum;
+// TODO: make private (improves encapsulation)
+public:
+    enum {
+        COMMAND_SIZE=12,
+        MESSAGE_SIZE_SIZE=sizeof(int),
+        CHECKSUM_SIZE=sizeof(int),
+
+        MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
+        CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE
+    };
+    char pchMessageStart[MESSAGE_START_SIZE];
+    char pchCommand[COMMAND_SIZE];
+    unsigned int nMessageSize;
+    unsigned int nChecksum;
 };
 
 /**

@@ -195,7 +195,7 @@ vote_signal_enum_t CGovernanceVoting::ConvertVoteSignal(std::string strVoteSigna
     {
         std::ostringstream ostr;
         ostr << "CGovernanceVote::ConvertVoteSignal: error : " << e.what() << std::endl;
-        LogPrintf(ostr.str().c_str());
+        printf(ostr.str().c_str());
     }
 
     return eSignal;
@@ -240,12 +240,12 @@ bool CGovernanceVote::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
         boost::lexical_cast<std::string>(nVoteSignal) + "|" + boost::lexical_cast<std::string>(nVoteOutcome) + "|" + boost::lexical_cast<std::string>(nTime);
 
     if(!darkSendSigner.SignMessage(strMessage, vchSig, keyMasternode)) {
-        LogPrintf("CGovernanceVote::Sign -- SignMessage() failed\n");
+        printf("CGovernanceVote::Sign -- SignMessage() failed\n");
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError)) {
-        LogPrintf("CGovernanceVote::Sign -- VerifyMessage() failed, error: %s\n", strError);
+        printf("CGovernanceVote::Sign -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return false;
     }
 
@@ -255,27 +255,27 @@ bool CGovernanceVote::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
 bool CGovernanceVote::IsValid(bool fSignatureCheck) const
 {
     if(nTime > GetTime() + (60*60)) {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", GetHash().ToString(), nTime, GetTime() + (60*60));
+        printf("CGovernanceVote::IsValid -- vote is too far ahead of current time - %s - nTime %lli - Max Time %lli\n", GetHash().ToString().c_str(), nTime, GetTime() + (60*60));
         return false;
     }
 
     // support up to 50 actions (implemented in sentinel)
     if(nVoteSignal > MAX_SUPPORTED_VOTE_SIGNAL)
     {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Client attempted to vote on invalid signal(%d) - %s\n", nVoteSignal, GetHash().ToString());
+        printf("CGovernanceVote::IsValid -- Client attempted to vote on invalid signal(%d) - %s\n", nVoteSignal, GetHash().ToString().c_str());
         return false;
     }
 
     // 0=none, 1=yes, 2=no, 3=abstain. Beyond that reject votes
     if(nVoteOutcome > 3)
     {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Client attempted to vote on invalid outcome(%d) - %s\n", nVoteSignal, GetHash().ToString());
+        printf("CGovernanceVote::IsValid -- Client attempted to vote on invalid outcome(%d) - %s\n", nVoteSignal, GetHash().ToString().c_str());
         return false;
     }
 
     masternode_info_t infoMn = mnodeman.GetMasternodeInfo(vinMasternode);
     if(!infoMn.fInfoValid) {
-        LogPrint("gobject", "CGovernanceVote::IsValid -- Unknown Masternode - %s\n", vinMasternode.prevout.ToStringShort());
+        printf("CGovernanceVote::IsValid -- Unknown Masternode - %s\n", vinMasternode.prevout.ToStringShort().c_str());
         return false;
     }
 
@@ -286,7 +286,7 @@ bool CGovernanceVote::IsValid(bool fSignatureCheck) const
         boost::lexical_cast<std::string>(nVoteSignal) + "|" + boost::lexical_cast<std::string>(nVoteOutcome) + "|" + boost::lexical_cast<std::string>(nTime);
 
     if(!darkSendSigner.VerifyMessage(infoMn.pubKeyMasternode, vchSig, strMessage, strError)) {
-        LogPrintf("CGovernanceVote::IsValid -- VerifyMessage() failed, error: %s\n", strError);
+        printf("CGovernanceVote::IsValid -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return false;
     }
 

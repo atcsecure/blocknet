@@ -4,7 +4,7 @@
 
 #include "xkey.h"
 
-// #include "arith_uint256.h"
+#include "arith_uint256.h"
 #include "crypto/common.h"
 #include "crypto/hmac_sha512.h"
 #include "xpubkey.h"

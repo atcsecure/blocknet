@@ -3,6 +3,7 @@
 #include "masternodeconfig.h"
 #include "util.h"
 #include "chainparams.h"
+#include "ui_interface.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
