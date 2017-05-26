@@ -637,6 +637,7 @@ inline void RelayInventory(const CInv& inv, const int minProtoVersion = MIN_PEER
 }
 
 class CTransaction;
+void RelayTransaction(const CTransaction& tx);
 void RelayTransaction(const CTransaction& tx, const uint256& hash);
 void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
 

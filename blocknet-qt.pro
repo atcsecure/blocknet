@@ -215,7 +215,9 @@ SOURCES += src/txdb-leveldb.cpp \
     src/masternodes/governance.cpp \
     src/masternodes/governance-classes.cpp \
     src/masternodes/governance-object.cpp \
-    src/masternodes/governance-votedb.cpp
+    src/masternodes/governance-votedb.cpp \
+    src/txmempool.cpp \
+    src/script/script_error.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -477,7 +479,11 @@ HEADERS += src/qt/bitcoingui.h \
     src/masternodes/governance-exceptions.h \
     src/masternodes/governance-misc.h \
     src/masternodes/governance-object.h \
-    src/masternodes/governance-votedb.h
+    src/masternodes/governance-votedb.h \
+    src/txmempool.h \
+    src/addressindex.h \
+    src/spentindex.h \
+    src/script/script_error.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

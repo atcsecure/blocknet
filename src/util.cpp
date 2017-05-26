@@ -84,7 +84,7 @@ bool fLiteMode = false;
 bool fImporting = false;
 bool fReindex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
-
+bool fListen = true;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;

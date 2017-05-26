@@ -485,7 +485,7 @@ void CDarksendPool::UnlockCoins()
     while(true) {
         TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
         if(!lockWallet) {MilliSleep(50); continue;}
-        for (const COutPoint outpoint : vecOutPointLocked)
+        for (COutPoint outpoint : vecOutPointLocked)
             pwalletMain->UnlockCoin(outpoint);
         break;
     }
@@ -902,7 +902,7 @@ bool CDarksendPool::IsCollateralValid(const CTransaction& txCollateral)
         nValueOut += txout.nValue;
 
         if(!txout.scriptPubKey.IsNormalPaymentScript()) {
-            LogPrintf ("CDarksendPool::IsCollateralValid -- Invalid Script, txCollateral=%s", txCollateral.ToString());
+            printf("CDarksendPool::IsCollateralValid -- Invalid Script, txCollateral=%s", txCollateral.ToString());
             return false;
         }
     }
@@ -951,7 +951,7 @@ bool CDarksendPool::AddEntry(const CDarkSendEntry& entryNew, PoolMessage& nMessa
 {
     if(!fMasterNode) return false;
 
-    for (CTxIn & txin : entryNew.vecTxDSIn) {
+    for (const CTxIn & txin : entryNew.vecTxDSIn) {
         if(txin.prevout.IsNull()) {
             printf("CDarksendPool::AddEntry -- input not valid!\n");
             nMessageIDRet = ERR_INVALID_INPUT;
@@ -971,7 +971,7 @@ bool CDarksendPool::AddEntry(const CDarkSendEntry& entryNew, PoolMessage& nMessa
         return false;
     }
 
-    for (CTxIn & txin : entryNew.vecTxDSIn) {
+    for (const CTxIn & txin : entryNew.vecTxDSIn) {
         printf("looking for txin -- %s\n", txin.ToString());
         for (const CDarkSendEntry & entry : vecEntries) {
             for (const CTxDSIn & txdsin : entry.vecTxDSIn) {
@@ -1061,7 +1061,7 @@ bool CDarksendPool::SendDenominate(const std::vector<CTxIn>& vecTxIn, const std:
     for (CTxIn & txin : txMyCollateral.vin)
         vecOutPointLocked.push_back(txin.prevout);
 
-    for (CTxIn & txin : vecTxIn)
+    for (const CTxIn & txin : vecTxIn)
         vecOutPointLocked.push_back(txin.prevout);
 
     // we should already be connected to a Masternode
@@ -1178,7 +1178,7 @@ bool CDarksendPool::SignFinalTransaction(const CTransaction& finalTransactionNew
 
     //make sure my inputs/outputs are present, otherwise refuse to sign
     for (const CDarkSendEntry & entry : vecEntries) {
-        for (const CTxDSIn & txdsin & entry.vecTxDSIn) {
+        for (const CTxDSIn & txdsin : entry.vecTxDSIn) {
             /* Sign my transaction and all outputs */
             int nMyInputIndex = -1;
             CScript prevPubKey = CScript();

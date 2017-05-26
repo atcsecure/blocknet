@@ -206,6 +206,11 @@ public:
         return !(a == b);
     }
 
+    friend bool operator<(const CTxOut& a, const CTxOut& b)
+    {
+        return a.nValue < b.nValue || (a.nValue == b.nValue && a.scriptPubKey < b.scriptPubKey);
+    }
+
     std::string ToStringShort() const
     {
         return strprintf(" out %s %s", FormatMoney(nValue).c_str(), scriptPubKey.ToString(true).c_str());
@@ -625,6 +630,7 @@ public:
     bool ClientConnectInputs();
     bool CheckTransaction() const;
     bool AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs=true, bool* pfMissingInputs=NULL);
+
     bool GetCoinAge(CTxDB& txdb, uint64_t& nCoinAge) const;  // ppcoin: get transaction coin age
 
 protected:
@@ -632,6 +638,6 @@ protected:
 };
 
  // for masternodes
- typedef CTransaction CMutableTransaction;
+typedef CTransaction CMutableTransaction;
 
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H

@@ -1191,6 +1191,63 @@ int64_t CWallet::GetNewMint() const
     return nTotal;
 }
 
+void CWallet::LockCoin(COutPoint& output)
+{
+    assert(false && "implementation");
+
+//    AssertLockHeld(cs_wallet); // setLockedCoins
+//    setLockedCoins.insert(output);
+//    std::map<uint256, CWalletTx>::iterator it = mapWallet.find(output.hash);
+//    if (it != mapWallet.end()) it->second.MarkDirty(); // recalculate all credits for this tx
+
+//    fAnonymizableTallyCached = false;
+//    fAnonymizableTallyCachedNonDenom = false;
+}
+
+void CWallet::UnlockCoin(COutPoint& output)
+{
+    assert(false && "implementation");
+
+//    AssertLockHeld(cs_wallet); // setLockedCoins
+//    setLockedCoins.erase(output);
+//    std::map<uint256, CWalletTx>::iterator it = mapWallet.find(output.hash);
+//    if (it != mapWallet.end()) it->second.MarkDirty(); // recalculate all credits for this tx
+
+//    fAnonymizableTallyCached = false;
+//    fAnonymizableTallyCachedNonDenom = false;
+}
+
+void CWallet::UnlockAllCoins()
+{
+    assert(false && "implementation");
+
+//    AssertLockHeld(cs_wallet); // setLockedCoins
+//    setLockedCoins.clear();
+}
+
+bool CWallet::IsLockedCoin(uint256 hash, unsigned int n) const
+{
+    assert(false && "implementation");
+    return false;
+
+//    AssertLockHeld(cs_wallet); // setLockedCoins
+//    COutPoint outpt(hash, n);
+
+//    return (setLockedCoins.count(outpt) > 0);
+}
+
+void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
+{
+    assert(false && "implementation");
+
+//    AssertLockHeld(cs_wallet); // setLockedCoins
+//    for (std::set<COutPoint>::iterator it = setLockedCoins.begin();
+//         it != setLockedCoins.end(); it++) {
+//        COutPoint outpt = (*it);
+//        vOutpts.push_back(outpt);
+//    }
+}
+
 bool CWallet::SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, vector<COutput> vCoins, set<pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const
 {
     setCoinsRet.clear();
@@ -1879,7 +1936,9 @@ DBErrors CWallet::LoadWallet(bool& fFirstRunRet)
     {
         if (CDB::Rewrite(strWalletFile, "\x04pool"))
         {
+            LOCK(cs_wallet);
             setKeyPool.clear();
+            nKeysLeftSinceAutoBackup = 0;
             // Note: can't top-up keypool here, because wallet is locked.
             // User will be prompted to unlock wallet the next operation
             // the requires a new key.
@@ -1979,6 +2038,8 @@ bool CWallet::NewKeyPool()
         for (int64_t nIndex : setKeyPool)
             walletdb.ErasePool(nIndex);
         setKeyPool.clear();
+        fEnablePrivateSend = false;
+        nKeysLeftSinceAutoBackup = 0;
 
         if (IsLocked())
             return false;
@@ -2076,6 +2137,7 @@ void CWallet::KeepKey(int64_t nIndex)
     {
         CWalletDB walletdb(strWalletFile);
         walletdb.ErasePool(nIndex);
+        nKeysLeftSinceAutoBackup = nWalletBackups ? nKeysLeftSinceAutoBackup - 1 : 0;
     }
     if(fDebug)
         printf("keypool keep %" PRId64 "\n", nIndex);

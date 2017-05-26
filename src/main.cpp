@@ -972,6 +972,22 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, const Consensus::P
 //    return false;
 //}
 
+bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
+                        bool* pfMissingInputs, bool fOverrideMempoolLimit, bool fRejectAbsurdFee, bool fDryRun)
+{
+    assert(!"implementation");
+    return false;
+
+
+//    std::vector<uint256> vHashTxToUncache;
+//    bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, fOverrideMempoolLimit, fRejectAbsurdFee, vHashTxToUncache, fDryRun);
+//    if (!res || fDryRun) {
+//        if(!res) LogPrint("mempool", "%s: %s %s\n", __func__, tx.GetHash().ToString(), state.GetRejectReason());
+//        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache)
+//            pcoinsTip->Uncache(hashTx);
+//    }
+//    return res;
+}
 
 
 
@@ -1169,6 +1185,57 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 int GetNumBlocksOfPeers()
 {
     return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
+}
+
+/*
+NOTE:   unlike bitcoin we are using PREVIOUS block height here,
+        might be a good idea to change this to use prev bits
+        but current height to avoid confusion.
+*/
+CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
+{
+    double dDiff;
+    CAmount nSubsidyBase;
+
+    if (nPrevHeight <= 4500 && Params().NetworkIDString() == CBaseChainParams::MAIN) {
+        /* a bug which caused diff to not be correctly calculated */
+        dDiff = (double)0x0000ffff / (double)(nPrevBits & 0x00ffffff);
+    } else {
+        dDiff = ConvertBitsToDouble(nPrevBits);
+    }
+
+    if (nPrevHeight < 5465) {
+        // Early ages...
+        // 1111/((x+1)^2)
+        nSubsidyBase = (1111.0 / (pow((dDiff+1.0),2.0)));
+        if(nSubsidyBase > 500) nSubsidyBase = 500;
+        else if(nSubsidyBase < 1) nSubsidyBase = 1;
+    } else if (nPrevHeight < 17000 || (dDiff <= 75 && nPrevHeight < 24000)) {
+        // CPU mining era
+        // 11111/(((x+51)/6)^2)
+        nSubsidyBase = (11111.0 / (pow((dDiff+51.0)/6.0,2.0)));
+        if(nSubsidyBase > 500) nSubsidyBase = 500;
+        else if(nSubsidyBase < 25) nSubsidyBase = 25;
+    } else {
+        // GPU/ASIC mining era
+        // 2222222/(((x+2600)/9)^2)
+        nSubsidyBase = (2222222.0 / (pow((dDiff+2600.0)/9.0,2.0)));
+        if(nSubsidyBase > 25) nSubsidyBase = 25;
+        else if(nSubsidyBase < 5) nSubsidyBase = 5;
+    }
+
+    // LogPrintf("height %u diff %4.2f reward %d\n", nPrevHeight, dDiff, nSubsidyBase);
+    CAmount nSubsidy = nSubsidyBase * COIN;
+
+    // yearly decline of production by ~7.1% per year, projected ~18M coins max by year 2050+.
+    for (int i = consensusParams.nSubsidyHalvingInterval; i <= nPrevHeight; i += consensusParams.nSubsidyHalvingInterval) {
+        nSubsidy -= nSubsidy/14;
+    }
+
+    // Hard fork to reduce the block reward by 10 extra percent (allowing budget/superblocks)
+    CAmount nSuperblockPart = (nPrevHeight > consensusParams.nBudgetPaymentsStartBlock) ? nSubsidy/10 : 0;
+
+    return fSuperblockPartOnly ? nSuperblockPart : nSubsidy - nSuperblockPart;
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
@@ -4036,4 +4103,48 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
         return error("ReadBlockFromDisk(CBlock&, CBlockIndex*): GetHash() doesn't match index for %s at %s",
                 pindex->ToString(), pindex->GetBlockPos().ToString());
     return true;
+}
+
+bool DisconnectBlocks(int blocks)
+{
+    LOCK(cs_main);
+
+    CValidationState state;
+    const CChainParams& chainparams = Params();
+
+    LogPrintf("DisconnectBlocks -- Got command to replay %d blocks\n", blocks);
+    for(int i = 0; i < blocks; i++) {
+        if(!DisconnectTip(state, chainparams.GetConsensus()) || !state.IsValid()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void ReprocessBlocks(int nBlocks)
+{
+    LOCK(cs_main);
+
+    std::map<uint256, int64_t>::iterator it = mapRejectedBlocks.begin();
+    while(it != mapRejectedBlocks.end()){
+        //use a window twice as large as is usual for the nBlocks we want to reset
+        if((*it).second  > GetTime() - (nBlocks*60*5)) {
+            BlockMap::iterator mi = mapBlockIndex.find((*it).first);
+            if (mi != mapBlockIndex.end() && (*mi).second) {
+
+                CBlockIndex* pindex = (*mi).second;
+                LogPrintf("ReprocessBlocks -- %s\n", (*it).first.ToString());
+
+                CValidationState state;
+                ReconsiderBlock(state, pindex);
+            }
+        }
+        ++it;
+    }
+
+    DisconnectBlocks(nBlocks);
+
+    CValidationState state;
+    ActivateBestChain(state, Params());
 }

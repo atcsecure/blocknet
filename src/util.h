@@ -164,6 +164,7 @@ extern bool fLiteMode;
 extern bool fImporting;
 extern bool fReindex;
 extern bool fCheckpointsEnabled;
+extern bool fListen;
 
 
 

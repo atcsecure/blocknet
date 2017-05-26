@@ -2023,6 +2023,11 @@ public:
 }
 instance_of_cnetcleanup;
 
+void RelayTransaction(const CTransaction& tx)
+{
+    RelayTransaction(tx, tx.GetHash());
+}
+
 void RelayTransaction(const CTransaction& tx, const uint256& hash)
 {
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
