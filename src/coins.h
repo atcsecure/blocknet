@@ -7,15 +7,14 @@
 #define BITCOIN_COINS_H
 
 #include "compressor.h"
-#include "core_memusage.h"
-#include "memusage.h"
+// #include "core_memusage.h"
+// #include "memusage.h"
 #include "serialize.h"
 #include "uint256.h"
 
 #include <assert.h>
 #include <stdint.h>
 
-#include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 
 /** 
@@ -118,7 +117,7 @@ public:
     }
 
     void ClearUnspendable() {
-        BOOST_FOREACH(CTxOut &txout, vout) {
+        for (CTxOut & txout : vout) {
             if (txout.scriptPubKey.IsUnspendable())
                 txout.SetNull();
         }
@@ -249,19 +248,19 @@ public:
     //! check whether the entire CCoins is spent
     //! note that only !IsPruned() CCoins can be serialized
     bool IsPruned() const {
-        BOOST_FOREACH(const CTxOut &out, vout)
+        for (const CTxOut & out : vout)
             if (!out.IsNull())
                 return false;
         return true;
     }
 
-    size_t DynamicMemoryUsage() const {
-        size_t ret = memusage::DynamicUsage(vout);
-        BOOST_FOREACH(const CTxOut &out, vout) {
-            ret += RecursiveDynamicUsage(out.scriptPubKey);
-        }
-        return ret;
-    }
+//    size_t DynamicMemoryUsage() const {
+//        size_t ret = memusage::DynamicUsage(vout);
+//        BOOST_FOREACH(const CTxOut &out, vout) {
+//            ret += RecursiveDynamicUsage(out.scriptPubKey);
+//        }
+//        return ret;
+//    }
 };
 
 class CCoinsKeyHasher
@@ -392,7 +391,7 @@ protected:
     mutable CCoinsMap cacheCoins;
 
     /* Cached dynamic memory usage for the inner CCoins objects. */
-    mutable size_t cachedCoinsUsage;
+    // mutable size_t cachedCoinsUsage;
 
 public:
     CCoinsViewCache(CCoinsView *baseIn);
@@ -454,7 +453,7 @@ public:
     unsigned int GetCacheSize() const;
 
     //! Calculate the size of the cache (in bytes)
-    size_t DynamicMemoryUsage() const;
+    // size_t DynamicMemoryUsage() const;
 
     /** 
      * Amount of dash coming in to a transaction

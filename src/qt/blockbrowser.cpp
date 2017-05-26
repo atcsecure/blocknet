@@ -160,7 +160,7 @@ double getTxTotalValue(std::string txid)
 
     CTransaction tx;
     uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock))
         return 1000;
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
@@ -191,7 +191,7 @@ std::string getOutputs(std::string txid)
 
     CTransaction tx;
     uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock))
         return "fail";
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
@@ -224,7 +224,7 @@ std::string getInputs(std::string txid)
 
     CTransaction tx;
     uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock))
         return "fail";
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
@@ -238,7 +238,7 @@ std::string getInputs(std::string txid)
         hash.SetHex(vin.prevout.hash.ToString());
         CTransaction wtxPrev;
         uint256 hashBlock = 0;
-        if (!GetTransaction(hash, wtxPrev, hashBlock))
+        if (!GetTransaction(hash, wtxPrev, Params().GetConsensus(), hashBlock))
              return "fail";
 
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
@@ -282,7 +282,7 @@ double getTxFees(std::string txid)
 
     CTransaction tx;
     uint256 hashBlock = 0;
-    if (!GetTransaction(hash, tx, hashBlock))
+    if (!GetTransaction(hash, tx, Params().GetConsensus(), hashBlock))
         return 51;
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
@@ -307,7 +307,7 @@ double getTxFees(std::string txid)
         hash0.SetHex(vin.prevout.hash.ToString());
         CTransaction wtxPrev;
         uint256 hashBlock0 = 0;
-        if (!GetTransaction(hash0, wtxPrev, hashBlock0))
+        if (!GetTransaction(hash0, wtxPrev, Params().GetConsensus(), hashBlock0))
              return 0;
         CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
         ssTx << wtxPrev;

@@ -19,6 +19,7 @@
 class uint256;
 class CBlockIndex;
 class CSyncCheckpoint;
+struct CCheckpointData;
 
 /** Block-chain checkpoints are compiled-in sanity checks.
  * They are updated every release or three.
@@ -40,7 +41,7 @@ namespace Checkpoints
     bool CheckHardened(int nHeight, const uint256& hash);
 
     // Return conservative estimate of total number of blocks, 0 if unknown
-    int GetTotalBlocksEstimate();
+    int GetTotalBlocksEstimate(const CCheckpointData& data);
 
     // Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);

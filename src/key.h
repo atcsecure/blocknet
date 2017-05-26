@@ -68,7 +68,20 @@ private:
 
 public:
     CPubKey() { }
+
     CPubKey(const std::vector<unsigned char> &vchPubKeyIn) : vchPubKey(vchPubKeyIn) { }
+
+    //! Construct a public key using begin/end iterators to byte data.
+    template <typename T>
+    CPubKey(const T pbegin, const T pend) : vchPubKey(pbegin, pend) { }
+
+    //! Initialize a public key using begin/end iterators to byte data.
+    template <typename T>
+    void Set(const T pbegin, const T pend)
+    {
+        vchPubKey = std::vector<unsigned char>(pbegin, pend);
+    }
+
     friend bool operator==(const CPubKey &a, const CPubKey &b) { return a.vchPubKey == b.vchPubKey; }
     friend bool operator!=(const CPubKey &a, const CPubKey &b) { return a.vchPubKey != b.vchPubKey; }
     friend bool operator<(const CPubKey &a, const CPubKey &b) { return a.vchPubKey < b.vchPubKey; }

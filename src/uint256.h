@@ -6,6 +6,8 @@
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
 
+#include "crypto/common.h"
+
 #include <string>
 #include <vector>
 
@@ -23,8 +25,8 @@ template<unsigned int BITS>
 class base_blob
 {
 protected:
-    enum { WIDTH=BITS/32 };
-    unsigned int pn[WIDTH];
+    enum { WIDTH=BITS/8 };
+    uint8_t pn[WIDTH];
 public:
 
     bool operator!() const
@@ -76,14 +78,14 @@ public:
         memset(pn, 0, sizeof(pn));
     }
 
-    base_blob& operator=(uint64_t b)
-    {
-        pn[0] = (unsigned int)b;
-        pn[1] = (unsigned int)(b >> 32);
-        for (int i = 2; i < WIDTH; i++)
-            pn[i] = 0;
-        return *this;
-    }
+//    base_blob& operator=(uint64_t b)
+//    {
+//        pn[0] = (unsigned int)b;
+//        pn[1] = (unsigned int)(b >> 32);
+//        for (int i = 2; i < WIDTH; i++)
+//            pn[i] = 0;
+//        return *this;
+//    }
 
     base_blob& operator^=(const base_blob& b)
     {
@@ -106,19 +108,19 @@ public:
         return *this;
     }
 
-    base_blob& operator^=(uint64_t b)
-    {
-        pn[0] ^= (unsigned int)b;
-        pn[1] ^= (unsigned int)(b >> 32);
-        return *this;
-    }
+//    base_blob& operator^=(uint64_t b)
+//    {
+//        pn[0] ^= (unsigned int)b;
+//        pn[1] ^= (unsigned int)(b >> 32);
+//        return *this;
+//    }
 
-    base_blob& operator|=(uint64_t b)
-    {
-        pn[0] |= (unsigned int)b;
-        pn[1] |= (unsigned int)(b >> 32);
-        return *this;
-    }
+//    base_blob& operator|=(uint64_t b)
+//    {
+//        pn[0] |= (unsigned int)b;
+//        pn[1] |= (unsigned int)(b >> 32);
+//        return *this;
+//    }
 
     base_blob& operator<<=(unsigned int shift)
     {
@@ -172,21 +174,21 @@ public:
         return *this;
     }
 
-    base_blob& operator+=(uint64_t b64)
-    {
-        base_blob b;
-        b = b64;
-        *this += b;
-        return *this;
-    }
+//    base_blob& operator+=(uint64_t b64)
+//    {
+//        base_blob b;
+//        b = b64;
+//        *this += b;
+//        return *this;
+//    }
 
-    base_blob& operator-=(uint64_t b64)
-    {
-        base_blob b;
-        b = b64;
-        *this += -b;
-        return *this;
-    }
+//    base_blob& operator-=(uint64_t b64)
+//    {
+//        base_blob b;
+//        b = b64;
+//        *this += -b;
+//        return *this;
+//    }
 
 
     base_blob& operator++()
@@ -308,7 +310,7 @@ public:
     {
         char psz[sizeof(pn)*2 + 1];
         for (unsigned int i = 0; i < sizeof(pn); i++)
-            sprintf(psz + i*2, "%02x", ((unsigned char*)pn)[sizeof(pn) - i - 1]);
+            sprintf(psz + i*2, "%02x", pn[sizeof(pn) - i - 1]);
         return std::string(psz, psz + sizeof(pn)*2);
     }
 
@@ -371,7 +373,8 @@ public:
 
     uint64_t Get64(int n=0) const
     {
-        return pn[2*n] | (uint64_t)pn[2*n+1] << 32;
+        const uint32_t * ptr = reinterpret_cast<const uint32_t *>(pn);
+        return ptr[2*n] | (uint64_t)ptr[2*n+1] << 32;
     }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const
@@ -593,10 +596,10 @@ public:
      * when the value can easily be influenced from outside as e.g. a network adversary could
      * provide values to trigger worst-case behavior.
      */
-//    uint64_t GetCheapHash() const
-//    {
-//        return ReadLE64(data);
-//    }
+    uint64_t GetCheapHash() const
+    {
+        return ReadLE64(pn);
+    }
 
     /** A more secure, salted hash function.
      * @note This hash is not stable between little and big endian.

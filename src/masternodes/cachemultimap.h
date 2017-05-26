@@ -207,7 +207,10 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(nMaxSize);
         READWRITE(nCurrentSize);
-        READWRITE(listItems);
+
+        // TODO implementation
+        // READWRITE(listItems);
+
         if(ser_action.ForRead()) {
             RebuildIndex();
         }

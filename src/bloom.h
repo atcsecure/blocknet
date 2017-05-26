@@ -86,6 +86,8 @@ public:
 
     // Checks for empty and full filters to avoid wasting cpu
     void UpdateEmptyFull();
+
+    void clear();
 };
 
 #endif /* BITCOIN_BLOOM_H */

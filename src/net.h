@@ -242,6 +242,9 @@ private:
     void operator=(const CNode&);
 public:
 
+    NodeId GetId() const {
+      return id;
+    }
 
     int GetRefCount()
     {
@@ -639,5 +642,8 @@ void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataSt
 
 // for masternodes
 #define RelayInv RelayInventory
+
+std::vector<CNode*> CopyNodeVector();
+void ReleaseNodeVector(const std::vector<CNode*>& vecNodes);
 
 #endif

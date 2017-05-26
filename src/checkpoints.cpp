@@ -6,6 +6,7 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 #include "checkpoints.h"
+#include "chainparams.h"
 
 #include "txdb.h"
 #include "main.h"
@@ -50,9 +51,12 @@ namespace Checkpoints
         return hash == i->second;
     }
 
-    int GetTotalBlocksEstimate()
+    int GetTotalBlocksEstimate(const CCheckpointData& data)
     {
-        MapCheckpoints& checkpoints = (fTestNet ? mapCheckpointsTestnet : mapCheckpoints);
+        const MapCheckpoints& checkpoints = data.mapCheckpoints;
+
+        if (checkpoints.empty())
+            return 0;
 
         return checkpoints.rbegin()->first;
     }

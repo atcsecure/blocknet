@@ -323,7 +323,7 @@ void CMasternodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, 
         if(netfulfilledman.HasFulfilledRequest(pfrom->addr, NetMsgType::MASTERNODEPAYMENTSYNC)) {
             // Asking for the payments list multiple times in a short period of time is no good
             printf("MASTERNODEPAYMENTSYNC -- peer already asked me for the list, peer=%d\n", pfrom->id);
-            Misbehaving(pfrom->GetId(), 20);
+            pfrom->Misbehaving(20);
             return;
         }
         netfulfilledman.AddFulfilledRequest(pfrom->addr, NetMsgType::MASTERNODEPAYMENTSYNC);
@@ -387,7 +387,7 @@ void CMasternodePayments::ProcessMessage(CNode* pfrom, std::string& strCommand, 
         if(!vote.CheckSignature(mnInfo.pubKeyMasternode, pCurrentBlockIndex->nHeight, nDos)) {
             if(nDos) {
                 printf("MASTERNODEPAYMENTVOTE -- ERROR: invalid signature\n");
-                Misbehaving(pfrom->GetId(), nDos);
+                pfrom->Misbehaving(nDos);
             } else {
                 // only warn about anything non-critical (i.e. nDos == 0) in debug mode
                 printf("MASTERNODEPAYMENTVOTE -- WARNING: invalid signature\n");
@@ -563,7 +563,7 @@ bool CMasternodeBlockPayees::IsTransactionValid(const CTransaction& txNew)
 
     for (CMasternodePayee & payee : vecPayees) {
         if (payee.GetVoteCount() >= MNPAYMENTS_SIGNATURES_REQUIRED) {
-            BOOST_FOREACH(CTxOut txout, txNew.vout) {
+            for (const CTxOut & txout : txNew.vout) {
                 if (payee.GetPayee() == txout.scriptPubKey && nMasternodePayment == txout.nValue) {
                     printf("CMasternodeBlockPayees::IsTransactionValid -- Found required payment\n");
                     return true;
@@ -701,7 +701,7 @@ bool CMasternodePaymentVote::IsValid(CNode* pnode, int nValidationHeight, std::s
         if(nRank > MNPAYMENTS_SIGNATURES_TOTAL*2 && nBlockHeight > nValidationHeight) {
             strError = strprintf("Masternode is not in the top %d (%d)", MNPAYMENTS_SIGNATURES_TOTAL*2, nRank);
             printf("CMasternodePaymentVote::IsValid -- Error: %s\n", strError);
-            Misbehaving(pnode->GetId(), 20);
+            pnode->Misbehaving(20);
         }
         // Still invalid however
         return false;
@@ -894,7 +894,7 @@ void CMasternodePayments::RequestLowDataPaymentBlocks(CNode* pnode)
         // DEBUG
         DBG (
             // Let's see why this failed
-            BOOST_FOREACH(CMasternodePayee& payee, it->second.vecPayees) {
+            for (const CMasternodePayee & payee : it->second.vecPayees) {
                 CTxDestination address1;
                 ExtractDestination(payee.GetPayee(), address1);
                 CBitcoinAddress address2(address1);

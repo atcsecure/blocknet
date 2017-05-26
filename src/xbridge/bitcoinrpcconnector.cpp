@@ -14,6 +14,7 @@
 #include "util/xutil.h"
 #include "util/logger.h"
 #include "util/txlog.h"
+#include "chainparams.h"
 
 #include "base58.h"
 #include "bignum.h"
@@ -1779,7 +1780,7 @@ bool getDataFromTx(const std::string & strtxid, std::vector<unsigned char> & dat
 
     CTransaction tx;
     uint256 block;
-    if (!GetTransaction(txid, tx, block))
+    if (!GetTransaction(txid, tx, Params().GetConsensus(), block))
     {
         return false;
     }

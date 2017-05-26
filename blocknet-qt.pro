@@ -207,7 +207,15 @@ SOURCES += src/txdb-leveldb.cpp \
     src/masternodes/netfulfilledman.cpp \
     src/coins.cpp \
     src/compressor.cpp \
-    src/uint256.cpp
+    src/uint256.cpp \
+    src/masternodes/spork.cpp \
+    src/masternodes/activemasternode.cpp \
+    src/masternodes/darksend.cpp \
+    src/masternodes/darksend-relay.cpp \
+    src/masternodes/governance.cpp \
+    src/masternodes/governance-classes.cpp \
+    src/masternodes/governance-object.cpp \
+    src/masternodes/governance-votedb.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -458,8 +466,18 @@ HEADERS += src/qt/bitcoingui.h \
     src/coins.h \
     src/compressor.h \
     src/tinyformat.h \
-    src/core_memusage.h \
-    src/memusage.h
+    src/masternodes/spork.h \
+    src/masternodes/activemasternode.h \
+    src/masternodes/cachemap.h \
+    src/masternodes/cachemultimap.h \
+    src/masternodes/darksend.h \
+    src/masternodes/darksend-relay.h \
+    src/masternodes/governance.h \
+    src/masternodes/governance-classes.h \
+    src/masternodes/governance-exceptions.h \
+    src/masternodes/governance-misc.h \
+    src/masternodes/governance-object.h \
+    src/masternodes/governance-votedb.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

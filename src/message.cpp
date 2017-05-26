@@ -276,7 +276,7 @@ bool Message::sign(CKey & key)
 class CKeyIdPpn : public CKeyID
 {
 public:
-    unsigned int * getPpn() { return pn; }
+    const uint8_t * getPpn() const { return pn; }
 };
 
 //*****************************************************************************

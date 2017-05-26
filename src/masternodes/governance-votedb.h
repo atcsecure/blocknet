@@ -76,7 +76,10 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(nMemoryVotes);
-        READWRITE(listVotes);
+
+        // TODO implemnt this
+        // READWRITE(listVotes);
+
         if(ser_action.ForRead()) {
             const_cast<CGovernanceObjectVoteFile *>(this)->RebuildIndex();
         }

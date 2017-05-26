@@ -81,6 +81,9 @@ CMedianFilter<int64_t> vTimeOffsets(200,0);
 bool fReopenDebugLog = false;
 bool fMasterNode = false;
 bool fLiteMode = false;
+bool fImporting = false;
+bool fReindex = false;
+bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 
 
 // Init OpenSSL library multithreading support
@@ -1077,6 +1080,13 @@ boost::filesystem::path GetConfigFile()
 {
     boost::filesystem::path pathConfigFile(GetArg("-conf", "blocknet.conf"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
+    return pathConfigFile;
+}
+
+boost::filesystem::path GetMasternodeConfigFile()
+{
+    boost::filesystem::path pathConfigFile(GetArg("-mnconf", "masternode.conf"));
+    if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir() / pathConfigFile;
     return pathConfigFile;
 }
 

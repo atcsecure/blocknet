@@ -35,6 +35,18 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+// Debugging macros
+
+// Uncomment the following line to enable debugging messages
+// or enable on a per file basis prior to inclusion of util.h
+//#define ENABLE_BLOCKNET_DEBUG
+#ifdef ENABLE_BLOCKNET_DEBUG
+#define DBG( x ) x
+#else
+#define DBG( x )
+#endif
+
+
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))
 #define UBEGIN(a)           ((unsigned char*)&(a))
@@ -149,6 +161,14 @@ extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
 extern bool fMasterNode;
 extern bool fLiteMode;
+extern bool fImporting;
+extern bool fReindex;
+extern bool fCheckpointsEnabled;
+
+
+
+static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
+
 
 
 void RandAddSeed();
@@ -207,6 +227,7 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);
 boost::filesystem::path GetDefaultDataDir();
 const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
 boost::filesystem::path GetConfigFile();
+boost::filesystem::path GetMasternodeConfigFile();
 boost::filesystem::path GetPidFile();
 #ifndef WIN32
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid);

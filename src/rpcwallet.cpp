@@ -1300,7 +1300,7 @@ Value gettransaction(const Array& params, bool fHelp)
     {
         CTransaction tx;
         uint256 hashBlock = 0;
-        if (GetTransaction(hash, tx, hashBlock))
+        if (GetTransaction(hash, tx, Params().GetConsensus(), hashBlock))
         {
             TxToJSON(tx, 0, entry);
             if (hashBlock == 0)

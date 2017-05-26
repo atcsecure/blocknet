@@ -6,8 +6,10 @@
 #include "compressor.h"
 
 #include "hash.h"
-#include "pubkey.h"
-#include "script/standard.h"
+// #include "pubkey.h"
+#include "key.h"
+// #include "script/standard.h"
+#include "script.h"
 
 bool CScriptCompressor::IsToKeyID(CKeyID &hash) const
 {
@@ -34,13 +36,13 @@ bool CScriptCompressor::IsToPubKey(CPubKey &pubkey) const
 {
     if (script.size() == 35 && script[0] == 33 && script[34] == OP_CHECKSIG
                             && (script[1] == 0x02 || script[1] == 0x03)) {
-        pubkey.Set(&script[1], &script[34]);
+        pubkey = CPubKey(&script[1], &script[34]);
         return true;
     }
     if (script.size() == 67 && script[0] == 65 && script[66] == OP_CHECKSIG
                             && script[1] == 0x04) {
         pubkey.Set(&script[1], &script[66]);
-        return pubkey.IsFullyValid(); // if not fully valid, a case that would not be compressible
+        return pubkey.IsValid(); // if not fully valid, a case that would not be compressible
     }
     return false;
 }
@@ -114,18 +116,19 @@ bool CScriptCompressor::Decompress(unsigned int nSize, const std::vector<unsigne
         return true;
     case 0x04:
     case 0x05:
-        unsigned char vch[33] = {};
-        vch[0] = nSize - 2;
-        memcpy(&vch[1], &in[0], 32);
-        CPubKey pubkey(&vch[0], &vch[33]);
-        if (!pubkey.Decompress())
-            return false;
-        assert(pubkey.size() == 65);
-        script.resize(67);
-        script[0] = 65;
-        memcpy(&script[1], pubkey.begin(), 65);
-        script[66] = OP_CHECKSIG;
-        return true;
+        assert(false && "not implemented");
+//        unsigned char vch[33] = {};
+//        vch[0] = nSize - 2;
+//        memcpy(&vch[1], &in[0], 32);
+//        CPubKey pubkey(&vch[0], &vch[33]);
+//        if (!pubkey.Decompress())
+//            return false;
+//        assert(pubkey.size() == 65);
+//        script.resize(67);
+//        script[0] = 65;
+//        memcpy(&script[1], pubkey.begin(), 65);
+//        script[66] = OP_CHECKSIG;
+//        return true;
     }
     return false;
 }

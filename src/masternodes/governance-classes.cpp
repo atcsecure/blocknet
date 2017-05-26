@@ -11,7 +11,6 @@
 #include "utilstrencodings.h"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
 
 #include <univalue.h>
 
