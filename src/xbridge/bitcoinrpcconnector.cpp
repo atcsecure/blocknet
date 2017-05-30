@@ -1670,7 +1670,8 @@ bool storeDataIntoBlockchain(const std::vector<unsigned char> & dstAddress,
         {
             // rest
             CReserveKey rkey(pwalletMain);
-            CPubKey pk = rkey.GetReservedKey();
+            CPubKey pk;
+            rkey.GetReservedKey(pk);
             CBitcoinAddress addr(pk.GetID());
             uint64_t rest = inamount - (fee + amount*COIN);
             outputs.push_back(Pair(addr.ToString(), (double)rest/COIN));

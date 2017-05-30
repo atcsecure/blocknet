@@ -12,7 +12,6 @@ class CBlock;
 class CScript;
 class CTransaction;
 class uint256;
-class UniValue;
 
 // core_read.cpp
 extern CScript ParseScript(const std::string& s);

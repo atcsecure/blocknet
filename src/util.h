@@ -166,7 +166,7 @@ extern bool fReindex;
 extern bool fCheckpointsEnabled;
 extern bool fListen;
 
-
+extern int nWalletBackups;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
 

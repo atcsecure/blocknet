@@ -201,4 +201,6 @@ public:
     static bool Recover(CDBEnv& dbenv, std::string filename);
 };
 
+bool AutoBackupWallet (CWallet* wallet, std::string strWalletFile, std::string& strBackupWarning, std::string& strBackupError);
+
 #endif // BITCOIN_WALLETDB_H

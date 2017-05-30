@@ -108,10 +108,10 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
             if(pfrom) {
                 mnodeman.AskForMN(pfrom, vote.GetVinMasternode());
             }
-            LogPrintf(ostr.str().c_str());
+            printf(ostr.str().c_str());
         }
         else {
-            LogPrint("gobject", ostr.str().c_str());
+            printf(ostr.str().c_str());
         }
         return false;
     }
@@ -125,14 +125,14 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
     if(eSignal == VOTE_SIGNAL_NONE) {
         std::ostringstream ostr;
         ostr << "CGovernanceObject::ProcessVote -- Vote signal: none" << "\n";
-        LogPrint("gobject", ostr.str().c_str());
+        printf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_WARNING);
         return false;
     }
     if(eSignal > MAX_SUPPORTED_VOTE_SIGNAL) {
         std::ostringstream ostr;
         ostr << "CGovernanceObject::ProcessVote -- Unsupported vote signal:" << CGovernanceVoting::ConvertSignalToString(vote.GetSignal()) << "\n";
-        LogPrintf(ostr.str().c_str());
+        printf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_PERMANENT_ERROR, 20);
         return false;
     }
@@ -146,7 +146,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
     if(vote.GetTimestamp() < voteInstance.nCreationTime) {
         std::ostringstream ostr;
         ostr << "CGovernanceObject::ProcessVote -- Obsolete vote" << "\n";
-        LogPrint("gobject", ostr.str().c_str());
+        printf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_NONE);
         return false;
     }
@@ -161,7 +161,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
                  << ", MN outpoint = " << vote.GetVinMasternode().prevout.ToStringShort()
                  << ", governance object hash = " << GetHash().ToString()
                  << ", time delta = " << nTimeDelta << "\n";
-            LogPrint("gobject", ostr.str().c_str());
+            printf(ostr.str().c_str());
             exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_TEMPORARY_ERROR);
             nVoteTimeUpdate = nNow;
             return false;
@@ -174,7 +174,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
                 << ", MN outpoint = " << vote.GetVinMasternode().prevout.ToStringShort()
                 << ", governance object hash = " << GetHash().ToString()
                 << ", vote hash = " << vote.GetHash().ToString() << "\n";
-        LogPrintf(ostr.str().c_str());
+        printf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_PERMANENT_ERROR, 20);
         governance.AddInvalidVote(vote);
         return false;
@@ -184,7 +184,7 @@ bool CGovernanceObject::ProcessVote(CNode* pfrom,
         ostr << "CGovernanceObject::ProcessVote -- Unable to add governance vote "
              << ", MN outpoint = " << vote.GetVinMasternode().prevout.ToStringShort()
              << ", governance object hash = " << GetHash().ToString() << "\n";
-        LogPrint("gobject", ostr.str().c_str());
+        printf(ostr.str().c_str());
         exception = CGovernanceException(ostr.str(), GOVERNANCE_EXCEPTION_PERMANENT_ERROR);
         return false;
     }
@@ -262,16 +262,16 @@ bool CGovernanceObject::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
     LOCK(cs);
 
     if(!darkSendSigner.SignMessage(strMessage, vchSig, keyMasternode)) {
-        LogPrintf("CGovernanceObject::Sign -- SignMessage() failed\n");
+        printf("CGovernanceObject::Sign -- SignMessage() failed\n");
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError)) {
-        LogPrintf("CGovernanceObject::Sign -- VerifyMessage() failed, error: %s\n", strError);
+        printf("CGovernanceObject::Sign -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
 
-    LogPrint("gobject", "CGovernanceObject::Sign -- pubkey id = %s, vin = %s\n",
+    printf("CGovernanceObject::Sign -- pubkey id = %s, vin = %s\n",
              pubKeyMasternode.GetID().ToString(), vinMasternode.prevout.ToStringShort());
 
 
@@ -286,7 +286,7 @@ bool CGovernanceObject::CheckSignature(CPubKey& pubKeyMasternode)
 
     LOCK(cs);
     if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError)) {
-        LogPrintf("CGovernance::CheckSignature -- VerifyMessage() failed, error: %s\n", strError);
+        printf("CGovernance::CheckSignature -- VerifyMessage() failed, error: %s\n", strError);
         return false;
     }
 
@@ -378,7 +378,7 @@ void CGovernanceObject::LoadData()
         ostr << "CGovernanceObject::LoadData Error parsing JSON"
              << ", e.what() = " << e.what();
         DBG( cout << ostr.str() << endl; );
-        LogPrintf( ostr.str().c_str() );
+        printf( ostr.str().c_str() );
         return;
     }
     catch(...) {
@@ -386,7 +386,7 @@ void CGovernanceObject::LoadData()
         std::ostringstream ostr;
         ostr << "CGovernanceObject::LoadData Unknown Error parsing JSON";
         DBG( cout << ostr.str() << endl; );
-        LogPrintf( ostr.str().c_str() );
+        printf( ostr.str().c_str() );
         return;
     }
 }
@@ -529,13 +529,13 @@ bool CGovernanceObject::IsCollateralValid(std::string& strError)
 
     if(!GetTransaction(nCollateralHash, txCollateral, Params().GetConsensus(), nBlockHash, true)){
         strError = strprintf("Can't find collateral tx %s", txCollateral.ToString());
-        LogPrintf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
+        printf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
         return false;
     }
 
     if(txCollateral.vout.size() < 1) {
         strError = strprintf("tx vout size less than 1 | %d", txCollateral.vout.size());
-        LogPrintf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
+        printf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
         return false;
     }
 
@@ -746,7 +746,7 @@ void CGovernanceObject::CheckOrphanVotes()
         }
         CGovernanceException exception;
         if(!ProcessVote(NULL, vote, exception)) {
-            LogPrintf("CGovernanceObject::CheckOrphanVotes -- Failed to add orphan vote: %s\n", exception.what());
+            printf("CGovernanceObject::CheckOrphanVotes -- Failed to add orphan vote: %s\n", exception.what());
         }
         else {
             vote.Relay();
