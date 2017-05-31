@@ -80,7 +80,7 @@ private:
     CAmount nFee; //! Cached to avoid expensive parent-transaction lookups
     size_t nTxSize; //! ... and avoid recomputing tx size
     size_t nModSize; //! ... and modified size for priority
-    size_t nUsageSize; //! ... and total memory usage
+    // size_t nUsageSize; //! ... and total memory usage
     int64_t nTime; //! Local time when entering the mempool
     double entryPriority; //! Priority when entering the mempool
     unsigned int entryHeight; //! Chain height when entering the mempool
@@ -120,7 +120,7 @@ public:
     bool WasClearAtEntry() const { return hadNoDependencies; }
     unsigned int GetSigOpCount() const { return sigOpCount; }
     int64_t GetModifiedFee() const { return nFee + feeDelta; }
-    size_t DynamicMemoryUsage() const { return nUsageSize; }
+    // size_t DynamicMemoryUsage() const { return nUsageSize; }
     const LockPoints& GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state, if this entry is not dirty.
@@ -362,7 +362,7 @@ private:
     CBlockPolicyEstimator* minerPolicyEstimator;
 
     uint64_t totalTxSize; //! sum of all mempool tx' byte sizes
-    uint64_t cachedInnerUsage; //! sum of dynamic memory usage of all the map elements (NOT the maps themselves)
+    // uint64_t cachedInnerUsage; //! sum of dynamic memory usage of all the map elements (NOT the maps themselves)
 
     CFeeRate minReasonableRelayFee;
 

@@ -8,7 +8,7 @@
 #include "darksend.h"
 #include "governance.h"
 #include "init.h"
-// #include "instantx.h"
+#include "instantx.h"
 #include "masternode-payments.h"
 #include "masternode-sync.h"
 #include "masternodeman.h"
@@ -2132,7 +2132,7 @@ std::string CDarksendPool::GetDenominationsToString(int nDenom)
 
     for (int i = 0; i < nMaxDenoms; ++i) {
         if(nDenom & (1 << i)) {
-            strDenom += (strDenom.empty() ? "" : "+") + FormatMoney(vecPrivateSendDenominations[i]);
+            strDenom += (strDenom.empty() ? "" : "+") + FormatMoney(reinterpret_cast<int64_t>(vecPrivateSendDenominations[i]), false);
         }
     }
 
@@ -2147,7 +2147,7 @@ int CDarksendPool::GetDenominations(const std::vector<CTxDSOut>& vecTxDSOut)
 {
     std::vector<CTxOut> vecTxOut;
 
-    for (CTxDSOut & out : vecTxDSOut)
+    for (const CTxDSOut & out : vecTxDSOut)
         vecTxOut.push_back(out);
 
     return GetDenominations(vecTxOut);
@@ -2171,7 +2171,7 @@ int CDarksendPool::GetDenominations(const std::vector<CTxOut>& vecTxOut, bool fS
         vecDenomUsed.push_back(std::make_pair(nDenomValue, 0));
 
     // look for denominations and update uses to 1
-    for (CTxOut & txout : vecTxOut) {
+    for (const CTxOut & txout : vecTxOut) {
         bool found = false;
         for (PAIRTYPE(CAmount, int) & s : vecDenomUsed) {
             if(txout.nValue == s.first) {
@@ -2223,7 +2223,7 @@ int CDarksendPool::GetDenominationsByAmounts(const std::vector<CAmount>& vecAmou
     std::vector<CTxOut> vecTxOut;
 
     // BOOST_REVERSE_FOREACH(CAmount nAmount, vecAmount) {
-    for (CAmount & nAmount : vecAmount) {
+    for (const CAmount & nAmount : vecAmount) {
         CTxOut txout(nAmount, scriptTmp);
         vecTxOut.push_back(txout);
     }
@@ -2281,7 +2281,9 @@ bool CDarkSendSigner::GetKeysFromSecret(std::string strSecret, CKey& keyRet, CPu
 
     if(!vchSecret.SetString(strSecret)) return false;
 
-    keyRet = vchSecret.GetKey();
+    bool compressed = false;
+    CSecret sec = vchSecret.GetSecret(compressed);
+    keyRet.SetSecret(sec, compressed);
     pubkeyRet = keyRet.GetPubKey();
 
     return true;
@@ -2298,24 +2300,27 @@ bool CDarkSendSigner::SignMessage(std::string strMessage, std::vector<unsigned c
 
 bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, const std::vector<unsigned char>& vchSig, std::string strMessage, std::string& strErrorRet)
 {
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+    assert(!"implementation");
+    return false;
 
-    CPubKey pubkeyFromSig;
-    if(!pubkeyFromSig.RecoverCompact(ss.GetHash(), vchSig)) {
-        strErrorRet = "Error recovering public key.";
-        return false;
-    }
+//    CHashWriter ss(SER_GETHASH, 0);
+//    ss << strMessageMagic;
+//    ss << strMessage;
 
-    if(pubkeyFromSig.GetID() != pubkey.GetID()) {
-        strErrorRet = strprintf("Keys don't match: pubkey=%s, pubkeyFromSig=%s, strMessage=%s, vchSig=%s",
-                    pubkey.GetID().ToString(), pubkeyFromSig.GetID().ToString(), strMessage,
-                    EncodeBase64(&vchSig[0], vchSig.size()));
-        return false;
-    }
+//    CPubKey pubkeyFromSig;
+//    if(!pubkeyFromSig.RecoverCompact(ss.GetHash(), vchSig)) {
+//        strErrorRet = "Error recovering public key.";
+//        return false;
+//    }
 
-    return true;
+//    if(pubkeyFromSig.GetID() != pubkey.GetID()) {
+//        strErrorRet = strprintf("Keys don't match: pubkey=%s, pubkeyFromSig=%s, strMessage=%s, vchSig=%s",
+//                    pubkey.GetID().ToString(), pubkeyFromSig.GetID().ToString(), strMessage,
+//                    EncodeBase64(&vchSig[0], vchSig.size()));
+//        return false;
+//    }
+
+//    return true;
 }
 
 bool CDarkSendEntry::AddScriptSig(const CTxIn& txin)

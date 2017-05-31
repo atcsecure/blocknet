@@ -65,7 +65,7 @@ public:
 
     void AddedMasternodeList() { nTimeLastMasternodeList = GetTime(); }
     void AddedPaymentVote() { nTimeLastPaymentVote = GetTime(); }
-    void AddedGovernanceItem() { nTimeLastGovernanceItem = GetTime(); };
+    void AddedGovernanceItem() { nTimeLastGovernanceItem = GetTime(); }
 
     void SendGovernanceSyncRequest(CNode* pnode);
 

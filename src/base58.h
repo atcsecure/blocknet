@@ -404,6 +404,22 @@ bool inline CBitcoinAddressVisitor::operator()(const CNoDestination &id) const {
 class CBitcoinSecret : public CBase58Data
 {
 public:
+//    void SetKey(const CKey& vchSecret)
+//    {
+//        assert(vchSecret.IsValid());
+//        SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(), vchSecret.size());
+//        if (vchSecret.IsCompressed())
+//            vchData.push_back(1);
+//    }
+
+//    CKey GetKey()
+//    {
+//        CKey ret;
+//        assert(vchData.size() >= 32);
+//        ret.Set(vchData.begin(), vchData.begin() + 32, vchData.size() > 32 && vchData[32] == 1);
+//        return ret;
+//    }
+
     void SetSecret(const CSecret& vchSecret, bool fCompressed)
     {
         assert(vchSecret.size() == 32);

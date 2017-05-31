@@ -217,7 +217,12 @@ SOURCES += src/txdb-leveldb.cpp \
     src/masternodes/governance-object.cpp \
     src/masternodes/governance-votedb.cpp \
     src/txmempool.cpp \
-    src/script/script_error.cpp
+    src/script/script_error.cpp \
+    src/masternodes/instantx.cpp \
+    src/policy/fees.cpp \
+    src/policy/policy.cpp \
+    src/script/standard.cpp \
+    src/script/interpreter.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -483,7 +488,14 @@ HEADERS += src/qt/bitcoingui.h \
     src/txmempool.h \
     src/addressindex.h \
     src/spentindex.h \
-    src/script/script_error.h
+    src/script/script_error.h \
+    src/masternodes/instantx.h \
+    src/consensus/consensus.h \
+    src/policy/fees.h \
+    src/undo.h \
+    src/policy/policy.h \
+    src/script/standard.h \
+    src/script/interpreter.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

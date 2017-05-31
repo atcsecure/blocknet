@@ -336,11 +336,15 @@ Object CGovernanceObject::GetJSONObject()
     Object objResult;
     GetData(objResult);
 
-    std::vector<UniValue> arr1 = objResult.getValues();
-    std::vector<UniValue> arr2 = arr1.at( 0 ).getValues();
-    obj = arr2.at( 1 );
+    Object at0 = objResult.at(0).value_.get_obj();
+    Object at1 = at0.at(1).value_.get_obj();
+    return at1;
 
-    return obj;
+//    std::vector<UniValue> arr1 = objResult.getValues();
+//    std::vector<UniValue> arr2 = arr1.at( 0 ).getValues();
+//    obj = arr2.at( 1 );
+
+//    return obj;
 }
 
 /**
@@ -362,15 +366,15 @@ void CGovernanceObject::LoadData()
 
     try  {
         // ATTEMPT TO LOAD JSON STRING FROM STRDATA
-        UniValue objResult(UniValue::VOBJ);
+        Object objResult;
         GetData(objResult);
 
         DBG( cout << "CGovernanceObject::LoadData strData = "
              << GetDataAsString()
              << endl; );
 
-        UniValue obj = GetJSONObject();
-        nObjectType = obj["type"].get_int();
+        Object obj = GetJSONObject();
+        nObjectType = find_value(obj, "type").get_int();
     }
     catch(std::exception& e) {
         fUnparsable = true;
@@ -401,10 +405,12 @@ void CGovernanceObject::LoadData()
 
 void CGovernanceObject::GetData(Object & objResult)
 {
-    Object o(UniValue::VOBJ);
     std::string s = GetDataAsString();
-    o.read(s);
-    objResult = o;
+
+    Value v;
+    read_string(s, v);
+
+    objResult = v.get_obj();
 }
 
 /**
@@ -552,14 +558,14 @@ bool CGovernanceObject::IsCollateralValid(std::string& strError)
 
 
     bool foundOpReturn = false;
-    BOOST_FOREACH(const CTxOut o, txCollateral.vout) {
+    for (const CTxOut & o : txCollateral.vout) {
         DBG( cout << "IsCollateralValid txout : " << o.ToString()
              << ", o.nValue = " << o.nValue
              << ", o.scriptPubKey = " << ScriptToAsmStr( o.scriptPubKey, false )
              << endl; );
         if(!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable()){
             strError = strprintf("Invalid Script %s", txCollateral.ToString());
-            LogPrintf ("CGovernanceObject::IsCollateralValid -- %s\n", strError);
+            printf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
             return false;
         }
         if(o.scriptPubKey == findScript && o.nValue >= nMinFee) {
@@ -574,7 +580,7 @@ bool CGovernanceObject::IsCollateralValid(std::string& strError)
 
     if(!foundOpReturn){
         strError = strprintf("Couldn't find opReturn %s in %s", nExpectedHash.ToString(), txCollateral.ToString());
-        LogPrintf ("CGovernanceObject::IsCollateralValid -- %s\n", strError);
+        printf("CGovernanceObject::IsCollateralValid -- %s\n", strError);
         return false;
     }
 
@@ -596,7 +602,7 @@ bool CGovernanceObject::IsCollateralValid(std::string& strError)
         strError = "valid";
     } else {
         strError = strprintf("Collateral requires at least %d confirmations - %d confirmations", GOVERNANCE_FEE_CONFIRMATIONS, nConfirmationsIn);
-        LogPrintf ("CGovernanceObject::IsCollateralValid -- %s - %d confirmations\n", strError, nConfirmationsIn);
+        printf("CGovernanceObject::IsCollateralValid -- %s - %d confirmations\n", strError, nConfirmationsIn);
         return false;
     }
 

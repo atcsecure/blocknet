@@ -1715,6 +1715,73 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
     return true;
 }
 
+bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey,
+                  unsigned int flags, const BaseSignatureChecker& checker,
+                  ScriptError* serror)
+{
+    set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
+
+    if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !scriptSig.IsPushOnly()) {
+        return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
+    }
+
+    vector<vector<unsigned char> > stack, stackCopy;
+    if (!EvalScript(stack, scriptSig, flags, checker, serror))
+        // serror is set
+        return false;
+    if (flags & SCRIPT_VERIFY_P2SH)
+        stackCopy = stack;
+    if (!EvalScript(stack, scriptPubKey, flags, checker, serror))
+        // serror is set
+        return false;
+    if (stack.empty())
+        return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+    if (CastToBool(stack.back()) == false)
+        return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+
+    // Additional validation for spend-to-script-hash transactions:
+    if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
+    {
+        // scriptSig must be literals-only or validation fails
+        if (!scriptSig.IsPushOnly())
+            return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
+
+        // Restore stack.
+        swap(stack, stackCopy);
+
+        // stack cannot be empty here, because if it was the
+        // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
+        // an empty stack and the EvalScript above would return false.
+        assert(!stack.empty());
+
+        const valtype& pubKeySerialized = stack.back();
+        CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
+        popstack(stack);
+
+        if (!EvalScript(stack, pubKey2, flags, checker, serror))
+            // serror is set
+            return false;
+        if (stack.empty())
+            return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+        if (!CastToBool(stack.back()))
+            return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
+    }
+
+    // The CLEANSTACK check is only performed after potential P2SH evaluation,
+    // as the non-P2SH evaluation of a P2SH script will obviously not result in
+    // a clean stack (the P2SH inputs remain).
+    if ((flags & SCRIPT_VERIFY_CLEANSTACK) != 0) {
+        // Disallow CLEANSTACK without P2SH, as otherwise a switch CLEANSTACK->P2SH+CLEANSTACK
+        // would be possible, which is not a softfork (and P2SH should be one).
+        assert((flags & SCRIPT_VERIFY_P2SH) != 0);
+        if (stack.size() != 1) {
+            return set_error(serror, SCRIPT_ERR_CLEANSTACK);
+        }
+    }
+
+    return set_success(serror);
+}
+
 
 bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType)
 {
@@ -1968,6 +2035,17 @@ bool CScript::IsNormalPaymentScript() const
     }
 
     return true;
+}
+
+bool CScript::IsPayToPublicKeyHash() const
+{
+    // Extra-fast test for pay-to-pubkey-hash CScripts:
+    return (this->size() == 25 &&
+        (*this)[0] == OP_DUP &&
+        (*this)[1] == OP_HASH160 &&
+        (*this)[2] == 0x14 &&
+        (*this)[23] == OP_EQUALVERIFY &&
+        (*this)[24] == OP_CHECKSIG);
 }
 
 bool CScript::IsPayToScriptHash() const

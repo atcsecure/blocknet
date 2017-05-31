@@ -45,7 +45,7 @@ public:
         return (setSelected.count(outpt) > 0);
     }
     
-    void Select(COutPoint& output)
+    void Select(const COutPoint & output)
     {
         setSelected.insert(output);
     }
