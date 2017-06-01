@@ -17,6 +17,24 @@ using namespace boost;
 #include "sync.h"
 #include "util.h"
 
+namespace {
+
+inline bool set_success(ScriptError* ret)
+{
+    if (ret)
+        *ret = SCRIPT_ERR_OK;
+    return true;
+}
+
+inline bool set_error(ScriptError* ret, const ScriptError serror)
+{
+    if (ret)
+        *ret = serror;
+    return false;
+}
+
+} // anon namespace
+
 bool CheckSig(vector<unsigned char> vchSig, vector<unsigned char> vchPubKey, CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
 static const valtype vchFalse(0);

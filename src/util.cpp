@@ -85,6 +85,9 @@ bool fImporting = false;
 bool fReindex = false;
 bool fCheckpointsEnabled = DEFAULT_CHECKPOINTS_ENABLED;
 bool fListen = true;
+bool fLargeWorkForkFound = false;
+bool fLargeWorkInvalidChainFound = false;
+bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
 
 /**
     nWalletBackups:

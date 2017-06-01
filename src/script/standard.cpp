@@ -5,10 +5,11 @@
 
 #include "script/standard.h"
 
-#include "pubkey.h"
-#include "script/script.h"
+// #include "pubkey.h"
+// #include "script/script.h"
+#include "script.h"
 #include "util.h"
-#include "utilstrencodings.h"
+// #include "utilstrencodings.h"
 
 #include <boost/foreach.hpp>
 

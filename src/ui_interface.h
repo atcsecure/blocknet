@@ -102,6 +102,9 @@ public:
     /** Additional data sync progress changed */
     boost::signals2::signal<void (double nSyncProgress)> NotifyAdditionalDataSyncProgressChanged;
 
+    /** Notifies listeners of an updated transaction lock without new data. */
+    boost::signals2::signal<void (const CTransaction &)> NotifyTransactionLock;
+
 };
 
 extern CClientUIInterface uiInterface;

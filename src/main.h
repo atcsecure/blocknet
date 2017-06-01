@@ -17,6 +17,7 @@
 #include "consensus/params.h"
 #include "consensus/validation.h"
 #include "consensus/consensus.h"
+#include "chainparams.h"
 
 #include <list>
 
@@ -133,7 +134,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
                         bool* pfMissingInputs, bool fOverrideMempoolLimit=false, bool fRejectAbsurdFee=false, bool fDryRun=false);
 
 /** Find the best known block, and make it the tip of the block chain */
-// bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
+bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
 
 CAmount GetBlockSubsidy(int nBits, int nHeight, const Consensus::Params& consensusParams, bool fSuperblockPartOnly = false);
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue);
@@ -511,6 +512,7 @@ void ReprocessBlocks(int nBlocks);
  */
 bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
 
+int GetUTXOHeight(const COutPoint& outpoint);
 int GetInputAge(const CTxIn &txin);
 int GetInputAgeIX(const uint256 &nTXHash, const CTxIn &txin);
 int GetIXConfirmations(const uint256 &nTXHash);

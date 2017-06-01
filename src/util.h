@@ -165,11 +165,15 @@ extern bool fImporting;
 extern bool fReindex;
 extern bool fCheckpointsEnabled;
 extern bool fListen;
+extern bool fLargeWorkForkFound;
+extern bool fLargeWorkInvalidChainFound;
+extern bool fIsBareMultisigStd;
+
 
 extern int nWalletBackups;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;
-
+static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
 
 
 void RandAddSeed();

@@ -4021,6 +4021,18 @@ bool GetBlockHash(uint256& hashRet, int nBlockHeight)
     return true;
 }
 
+int GetUTXOHeight(const COutPoint& outpoint)
+{
+    LOCK(cs_main);
+    CCoins coins;
+    if(!pcoinsTip->GetCoins(outpoint.hash, coins) ||
+       (unsigned int)outpoint.n>=coins.vout.size() ||
+       coins.vout[outpoint.n].IsNull()) {
+        return -1;
+    }
+    return coins.nHeight;
+}
+
 int GetInputAge(const CTxIn &txin)
 {
     CCoinsView viewDummy;
@@ -4410,4 +4422,164 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 {
     CTxUndo txundo;
     UpdateCoins(tx, state, inputs, txundo, nHeight);
+}
+
+/**
+ * Try to make some progress towards making pindexMostWork the active block.
+ * pblock is either NULL or a pointer to a CBlock corresponding to pindexMostWork.
+ */
+static bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const CBlock* pblock)
+{
+    AssertLockHeld(cs_main);
+    bool fInvalidFound = false;
+    const CBlockIndex *pindexOldTip = chainActive.Tip();
+    const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
+
+    // Disconnect active blocks which are no longer in the best chain.
+    bool fBlocksDisconnected = false;
+    while (chainActive.Tip() && chainActive.Tip() != pindexFork) {
+        if (!DisconnectTip(state, chainparams.GetConsensus()))
+            return false;
+        fBlocksDisconnected = true;
+    }
+
+    // Build list of new blocks to connect.
+    std::vector<CBlockIndex*> vpindexToConnect;
+    bool fContinue = true;
+    int nHeight = pindexFork ? pindexFork->nHeight : -1;
+    while (fContinue && nHeight != pindexMostWork->nHeight) {
+        // Don't iterate the entire list of potential improvements toward the best tip, as we likely only need
+        // a few blocks along the way.
+        int nTargetHeight = std::min(nHeight + 32, pindexMostWork->nHeight);
+        vpindexToConnect.clear();
+        vpindexToConnect.reserve(nTargetHeight - nHeight);
+        CBlockIndex *pindexIter = pindexMostWork->GetAncestor(nTargetHeight);
+        while (pindexIter && pindexIter->nHeight != nHeight) {
+            vpindexToConnect.push_back(pindexIter);
+            pindexIter = pindexIter->pprev;
+        }
+        nHeight = nTargetHeight;
+
+        // Connect new blocks.
+        BOOST_REVERSE_FOREACH(CBlockIndex *pindexConnect, vpindexToConnect) {
+            if (!ConnectTip(state, chainparams, pindexConnect, pindexConnect == pindexMostWork ? pblock : NULL)) {
+                if (state.IsInvalid()) {
+                    // The block violates a consensus rule.
+                    if (!state.CorruptionPossible())
+                        InvalidChainFound(vpindexToConnect.back());
+                    state = CValidationState();
+                    fInvalidFound = true;
+                    fContinue = false;
+                    break;
+                } else {
+                    // A system error occurred (disk space, database error, ...).
+                    return false;
+                }
+            } else {
+                PruneBlockIndexCandidates();
+                if (!pindexOldTip || chainActive.Tip()->nChainWork > pindexOldTip->nChainWork) {
+                    // We're in a better position than we were. Return temporarily to release the lock.
+                    fContinue = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (fBlocksDisconnected) {
+        mempool.removeForReorg(pcoinsTip, chainActive.Tip()->nHeight + 1, STANDARD_LOCKTIME_VERIFY_FLAGS);
+        LimitMempoolSize(mempool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60);
+    }
+    mempool.check(pcoinsTip);
+
+    // Callbacks/notifications for a new best chain.
+    if (fInvalidFound)
+        CheckForkWarningConditionsOnNewFork(vpindexToConnect.back());
+    else
+        CheckForkWarningConditions();
+
+    return true;
+}
+
+/**
+ * Make the best chain active, in multiple steps. The result is either failure
+ * or an activated best chain. pblock is either NULL or a pointer to a block
+ * that is already loaded (to avoid loading it again from disk).
+ */
+bool ActivateBestChain(CValidationState &state, const CChainParams& chainparams, const CBlock *pblock) {
+    CBlockIndex *pindexMostWork = NULL;
+    do {
+        boost::this_thread::interruption_point();
+        if (ShutdownRequested())
+            break;
+
+        CBlockIndex *pindexNewTip = NULL;
+        const CBlockIndex *pindexFork;
+        bool fInitialDownload;
+        {
+            LOCK(cs_main);
+            CBlockIndex *pindexOldTip = chainActive.Tip();
+            pindexMostWork = FindMostWorkChain();
+
+            // Whether we have anything to do at all.
+            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
+                return true;
+
+            if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL))
+                return false;
+
+            pindexNewTip = chainActive.Tip();
+            pindexFork = chainActive.FindFork(pindexOldTip);
+            fInitialDownload = IsInitialBlockDownload();
+        }
+        // When we reach this point, we switched to a new tip (stored in pindexNewTip).
+
+        // Notifications/callbacks that can run without cs_main
+        // Always notify the UI if a new block tip was connected
+        if (pindexFork != pindexNewTip) {
+            uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
+
+            if (!fInitialDownload) {
+                // Find the hashes of all blocks that weren't previously in the best chain.
+                std::vector<uint256> vHashes;
+                CBlockIndex *pindexToAnnounce = pindexNewTip;
+                while (pindexToAnnounce != pindexFork) {
+                    vHashes.push_back(pindexToAnnounce->GetBlockHash());
+                    pindexToAnnounce = pindexToAnnounce->pprev;
+                    if (vHashes.size() == MAX_BLOCKS_TO_ANNOUNCE) {
+                        // Limit announcements in case of a huge reorganization.
+                        // Rely on the peer's synchronization mechanism in that case.
+                        break;
+                    }
+                }
+                // Relay inventory, but don't relay old inventory during initial block download.
+                int nBlockEstimate = 0;
+                if (fCheckpointsEnabled)
+                    nBlockEstimate = Checkpoints::GetTotalBlocksEstimate(chainparams.Checkpoints());
+                {
+                    LOCK(cs_vNodes);
+                    for (CNode * pnode : vNodes) {
+                        if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate)) {
+                            // BOOST_REVERSE_FOREACH(const uint256& hash, vHashes) {
+                            for (const uint256 & hash : vHashes) {
+                                pnode->PushBlockHash(hash);
+                            }
+                        }
+                    }
+                }
+                // Notify external listeners about the new tip.
+                if (!vHashes.empty()) {
+                    GetMainSignals().UpdatedBlockTip(pindexNewTip);
+                }
+            }
+        }
+    } while(pindexMostWork != chainActive.Tip());
+    CheckBlockIndex(chainparams.GetConsensus());
+
+    // Write changes periodically to disk, after relay.
+    if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
+        return false;
+    }
+
+    return true;
 }

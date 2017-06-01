@@ -8,7 +8,7 @@
 
 #include "amount.h"
 #include "primitives/transaction.h"
-#include "streams.h"
+// #include "streams.h"
 #include "txmempool.h"
 #include "util.h"
 
@@ -165,7 +165,7 @@ double TxConfirmStats::EstimateMedianVal(int confTarget, double sufficientTxVal,
         }
     }
 
-    LogPrint("estimatefee", "%3d: For conf success %s %4.2f need %s %s: %12.5g from buckets %8g - %8g  Cur Bucket stats %6.2f%%  %8.1f/(%.1f+%d mempool)\n",
+    printf("%3d: For conf success %s %4.2f need %s %s: %12.5g from buckets %8g - %8g  Cur Bucket stats %6.2f%%  %8.1f/(%.1f+%d mempool)\n",
              confTarget, requireGreater ? ">" : "<", successBreakPoint, dataTypeString,
              requireGreater ? ">" : "<", median, buckets[minBucket], buckets[maxBucket],
              100 * nConf / (totalNum + extraNum), nConf, totalNum, extraNum);
@@ -241,7 +241,7 @@ void TxConfirmStats::Read(CAutoFile& filein)
     for (unsigned int i = 0; i < buckets.size(); i++)
         bucketMap[buckets[i]] = i;
 
-    LogPrint("estimatefee", "Reading estimates: %u %s buckets counting confirms up to %u blocks\n",
+    printf("Reading estimates: %u %s buckets counting confirms up to %u blocks\n",
              numBuckets, dataTypeString, maxConfirms);
 }
 
@@ -250,7 +250,7 @@ unsigned int TxConfirmStats::NewTx(unsigned int nBlockHeight, double val)
     unsigned int bucketindex = bucketMap.lower_bound(val)->second;
     unsigned int blockIndex = nBlockHeight % unconfTxs.size();
     unconfTxs[blockIndex][bucketindex]++;
-    LogPrint("estimatefee", "adding to %s", dataTypeString);
+    printf("adding to %s", dataTypeString);
     return bucketindex;
 }
 
@@ -261,7 +261,7 @@ void TxConfirmStats::removeTx(unsigned int entryHeight, unsigned int nBestSeenHe
     if (nBestSeenHeight == 0)  // the BlockPolicyEstimator hasn't seen any blocks yet
         blocksAgo = 0;
     if (blocksAgo < 0) {
-        LogPrint("estimatefee", "Blockpolicy error, blocks ago is negative for mempool tx\n");
+        printf("Blockpolicy error, blocks ago is negative for mempool tx\n");
         return;  //This can't happen because we call this with our best seen height, no entries can have higher
     }
 
@@ -269,7 +269,7 @@ void TxConfirmStats::removeTx(unsigned int entryHeight, unsigned int nBestSeenHe
         if (oldUnconfTxs[bucketindex] > 0)
             oldUnconfTxs[bucketindex]--;
         else
-            LogPrint("estimatefee", "Blockpolicy error, mempool tx removed from >25 blocks,bucketIndex=%u already\n",
+            printf("Blockpolicy error, mempool tx removed from >25 blocks,bucketIndex=%u already\n",
                      bucketindex);
     }
     else {
@@ -277,7 +277,7 @@ void TxConfirmStats::removeTx(unsigned int entryHeight, unsigned int nBestSeenHe
         if (unconfTxs[blockIndex][bucketindex] > 0)
             unconfTxs[blockIndex][bucketindex]--;
         else
-            LogPrint("estimatefee", "Blockpolicy error, mempool tx removed from blockIndex=%u,bucketIndex=%u already\n",
+            printf("Blockpolicy error, mempool tx removed from blockIndex=%u,bucketIndex=%u already\n",
                      blockIndex, bucketindex);
     }
 }
@@ -286,7 +286,7 @@ void CBlockPolicyEstimator::removeTx(uint256 hash)
 {
     std::map<uint256, TxStatsInfo>::iterator pos = mapMemPoolTxs.find(hash);
     if (pos == mapMemPoolTxs.end()) {
-        LogPrint("estimatefee", "Blockpolicy error mempool tx %s not found for removeTx\n", hash.ToString());
+        printf("Blockpolicy error mempool tx %s not found for removeTx\n", hash.ToString());
         return;
     }
     TxConfirmStats *stats = pos->second.stats;
@@ -346,7 +346,7 @@ void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry& entry, boo
     unsigned int txHeight = entry.GetHeight();
     uint256 hash = entry.GetTx().GetHash();
     if (mapMemPoolTxs[hash].stats != NULL) {
-        LogPrint("estimatefee", "Blockpolicy error mempool tx %s already being tracked\n", hash.ToString());
+        printf("Blockpolicy error mempool tx %s already being tracked\n", hash.ToString());
         return;
     }
 
@@ -377,7 +377,7 @@ void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry& entry, boo
     double curPri = entry.GetPriority(txHeight);
     mapMemPoolTxs[hash].blockHeight = txHeight;
 
-    LogPrint("estimatefee", "Blockpolicy mempool tx %s ", hash.ToString().substr(0,10));
+    printf("Blockpolicy mempool tx %s ", hash.ToString().substr(0,10));
     // Record this as a priority estimate
     if (entry.GetFee() == 0 || isPriDataPoint(feeRate, curPri)) {
         mapMemPoolTxs[hash].stats = &priStats;
@@ -389,9 +389,9 @@ void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry& entry, boo
         mapMemPoolTxs[hash].bucketIndex = feeStats.NewTx(txHeight, (double)feeRate.GetFeePerK());
     }
     else {
-        LogPrint("estimatefee", "not adding");
+        printf("not adding");
     }
-    LogPrint("estimatefee", "\n");
+    printf("\n");
 }
 
 void CBlockPolicyEstimator::processBlockTx(unsigned int nBlockHeight, const CTxMemPoolEntry& entry)
@@ -410,7 +410,7 @@ void CBlockPolicyEstimator::processBlockTx(unsigned int nBlockHeight, const CTxM
     if (blocksToConfirm <= 0) {
         // This can't happen because we don't process transactions from a block with a height
         // lower than our greatest seen height
-        LogPrint("estimatefee", "Blockpolicy error Transaction had negative blocksToConfirm\n");
+        printf("Blockpolicy error Transaction had negative blocksToConfirm\n");
         return;
     }
 
@@ -452,7 +452,7 @@ void CBlockPolicyEstimator::processBlock(unsigned int nBlockHeight,
     // Update the dynamic cutoffs
     // a fee/priority is "likely" the reason your tx was included in a block if >85% of such tx's
     // were confirmed in 2 blocks and is "unlikely" if <50% were confirmed in 10 blocks
-    LogPrint("estimatefee", "Blockpolicy recalculating dynamic cutoffs:\n");
+    printf("Blockpolicy recalculating dynamic cutoffs:\n");
     priLikely = priStats.EstimateMedianVal(2, SUFFICIENT_PRITXS, MIN_SUCCESS_PCT, true, nBlockHeight);
     if (priLikely == -1)
         priLikely = INF_PRIORITY;
@@ -485,7 +485,7 @@ void CBlockPolicyEstimator::processBlock(unsigned int nBlockHeight,
     feeStats.UpdateMovingAverages();
     priStats.UpdateMovingAverages();
 
-    LogPrint("estimatefee", "Blockpolicy after updating estimates for %u confirmed entries, new mempool map size %u\n",
+    printf("Blockpolicy after updating estimates for %u confirmed entries, new mempool map size %u\n",
              entries.size(), mapMemPoolTxs.size());
 }
 
