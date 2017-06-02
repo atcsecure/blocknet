@@ -1145,11 +1145,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
 
 
 
-
-
-
-
-uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
+uint256 SignatureHash(const CScript & scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     if (nIn >= txTo.vin.size())
     {

@@ -100,6 +100,8 @@ static const uint64_t nMinDiskSpace = 52428800;
 /** Global variable that points to the active CCoinsView (protected by cs_main) */
 extern CCoinsViewCache *pcoinsTip;
 
+extern CFeeRate minRelayTxFee;
+
 class CReserveKey;
 class CTxDB;
 class CTxIndex;

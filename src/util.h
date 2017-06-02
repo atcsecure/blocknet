@@ -169,7 +169,6 @@ extern bool fLargeWorkForkFound;
 extern bool fLargeWorkInvalidChainFound;
 extern bool fIsBareMultisigStd;
 
-
 extern int nWalletBackups;
 
 static const bool DEFAULT_CHECKPOINTS_ENABLED = true;

@@ -221,8 +221,7 @@ SOURCES += src/txdb-leveldb.cpp \
     src/masternodes/instantx.cpp \
     src/policy/fees.cpp \
     src/policy/policy.cpp \
-    src/script/standard.cpp \
-    src/script/interpreter.cpp
+    src/script/standard.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences

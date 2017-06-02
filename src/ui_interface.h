@@ -17,6 +17,7 @@ class CBasicKeyStore;
 class CWallet;
 class uint256;
 class Message;
+class CTransaction;
 
 /** General change type (added, updated, removed). */
 enum ChangeType

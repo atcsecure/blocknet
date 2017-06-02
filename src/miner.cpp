@@ -7,6 +7,7 @@
 #include "txdb.h"
 #include "miner.h"
 #include "kernel.h"
+#include "txmempool.h"
 
 using namespace std;
 
@@ -125,7 +126,9 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
     if (!fProofOfStake)
     {
         CReserveKey reservekey(pwallet);
-        txNew.vout[0].scriptPubKey.SetDestination(reservekey.GetReservedKey().GetID());
+        CPubKey pub;
+        reservekey.GetReservedKey(pub);
+        txNew.vout[0].scriptPubKey.SetDestination(pub.GetID());
     }
     else
     {
@@ -178,7 +181,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
         vecPriority.reserve(mempool.mapTx.size());
-        for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
+        for (CTxMemPool::indexed_transaction_set::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
         {
             CTransaction& tx = (*mi).second;
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
