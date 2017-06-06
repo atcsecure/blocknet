@@ -191,7 +191,8 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/random.cpp \
     src/xbridge/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
-    src/xbridge/xbridgesessionbtc.cpp
+    src/xbridge/xbridgesessionbtc.cpp \
+    src/xbridge/bitcoinrpchandlers.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences

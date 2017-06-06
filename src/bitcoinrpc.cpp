@@ -305,6 +305,13 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
+
+  //xbridge
+    { "dxGetTransactionList",   &dxGetTransactionList,   true,   true},
+    { "dxGetCurrencyList",      &dxGetCurrencyList,      true,   true},
+    { "dxCreateTransaction",    &dxCreateTransaction,    true,   true},
+    { "dxAcceptTransaction",    &dxAcceptTransaction,    true,   true},
+    { "dxCancelTransaction",    &dxCancelTransaction,    true,   true},
 };
 
 CRPCTable::CRPCTable()
