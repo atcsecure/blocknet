@@ -84,7 +84,7 @@ uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
  
 // We want to sort transactions by priority and fee, so:
-typedef boost::tuple<double, double, CTransaction*> TxPriority;
+typedef boost::tuple<double, double, const CTransaction*> TxPriority;
 class TxPriorityCompare
 {
     bool byFee;
@@ -183,7 +183,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
         vecPriority.reserve(mempool.mapTx.size());
         for (CTxMemPool::indexed_transaction_set::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
         {
-            CTransaction& tx = (*mi).second;
+            const CTransaction & tx = mi->GetTx();
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
                 continue;
 
@@ -191,7 +191,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
             double dPriority = 0;
             int64_t nTotalIn = 0;
             bool fMissingInputs = false;
-            for (const CTxIn& txin : tx.vin)
+            for (const CTxIn & txin : tx.vin)
             {
                 // Read prev transaction
                 CTransaction txPrev;
@@ -246,7 +246,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
                 porphan->dFeePerKb = dFeePerKb;
             }
             else
-                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &(*mi).second));
+                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &(mi->GetTx())));
         }
 
         // Collect transactions into block

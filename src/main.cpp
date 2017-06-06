@@ -16,6 +16,7 @@
 // #include "xbridgeconnector.h"
 #include "undo.h"
 #include "policy/policy.h"
+#include "chainparams.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -37,7 +38,7 @@ CCriticalSection cs_main;
 
 CChain chainActive;
 CBlockIndex *pindexBestHeader = NULL;
-CTxMemPool mempool;
+CTxMemPool mempool(::minRelayTxFee);
 unsigned int nTransactionsUpdated = 0;
 
 set<pair<COutPoint, unsigned int> > setStakeSeen;
@@ -86,7 +87,7 @@ CCoinsViewCache *pcoinsTip = NULL;
 extern enum Checkpoints::CPMode CheckpointsMode;
 
 /** Fees smaller than this (in duffs) are considered zero fee (for relaying, mining and transaction creation) */
-CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
+CFeeRate minRelayTxFee = CFeeRate(MIN_RELAY_TX_FEE);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -708,61 +709,63 @@ bool CTxMemPool::accept(CTxDB& txdb, CTransaction &tx, bool fCheckInputs,
 
 bool CTransaction::AcceptToMemoryPool(CTxDB& txdb, bool fCheckInputs, bool* pfMissingInputs)
 {
-    return mempool.accept(txdb, *this, fCheckInputs, pfMissingInputs);
+    // return mempool.accept(txdb, *this, fCheckInputs, pfMissingInputs);
+    assert(!"implementation");
+    return false;
 }
 
-bool CTxMemPool::addUnchecked(const uint256& hash, CTransaction &tx)
-{
-    // Add to memory pool without checking anything.  Don't call this directly,
-    // call CTxMemPool::accept to properly check the transaction first.
-    {
-        mapTx[hash] = tx;
-        for (unsigned int i = 0; i < tx.vin.size(); i++)
-            mapNextTx[tx.vin[i].prevout] = CInPoint(&mapTx[hash], i);
-        nTransactionsUpdated++;
-    }
-    return true;
-}
+//bool CTxMemPool::addUnchecked(const uint256& hash, CTransaction &tx)
+//{
+//    // Add to memory pool without checking anything.  Don't call this directly,
+//    // call CTxMemPool::accept to properly check the transaction first.
+//    {
+//        mapTx[hash] = tx;
+//        for (unsigned int i = 0; i < tx.vin.size(); i++)
+//            mapNextTx[tx.vin[i].prevout] = CInPoint(&mapTx[hash], i);
+//        nTransactionsUpdated++;
+//    }
+//    return true;
+//}
 
 
-bool CTxMemPool::remove(const CTransaction &tx, bool fRecursive)
-{
-    // Remove transaction from memory pool
-    {
-        LOCK(cs);
-        uint256 hash = tx.GetHash();
-        if (mapTx.count(hash))
-        {
-            if (fRecursive) {
-                for (unsigned int i = 0; i < tx.vout.size(); i++) {
-                    std::map<COutPoint, CInPoint>::iterator it = mapNextTx.find(COutPoint(hash, i));
-                    if (it != mapNextTx.end())
-                        remove(*it->second.ptx, true);
-                }
-            }
-            for (const CTxIn& txin : tx.vin)
-                mapNextTx.erase(txin.prevout);
-            mapTx.erase(hash);
-            nTransactionsUpdated++;
-        }
-    }
-    return true;
-}
+//bool CTxMemPool::remove(const CTransaction &tx, bool fRecursive)
+//{
+//    // Remove transaction from memory pool
+//    {
+//        LOCK(cs);
+//        uint256 hash = tx.GetHash();
+//        if (mapTx.count(hash))
+//        {
+//            if (fRecursive) {
+//                for (unsigned int i = 0; i < tx.vout.size(); i++) {
+//                    std::map<COutPoint, CInPoint>::iterator it = mapNextTx.find(COutPoint(hash, i));
+//                    if (it != mapNextTx.end())
+//                        remove(*it->second.ptx, true);
+//                }
+//            }
+//            for (const CTxIn& txin : tx.vin)
+//                mapNextTx.erase(txin.prevout);
+//            mapTx.erase(hash);
+//            nTransactionsUpdated++;
+//        }
+//    }
+//    return true;
+//}
 
-bool CTxMemPool::removeConflicts(const CTransaction &tx)
-{
-    // Remove transactions which depend on inputs of tx, recursively
-    LOCK(cs);
-    for (const CTxIn &txin : tx.vin) {
-        std::map<COutPoint, CInPoint>::iterator it = mapNextTx.find(txin.prevout);
-        if (it != mapNextTx.end()) {
-            const CTransaction &txConflict = *it->second.ptx;
-            if (txConflict != tx)
-                remove(txConflict, true);
-        }
-    }
-    return true;
-}
+//bool CTxMemPool::removeConflicts(const CTransaction &tx)
+//{
+//    // Remove transactions which depend on inputs of tx, recursively
+//    LOCK(cs);
+//    for (const CTxIn &txin : tx.vin) {
+//        std::map<COutPoint, CInPoint>::iterator it = mapNextTx.find(txin.prevout);
+//        if (it != mapNextTx.end()) {
+//            const CTransaction &txConflict = *it->second.ptx;
+//            if (txConflict != tx)
+//                remove(txConflict, true);
+//        }
+//    }
+//    return true;
+//}
 
 void CTxMemPool::clear()
 {
@@ -779,7 +782,7 @@ void CTxMemPool::queryHashes(std::vector<uint256>& vtxid)
     LOCK(cs);
     vtxid.reserve(mapTx.size());
     for (indexed_transaction_set::iterator mi = mapTx.begin(); mi != mapTx.end(); ++mi)
-        vtxid.push_back((*mi).first);
+        vtxid.push_back(mi->GetTx().GetHash());
 }
 
 
@@ -904,24 +907,25 @@ bool GetTransaction(const uint256 &hash, CTransaction &txOut, const Consensus::P
     }
 
     if (fTxIndex) {
-        CDiskTxPos postx;
-        if (pblocktree->ReadTxIndex(hash, postx)) {
-            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
-            if (file.IsNull())
-                return error("%s: OpenBlockFile failed", __func__);
-            CBlockHeader header;
-            try {
-                file >> header;
-                fseek(file.Get(), postx.nTxOffset, SEEK_CUR);
-                file >> txOut;
-            } catch (const std::exception& e) {
-                return error("%s: Deserialize or I/O error - %s", __func__, e.what());
-            }
-            hashBlock = header.GetHash();
-            if (txOut.GetHash() != hash)
-                return error("%s: txid mismatch", __func__);
-            return true;
-        }
+        assert(!"implementation");
+//        CDiskTxPos postx;
+//        if (pblocktree->ReadTxIndex(hash, postx)) {
+//            CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
+//            if (file.IsNull())
+//                return error("%s: OpenBlockFile failed", __func__);
+//            CBlockHeader header;
+//            try {
+//                file >> header;
+//                fseek(file.Get(), postx.nTxOffset, SEEK_CUR);
+//                file >> txOut;
+//            } catch (const std::exception& e) {
+//                return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+//            }
+//            hashBlock = header.GetHash();
+//            if (txOut.GetHash() != hash)
+//                return error("%s: txid mismatch", __func__);
+//            return true;
+//        }
     }
 
     if (fAllowSlow) { // use coin database to locate block that contains transaction, and scan it
@@ -1190,7 +1194,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 // Return maximum amount of blocks that other nodes claim to have
 int GetNumBlocksOfPeers()
 {
-    return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate());
+    return std::max(cPeerBlockCounts.median(), Checkpoints::GetTotalBlocksEstimate(Params().Checkpoints()));
 }
 
 /*
@@ -1267,7 +1271,7 @@ CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
 
 bool IsInitialBlockDownload()
 {
-    if (pindexBest == NULL || nBestHeight < Checkpoints::GetTotalBlocksEstimate())
+    if (pindexBest == NULL || nBestHeight < Checkpoints::GetTotalBlocksEstimate(Params().Checkpoints()))
         return true;
     static int64_t nLastUpdate;
     static CBlockIndex* pindexLastBest;
@@ -1398,7 +1402,10 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
                 LOCK(mempool.cs);
                 if (!mempool.exists(prevout.hash))
                     return error("FetchInputs() : %s mempool Tx prev not found %s", GetHash().ToString().substr(0,10).c_str(),  prevout.hash.ToString().substr(0,10).c_str());
-                txPrev = mempool.lookup(prevout.hash);
+                if (!mempool.lookup(prevout.hash, txPrev))
+                {
+
+                }
             }
             if (!fFound)
                 txindex.vSpent.resize(txPrev.vout.size());
@@ -1528,7 +1535,7 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
             // Skip ECDSA signature verification when connecting blocks (fBlock=true)
             // before the last blockchain checkpoint. This is safe because block merkle hashes are
             // still computed and checked, and any change will be caught at the next checkpoint.
-            if (!(fBlock && (nBestHeight < Checkpoints::GetTotalBlocksEstimate())))
+            if (!(fBlock && (nBestHeight < Checkpoints::GetTotalBlocksEstimate(Params().Checkpoints()))))
             {
                 // Verify signature
                 if (!VerifySignature(txPrev, *this, i, 0))
@@ -1586,7 +1593,8 @@ bool CTransaction::ClientConnectInputs()
             COutPoint prevout = vin[i].prevout;
             if (!mempool.exists(prevout.hash))
                 return false;
-            CTransaction& txPrev = mempool.lookup(prevout.hash);
+            CTransaction txPrev;
+            mempool.lookup(prevout.hash, txPrev);
 
             if (prevout.n >= txPrev.vout.size())
                 return false;
@@ -1872,8 +1880,11 @@ bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 
     // Delete redundant memory transactions that are in the connected branch
     for (CTransaction& tx : vDelete) {
-        mempool.remove(tx);
-        mempool.removeConflicts(tx);
+
+        std::list<CTransaction> removed;
+
+        mempool.remove(tx, removed, true);
+        mempool.removeConflicts(tx, removed);
     }
 
     printf("REORGANIZE: done\n");
@@ -1901,8 +1912,11 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
     pindexNew->pprev->pnext = pindexNew;
 
     // Delete redundant memory transactions
-    for (CTransaction& tx : vtx)
-        mempool.remove(tx);
+    for (CTransaction & tx : vtx)
+    {
+        std::list<CTransaction> removed;
+        mempool.remove(tx, removed, true);
+    }
 
     return true;
 }
@@ -2330,7 +2344,7 @@ bool CBlock::AcceptBlock()
         return error("AcceptBlock() : AddToBlockIndex failed");
 
     // Relay inventory, but don't relay old inventory during initial block download
-    int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
+    int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate(Params().Checkpoints());
     if (hashBestChain == hash)
     {
         LOCK(cs_vNodes);
@@ -3307,7 +3321,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 if (!pushed && inv.type == MSG_TX) {
                     LOCK(mempool.cs);
                     if (mempool.exists(inv.hash)) {
-                        CTransaction tx = mempool.lookup(inv.hash);
+                        CTransaction tx;
+                        mempool.lookup(inv.hash, tx);
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << tx;
@@ -4080,7 +4095,7 @@ bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos, const CMessageHea
 {
     // Open history file to append
     CAutoFile fileout(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
-    if (fileout.IsNull())
+    if (!fileout)
         return error("WriteBlockToDisk: OpenBlockFile failed");
 
     // Write index header
@@ -4088,7 +4103,7 @@ bool WriteBlockToDisk(const CBlock& block, CDiskBlockPos& pos, const CMessageHea
     fileout << FLATDATA(messageStart) << nSize;
 
     // Write block
-    long fileOutPos = ftell(fileout.Get());
+    long fileOutPos = ftell(fileout);
     if (fileOutPos < 0)
         return error("WriteBlockToDisk: ftell failed");
     pos.nPos = (unsigned int)fileOutPos;
@@ -4103,7 +4118,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
 
     // Open history file to read
     CAutoFile filein(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
-    if (filein.IsNull())
+    if (!filein)
         return error("ReadBlockFromDisk: OpenBlockFile failed for %s", pos.ToString());
 
     // Read block
@@ -4428,6 +4443,17 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
     UpdateCoins(tx, state, inputs, txundo, nHeight);
 }
 
+void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age) {
+    int expired = pool.Expire(GetTime() - age);
+    if (expired != 0)
+        printf("Expired %i transactions from the memory pool\n", expired);
+
+    std::vector<uint256> vNoSpendsRemaining;
+    pool.TrimToSize(limit, &vNoSpendsRemaining);
+    for (const uint256 & removed : vNoSpendsRemaining)
+        pcoinsTip->Uncache(removed);
+}
+
 /**
  * Try to make some progress towards making pindexMostWork the active block.
  * pblock is either NULL or a pointer to a CBlock corresponding to pindexMostWork.
@@ -4504,6 +4530,127 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
         CheckForkWarningConditions();
 
     return true;
+}
+
+enum FlushStateMode {
+    FLUSH_STATE_NONE,
+    FLUSH_STATE_IF_NEEDED,
+    FLUSH_STATE_PERIODIC,
+    FLUSH_STATE_ALWAYS
+};
+
+/**
+ * Update the on-disk chain state.
+ * The caches and indexes are flushed depending on the mode we're called with
+ * if they're too large, if it's been a while since the last write,
+ * or always and in all cases if we're in prune mode and are deleting files.
+ */
+bool static FlushStateToDisk(CValidationState &state, FlushStateMode mode) {
+    const CChainParams& chainparams = Params();
+    LOCK2(cs_main, cs_LastBlockFile);
+    static int64_t nLastWrite = 0;
+    static int64_t nLastFlush = 0;
+    static int64_t nLastSetChain = 0;
+    std::set<int> setFilesToPrune;
+    bool fFlushForPrune = false;
+    try {
+    if (fPruneMode && fCheckForPruning && !fReindex) {
+        FindFilesToPrune(setFilesToPrune, chainparams.PruneAfterHeight());
+        fCheckForPruning = false;
+        if (!setFilesToPrune.empty()) {
+            fFlushForPrune = true;
+            if (!fHavePruned) {
+                pblocktree->WriteFlag("prunedblockfiles", true);
+                fHavePruned = true;
+            }
+        }
+    }
+    int64_t nNow = GetTimeMicros();
+    // Avoid writing/flushing immediately after startup.
+    if (nLastWrite == 0) {
+        nLastWrite = nNow;
+    }
+    if (nLastFlush == 0) {
+        nLastFlush = nNow;
+    }
+    if (nLastSetChain == 0) {
+        nLastSetChain = nNow;
+    }
+    size_t cacheSize = pcoinsTip->DynamicMemoryUsage();
+    // The cache is large and close to the limit, but we have time now (not in the middle of a block processing).
+    bool fCacheLarge = mode == FLUSH_STATE_PERIODIC && cacheSize * (10.0/9) > nCoinCacheUsage;
+    // The cache is over the limit, we have to write now.
+    bool fCacheCritical = mode == FLUSH_STATE_IF_NEEDED && cacheSize > nCoinCacheUsage;
+    // It's been a while since we wrote the block index to disk. Do this frequently, so we don't need to redownload after a crash.
+    bool fPeriodicWrite = mode == FLUSH_STATE_PERIODIC && nNow > nLastWrite + (int64_t)DATABASE_WRITE_INTERVAL * 1000000;
+    // It's been very long since we flushed the cache. Do this infrequently, to optimize cache usage.
+    bool fPeriodicFlush = mode == FLUSH_STATE_PERIODIC && nNow > nLastFlush + (int64_t)DATABASE_FLUSH_INTERVAL * 1000000;
+    // Combine all conditions that result in a full cache flush.
+    bool fDoFullFlush = (mode == FLUSH_STATE_ALWAYS) || fCacheLarge || fCacheCritical || fPeriodicFlush || fFlushForPrune;
+    // Write blocks and block index to disk.
+    if (fDoFullFlush || fPeriodicWrite) {
+        // Depend on nMinDiskSpace to ensure we can write block index
+        if (!CheckDiskSpace(0))
+            return state.Error("out of disk space");
+        // First make sure all block and undo data is flushed to disk.
+        FlushBlockFile();
+        // Then update all block file information (which may refer to block and undo files).
+        {
+            std::vector<std::pair<int, const CBlockFileInfo*> > vFiles;
+            vFiles.reserve(setDirtyFileInfo.size());
+            for (set<int>::iterator it = setDirtyFileInfo.begin(); it != setDirtyFileInfo.end(); ) {
+                vFiles.push_back(make_pair(*it, &vinfoBlockFile[*it]));
+                setDirtyFileInfo.erase(it++);
+            }
+            std::vector<const CBlockIndex*> vBlocks;
+            vBlocks.reserve(setDirtyBlockIndex.size());
+            for (set<CBlockIndex*>::iterator it = setDirtyBlockIndex.begin(); it != setDirtyBlockIndex.end(); ) {
+                vBlocks.push_back(*it);
+                setDirtyBlockIndex.erase(it++);
+            }
+            if (!pblocktree->WriteBatchSync(vFiles, nLastBlockFile, vBlocks)) {
+                return AbortNode(state, "Files to write to block index database");
+            }
+        }
+        // Finally remove any pruned files
+        if (fFlushForPrune)
+            UnlinkPrunedFiles(setFilesToPrune);
+        nLastWrite = nNow;
+    }
+    // Flush best chain related state. This can only be done if the blocks / block index write was also done.
+    if (fDoFullFlush) {
+        // Typical CCoins structures on disk are around 128 bytes in size.
+        // Pushing a new one to the database can cause it to be written
+        // twice (once in the log, and once in the tables). This is already
+        // an overestimation, as most will delete an existing entry or
+        // overwrite one. Still, use a conservative safety factor of 2.
+        if (!CheckDiskSpace(128 * 2 * 2 * pcoinsTip->GetCacheSize()))
+            return state.Error("out of disk space");
+        // Flush the chainstate (which may refer to block index entries).
+        if (!pcoinsTip->Flush())
+            return AbortNode(state, "Failed to write to coin database");
+        nLastFlush = nNow;
+    }
+    if (fDoFullFlush || ((mode == FLUSH_STATE_ALWAYS || mode == FLUSH_STATE_PERIODIC) && nNow > nLastSetChain + (int64_t)DATABASE_WRITE_INTERVAL * 1000000)) {
+        // Update best block in wallet (so we can detect restored wallets).
+        GetMainSignals().SetBestChain(chainActive.GetLocator());
+        nLastSetChain = nNow;
+    }
+    } catch (const std::runtime_error& e) {
+        return AbortNode(state, std::string("System error while flushing: ") + e.what());
+    }
+    return true;
+}
+
+void FlushStateToDisk() {
+    CValidationState state;
+    FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
+}
+
+void PruneAndFlush() {
+    CValidationState state;
+    fCheckForPruning = true;
+    FlushStateToDisk(state, FLUSH_STATE_NONE);
 }
 
 /**

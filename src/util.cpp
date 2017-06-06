@@ -88,6 +88,8 @@ bool fListen = true;
 bool fLargeWorkForkFound = false;
 bool fLargeWorkInvalidChainFound = false;
 bool fIsBareMultisigStd = DEFAULT_PERMIT_BAREMULTISIG;
+bool fTxIndex = false;
+
 
 /**
     nWalletBackups:
@@ -1361,4 +1363,24 @@ bool NewThread(void(*pfn)(void*), void* parg)
         return false;
     }
     return true;
+}
+
+double ConvertBitsToDouble(unsigned int nBits)
+{
+    int nShift = (nBits >> 24) & 0xff;
+
+    double dDiff = (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+
+    return dDiff;
 }

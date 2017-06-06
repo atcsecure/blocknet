@@ -47,6 +47,16 @@ static const unsigned int MAX_INV_SZ = 50000;
 static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 /** The maximum number of entries in setAskFor (larger due to getdata latency)*/
 static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
+/** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
+static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
+
+/** Maximum number of headers to announce when relaying blocks with headers message.*/
+static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
+
+/** Time to wait (in seconds) between writing blocks/block index to disk. */
+static const unsigned int DATABASE_WRITE_INTERVAL = 60 * 60;
+/** Time to wait (in seconds) between flushing chainstate to disk. */
+static const unsigned int DATABASE_FLUSH_INTERVAL = 24 * 60 * 60;
 
 static const int64_t MIN_TX_FEE = 1000;
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
