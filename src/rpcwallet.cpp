@@ -1576,15 +1576,15 @@ Value lockunspent(const Array & params, bool fHelp)
 
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "lockunspent unlock [{\"txid\":\"txid\",\"vout\":n},...]\n"
+            "lockunspent lock [{\"txid\":\"txid\",\"vout\":n},...]\n"
             "\nUpdates list of temporarily unspendable outputs.\n"
-            "Temporarily lock (unlock=false) or unlock (unlock=true) specified transaction outputs.\n"
-            "A locked transaction output will not be chosen by automatic coin selection, when spending dashs.\n"
+            "Temporarily lock (lock=true) or unlock (lock=false) specified transaction outputs.\n"
+            "A locked transaction output will not be chosen by automatic coin selection, when spending blocks.\n"
             "Locks are stored in memory only. Nodes start with zero locked outputs, and the locked output list\n"
             "is always cleared (by virtue of process exit) when a node stops or fails.\n"
             "Also see the listunspent call\n"
             "\nArguments:\n"
-            "1. unlock            (boolean, required) Whether to unlock (true) or lock (false) the specified transactions\n"
+            "1. lock            (boolean, required) Whether to lock (true) or unlock (false) the specified transactions\n"
             "2. \"transactions\"  (string, required) A json array of objects. Each object the txid (string) vout (numeric)\n"
             "     [           (json array of json objects)\n"
             "       {\n"
@@ -1601,13 +1601,13 @@ Value lockunspent(const Array & params, bool fHelp)
 //            "\nList the unspent transactions\n"
 //            + HelpExampleCli("listunspent", "") +
 //            "\nLock an unspent transaction\n"
-//            + HelpExampleCli("lockunspent", "false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+//            + HelpExampleCli("lockunspent", "true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
 //            "\nList the locked transactions\n"
 //            + HelpExampleCli("listlockunspent", "") +
 //            "\nUnlock the transaction again\n"
-//            + HelpExampleCli("lockunspent", "true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+//            + HelpExampleCli("lockunspent", "false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
             "\nAs a json rpc call\n"
-            + HelpExampleRpc("lockunspent", "false, \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"")
+            + HelpExampleRpc("lockunspent", "true, \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"")
         );
 
     LOCK2(cs_main, pwalletMain->cs_wallet);
@@ -1617,10 +1617,11 @@ Value lockunspent(const Array & params, bool fHelp)
     else
         RPCTypeCheck(params, list_of(bool_type)(array_type));
 
-    bool fUnlock = params[0].get_bool();
+    bool fLock = params[0].get_bool();
 
-    if (params.size() == 1) {
-        if (fUnlock)
+    if (params.size() == 1)
+    {
+        if (!fLock)
             pwalletMain->UnlockAllCoins();
         return true;
     }
@@ -1646,10 +1647,14 @@ Value lockunspent(const Array & params, bool fHelp)
 
         COutPoint outpt(uint256(txid), nOutput);
 
-        if (fUnlock)
+        if (!fLock)
+        {
             pwalletMain->UnlockCoin(outpt);
+        }
         else
+        {
             pwalletMain->LockCoin(outpt);
+        }
     }
 
     return true;
