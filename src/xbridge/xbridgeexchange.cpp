@@ -205,9 +205,6 @@ bool XBridgeExchange::createTransaction(const uint256     & id,
     pendingId = h;
 
     {
-        boost::mutex::scoped_lock lh(m_transactionsHistoryLock);
-        m_transactionsHistory[h] = tr;
-
         boost::mutex::scoped_lock l(m_pendingTransactionsLock);
 
         if (!m_pendingTransactions.count(h))
@@ -282,7 +279,6 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
 
     {
         boost::mutex::scoped_lock l(m_pendingTransactionsLock);
-        boost::mutex::scoped_lock lh(m_transactionsHistoryLock);
 
         if (!m_pendingTransactions.count(h))
         {
@@ -292,19 +288,16 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
         else
         {
             boost::mutex::scoped_lock l2(m_pendingTransactions[h]->m_lock);
-            boost::mutex::scoped_lock lh2(m_transactionsHistory[h]->m_lock);
 
             // found, check if expired
             if (m_pendingTransactions[h]->isExpired())
             {
                 // if expired - delete old transaction
                 m_pendingTransactions.erase(h);
-                m_transactionsHistory.erase(h);
 
                 // create new
                 h = tr->hash1();
                 m_pendingTransactions[h] = tr;
-                m_transactionsHistory[h] = tr;
             }
             else
             {
@@ -317,7 +310,6 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
                     // create new transaction
                     h = tr->hash1();
                     m_pendingTransactions[h] = tr;
-                    m_transactionsHistory[h] = tr;
                 }
                 else
                 {
@@ -355,6 +347,7 @@ bool XBridgeExchange::deletePendingTransactions(const uint256 & id)
 
     LOG() << "delete pending transaction <" << id.GetHex() << ">";
 
+    addToTransactionsHistory(id);
     m_pendingTransactions.erase(id);
     return true;
 }
@@ -367,6 +360,7 @@ bool XBridgeExchange::deleteTransaction(const uint256 & id)
 
     LOG() << "delete transaction <" << id.GetHex() << ">";
 
+    addToTransactionsHistory(id);
     m_transactions.erase(id);
     return true;
 }
@@ -636,6 +630,24 @@ std::list<XBridgeTransactionPtr> XBridgeExchange::transactionsHistory() const
     }
 
     return list;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+void XBridgeExchange::addToTransactionsHistory(const uint256 &id)
+{
+    boost::mutex::scoped_lock l(m_transactionsHistoryLock);
+
+    if (m_transactions.count(id))
+    {
+        m_transactionsHistory[id] = m_transactions[id];
+    }
+    else if(m_pendingTransactions.count(id))
+    {
+        m_transactionsHistory[id] = m_pendingTransactions[id];
+    }
+
+    LOG() << "Nothing to add to transactions history";
 }
 
 //*****************************************************************************
