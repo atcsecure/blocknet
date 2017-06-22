@@ -81,6 +81,7 @@ public:
     std::list<XBridgeTransactionPtr> pendingTransactions() const;
     std::list<XBridgeTransactionPtr> transactions() const;
     std::list<XBridgeTransactionPtr> finishedTransactions() const;
+    std::list<XBridgeTransactionPtr> transactionsHistory() const;
 
     std::vector<StringPair> listOfWallets() const;
 
@@ -97,6 +98,9 @@ private:
 
     mutable boost::mutex                     m_transactionsLock;
     std::map<uint256, XBridgeTransactionPtr> m_transactions;
+
+    mutable boost::mutex                     m_transactionsHistoryLock;
+    std::map<uint256, XBridgeTransactionPtr> m_transactionsHistory;
 
     mutable boost::mutex                     m_unconfirmedLock;
     std::map<std::string, uint256>           m_unconfirmed;

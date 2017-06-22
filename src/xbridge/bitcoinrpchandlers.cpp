@@ -84,6 +84,129 @@ Value dxGetTransactionList(const Array & params, bool fHelp)
     return arr;
 }
 
+//*****************************************************************************
+//*****************************************************************************
+
+Value dxGetTransactionsHistoryList(const Array & params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+    {
+        throw runtime_error("dxGetTransactionsHistoryList\nHistoric list transactions.");
+    }
+
+    XBridgeExchange & e = XBridgeExchange::instance();
+    if (!e.isEnabled())
+        throw runtime_error("Not an exchange node.");
+
+    Array arr;
+
+    {
+        std::list<XBridgeTransactionPtr> trlist = e.transactionsHistory();
+        for (XBridgeTransactionPtr & tr : trlist)
+        {
+            Object jtr;
+            jtr.push_back(Pair("id", tr->id().GetHex()));
+            jtr.push_back(Pair("from", tr->a_currency()));
+            jtr.push_back(Pair("from address", tr->a_address()));
+            double fromAmount = static_cast<double>(tr->a_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("fromAmount", boost::lexical_cast<std::string>(fromAmount)));
+            jtr.push_back(Pair("to", tr->b_currency()));
+            jtr.push_back(Pair("to address", tr->a_destination()));
+            double toAmount = static_cast<double>(tr->b_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("toAmount", boost::lexical_cast<std::string>(toAmount)));
+            jtr.push_back(Pair("state", tr->strState()));
+
+            arr.push_back(jtr);
+        }
+    }
+
+    return arr;
+}
+
+//*****************************************************************************
+//*****************************************************************************
+
+Value dxGetTransactionInfo(const Array & params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+    {
+        throw runtime_error("dxGetTransactionInfo\nTransaction info.");
+    }
+
+    XBridgeExchange & e = XBridgeExchange::instance();
+    if (!e.isEnabled())
+        throw runtime_error("Not an exchange node.");
+
+    std::string id = params[0].get_str();
+    Array arr;
+
+    // pending tx
+    {
+        std::list<XBridgeTransactionPtr> trlist = e.pendingTransactions();
+        for (XBridgeTransactionPtr & tr : trlist)
+        {
+            Object jtr;
+            jtr.push_back(Pair("id", tr->id().GetHex()));
+            jtr.push_back(Pair("from", tr->a_currency()));
+            jtr.push_back(Pair("from address", tr->a_address()));
+            double fromAmount = static_cast<double>(tr->a_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("fromAmount", boost::lexical_cast<std::string>(fromAmount)));
+            jtr.push_back(Pair("to", tr->b_currency()));
+            jtr.push_back(Pair("to address", tr->a_destination()));
+            double toAmount = static_cast<double>(tr->b_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("toAmount", boost::lexical_cast<std::string>(toAmount)));
+            jtr.push_back(Pair("state", tr->strState()));
+
+            arr.push_back(jtr);
+        }
+    }
+
+    // active tx
+    {
+        std::list<XBridgeTransactionPtr> trlist = e.transactions();
+        for (XBridgeTransactionPtr & tr : trlist)
+        {
+            Object jtr;
+            jtr.push_back(Pair("id", tr->id().GetHex()));
+            jtr.push_back(Pair("from", tr->a_currency()));
+            jtr.push_back(Pair("from address", tr->a_address()));
+            double fromAmount = static_cast<double>(tr->a_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("fromAmount", boost::lexical_cast<std::string>(fromAmount)));
+            jtr.push_back(Pair("to", tr->b_currency()));
+            jtr.push_back(Pair("to address", tr->a_destination()));
+            double toAmount = static_cast<double>(tr->b_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("toAmount", boost::lexical_cast<std::string>(toAmount)));
+            jtr.push_back(Pair("state", tr->strState()));
+
+            arr.push_back(jtr);
+        }
+    }
+
+    // historic tx
+    {
+        std::list<XBridgeTransactionPtr> trlist = e.transactionsHistory();
+        for (XBridgeTransactionPtr & tr : trlist)
+        {
+            Object jtr;
+            jtr.push_back(Pair("id", tr->id().GetHex()));
+            jtr.push_back(Pair("from", tr->a_currency()));
+            jtr.push_back(Pair("from address", tr->a_address()));
+            double fromAmount = static_cast<double>(tr->a_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("fromAmount", boost::lexical_cast<std::string>(fromAmount)));
+            jtr.push_back(Pair("to", tr->b_currency()));
+            jtr.push_back(Pair("to address", tr->a_destination()));
+            double toAmount = static_cast<double>(tr->b_amount()) / XBridgeTransactionDescr::COIN;
+            jtr.push_back(Pair("toAmount", boost::lexical_cast<std::string>(toAmount)));
+            jtr.push_back(Pair("state", tr->strState()));
+
+            arr.push_back(jtr);
+        }
+    }
+
+    return arr;
+}
+
+
 //******************************************************************************
 //******************************************************************************
 Value dxGetCurrencyList(const Array & params, bool fHelp)
