@@ -1095,10 +1095,17 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue &&
-                (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
+            {
+                if (!(pcoin->IsSpent(i)) &&
+                    IsMine(pcoin->vout[i]) &&
+                    pcoin->vout[i].nValue >= nMinimumInputValue &&
+                    // (!IsLockedCoin((*it).first, i) || nCoinType == ONLY_1000) &&
+                    !IsLockedCoin((*it).first, i) &&
+                    (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
+                {
                     vCoins.push_back(COutput(pcoin, i, nDepth));
-
+                }
+            }
         }
     }
 }
@@ -1120,8 +1127,15 @@ void CWallet::AvailableCoinsMinConf(vector<COutput>& vCoins, int nConf) const
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)
+            {
+                if (!(pcoin->IsSpent(i)) &&
+                    IsMine(pcoin->vout[i]) &&
+                    pcoin->vout[i].nValue >= nMinimumInputValue &&
+                    !IsLockedCoin((*it).first, i))
+                {
                     vCoins.push_back(COutput(pcoin, i, pcoin->GetDepthInMainChain()));
+                }
+            }
         }
     }
 }
@@ -2436,4 +2450,50 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     // Extract block timestamps for those keys
     for (std::map<CKeyID, CBlockIndex*>::const_iterator it = mapKeyFirstBlock.begin(); it != mapKeyFirstBlock.end(); it++)
         mapKeyBirth[it->first] = it->second->nTime - 7200; // block times can be 2h off
+}
+
+void CWallet::LockCoin(COutPoint& output)
+{
+    LOCK(cs_wallet); // setLockedCoins
+    setLockedCoins.insert(output);
+    std::map<uint256, CWalletTx>::iterator it = mapWallet.find(output.hash);
+    if (it != mapWallet.end()) it->second.MarkDirty(); // recalculate all credits for this tx
+
+//    fAnonymizableTallyCached = false;
+//    fAnonymizableTallyCachedNonDenom = false;
+}
+
+void CWallet::UnlockCoin(COutPoint& output)
+{
+    LOCK(cs_wallet); // setLockedCoins
+    setLockedCoins.erase(output);
+    std::map<uint256, CWalletTx>::iterator it = mapWallet.find(output.hash);
+    if (it != mapWallet.end()) it->second.MarkDirty(); // recalculate all credits for this tx
+
+//    fAnonymizableTallyCached = false;
+//    fAnonymizableTallyCachedNonDenom = false;
+}
+
+void CWallet::UnlockAllCoins()
+{
+    LOCK(cs_wallet); // setLockedCoins
+    setLockedCoins.clear();
+}
+
+bool CWallet::IsLockedCoin(uint256 hash, unsigned int n) const
+{
+    LOCK(cs_wallet); // setLockedCoins
+    COutPoint outpt(hash, n);
+
+    return (setLockedCoins.count(outpt) > 0);
+}
+
+void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
+{
+    LOCK(cs_wallet); // setLockedCoins
+    for (std::set<COutPoint>::iterator it = setLockedCoins.begin();
+         it != setLockedCoins.end(); it++) {
+        COutPoint outpt = (*it);
+        vOutpts.push_back(outpt);
+    }
 }
