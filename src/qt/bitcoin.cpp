@@ -7,6 +7,7 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "masternode/masternodeconfig.h"
 
 #include "init.h"
 #include "ui_interface.h"
@@ -149,7 +150,15 @@ int main(int argc, char *argv[])
                               QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         return 1;
     }
+
     ReadConfigFile(mapArgs, mapMultiArgs);
+
+    std::string strErr;
+    if(!masternodeConfig.read(strErr)) {
+        QMessageBox::critical(0, QObject::tr("Blocknet Core"),
+                              QObject::tr("Error reading masternode configuration file: %1").arg(strErr.c_str()));
+        return EXIT_FAILURE;
+    }
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)

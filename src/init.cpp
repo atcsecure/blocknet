@@ -17,6 +17,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+#include "masternode/masternodeconfig.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -166,6 +167,13 @@ bool AppInit(int argc, char* argv[])
             strUsage += "\n" + HelpMessage();
 
             fprintf(stdout, "%s", strUsage.c_str());
+            return false;
+        }
+
+        // parse masternode.conf
+        std::string strErr;
+        if(!masternodeConfig.read(strErr)) {
+            fprintf(stderr,"Error reading masternode configuration file: %s\n", strErr.c_str());
             return false;
         }
 
@@ -887,6 +895,84 @@ bool AppInit2()
 
     printf("Loaded %i addresses from peers.dat  %" PRId64 "ms\n",
            addrman.size(), GetTimeMillis() - nStart);
+
+    // ********************************************************* Step 10a: setup masternode
+//    fMasterNode = GetBoolArg("-masternode", false);
+
+//    if((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {
+//        return InitError("Enabling Masternode support requires turning on transaction indexing."
+//                  "Please add txindex=1 to your configuration and start with -reindex");
+//    }
+
+//    if(fMasterNode) {
+//        LogPrintf("MASTERNODE:\n");
+
+//        if(!GetArg("-masternodeaddr", "").empty()) {
+//            // Hot masternode (either local or remote) should get its address in
+//            // CActiveMasternode::ManageState() automatically and no longer relies on masternodeaddr.
+//            return InitError(_("masternodeaddr option is deprecated. Please use masternode.conf to manage your remote masternodes."));
+//        }
+
+//        std::string strMasterNodePrivKey = GetArg("-masternodeprivkey", "");
+//        if(!strMasterNodePrivKey.empty()) {
+//            if(!darkSendSigner.GetKeysFromSecret(strMasterNodePrivKey, activeMasternode.keyMasternode, activeMasternode.pubKeyMasternode))
+//                return InitError(_("Invalid masternodeprivkey. Please see documenation."));
+
+//            LogPrintf("  pubKeyMasternode: %s\n", CBitcoinAddress(activeMasternode.pubKeyMasternode.GetID()).ToString());
+//        } else {
+//            return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
+//        }
+//    }
+
+//    LogPrintf("Using masternode config file %s\n", GetMasternodeConfigFile().string());
+
+//    if(GetBoolArg("-mnconflock", true) && pwalletMain && (masternodeConfig.getCount() > 0)) {
+//        LOCK(pwalletMain->cs_wallet);
+//        LogPrintf("Locking Masternodes:\n");
+//        uint256 mnTxHash;
+//        int outputIndex;
+//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+//            mnTxHash.SetHex(mne.getTxHash());
+//            outputIndex = boost::lexical_cast<unsigned int>(mne.getOutputIndex());
+//            COutPoint outpoint = COutPoint(mnTxHash, outputIndex);
+//            // don't lock non-spendable outpoint (i.e. it's already spent or it's not from this wallet at all)
+//            if(pwalletMain->IsMine(CTxIn(outpoint)) != ISMINE_SPENDABLE) {
+//                LogPrintf("  %s %s - IS NOT SPENDABLE, was not locked\n", mne.getTxHash(), mne.getOutputIndex());
+//                continue;
+//            }
+//            pwalletMain->LockCoin(outpoint);
+//            LogPrintf("  %s %s - locked successfully\n", mne.getTxHash(), mne.getOutputIndex());
+//        }
+//    }
+
+
+//    nLiquidityProvider = GetArg("-liquidityprovider", nLiquidityProvider);
+//    nLiquidityProvider = std::min(std::max(nLiquidityProvider, 0), 100);
+//    darkSendPool.SetMinBlockSpacing(nLiquidityProvider * 15);
+
+//    fEnablePrivateSend = GetBoolArg("-enableprivatesend", 0);
+//    fPrivateSendMultiSession = GetBoolArg("-privatesendmultisession", DEFAULT_PRIVATESEND_MULTISESSION);
+//    nPrivateSendRounds = GetArg("-privatesendrounds", DEFAULT_PRIVATESEND_ROUNDS);
+//    nPrivateSendRounds = std::min(std::max(nPrivateSendRounds, 2), nLiquidityProvider ? 99999 : 16);
+//    nPrivateSendAmount = GetArg("-privatesendamount", DEFAULT_PRIVATESEND_AMOUNT);
+//    nPrivateSendAmount = std::min(std::max(nPrivateSendAmount, 2), 999999);
+
+//    fEnableInstantSend = GetBoolArg("-enableinstantsend", 1);
+//    nInstantSendDepth = GetArg("-instantsenddepth", DEFAULT_INSTANTSEND_DEPTH);
+//    nInstantSendDepth = std::min(std::max(nInstantSendDepth, 0), 60);
+
+//    //lite mode disables all Masternode and Darksend related functionality
+//    fLiteMode = GetBoolArg("-litemode", false);
+//    if(fMasterNode && fLiteMode){
+//        return InitError("You can not start a masternode in litemode");
+//    }
+
+//    LogPrintf("fLiteMode %d\n", fLiteMode);
+//    LogPrintf("nInstantSendDepth %d\n", nInstantSendDepth);
+//    LogPrintf("PrivateSend rounds %d\n", nPrivateSendRounds);
+//    LogPrintf("PrivateSend amount %d\n", nPrivateSendAmount);
+
+//    darkSendPool.InitDenominations();
 
     // ********************************************************* Step 11: start node
 

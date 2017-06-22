@@ -127,15 +127,16 @@ Value masternode(const Array & params, bool fHelp)
                 "  winners      - Print list of masternode winners\n"
                 );
 
-//    if (strCommand == "list")
-//    {
-//        UniValue newParams(UniValue::VARR);
-//        // forward params but skip "list"
-//        for (unsigned int i = 1; i < params.size(); i++) {
-//            newParams.push_back(params[i]);
-//        }
-//        return masternodelist(newParams, fHelp);
-//    }
+    if (strCommand == "list")
+    {
+        Array newParams;
+        // forward params but skip "list"
+        for (unsigned int i = 1; i < params.size(); i++)
+        {
+            newParams.push_back(params[i]);
+        }
+        return masternodelist(newParams, fHelp);
+    }
 
 //    if(strCommand == "connect")
 //    {
@@ -223,8 +224,8 @@ Value masternode(const Array & params, bool fHelp)
 //        return activeMasternode.GetStatus();
 //    }
 
-//    if (strCommand == "start")
-//    {
+    if (strCommand == "start")
+    {
 //        if(!fMasterNode)
 //            throw JSONRPCError(RPC_INTERNAL_ERROR, "You must set masternode=1 in the configuration");
 
@@ -239,7 +240,7 @@ Value masternode(const Array & params, bool fHelp)
 //        }
 
 //        return activeMasternode.GetStatus();
-//    }
+    }
 
 //    if (strCommand == "start-alias")
 //    {

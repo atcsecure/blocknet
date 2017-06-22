@@ -5,6 +5,7 @@
 #include "init.h"
 #include "walletdb.h"
 #include "guiutil.h"
+#include "masternode/masternodeconfig.h"
 
 OptionsModel::OptionsModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -60,6 +61,8 @@ void OptionsModel::Init()
         SoftSetArg("-socks", settings.value("nSocksVersion").toString().toStdString());
     if (settings.contains("detachDB"))
         SoftSetBoolArg("-detachdb", settings.value("detachDB").toBool());
+    if (!settings.contains("fShowMasternodesTab"))
+        settings.setValue("fShowMasternodesTab", masternodeConfig.getCount());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
 }
