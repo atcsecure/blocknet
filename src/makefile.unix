@@ -135,13 +135,14 @@ OBJS= \
     obj/main.o \
     obj/net.o \
     obj/protocol.o \
-    obj/bitcoinrpc.o \
-    obj/rpcdump.o \
-    obj/rpcnet.o \
-    obj/rpcmining.o \
-    obj/rpcwallet.o \
-    obj/rpcblockchain.o \
-    obj/rpcrawtransaction.o \
+    obj/rpc/bitcoinrpc.o \
+    obj/rpc/rpcdump.o \
+    obj/rpc/rpcnet.o \
+    obj/rpc/rpcmining.o \
+    obj/rpc/rpcwallet.o \
+    obj/rpc/rpcblockchain.o \
+    obj/rpc/rpcrawtransaction.o \
+    obj/rpc/rpcmasternode.o
     obj/script.o \
     obj/sync.o \
     obj/util.o \

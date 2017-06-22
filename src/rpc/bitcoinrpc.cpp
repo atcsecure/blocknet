@@ -8,7 +8,7 @@
 #include "sync.h"
 #include "ui_interface.h"
 #include "base58.h"
-#include "bitcoinrpc.h"
+#include "rpc/bitcoinrpc.h"
 #include "db.h"
 
 #undef printf
@@ -305,6 +305,10 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
+
+    { "masternode",             &masternode,             true,   false },
+    { "masternodelist",         &masternodelist,         true,   false },
+    { "masternodebroadcast",    &masternodebroadcast,    true,   false },
 };
 
 CRPCTable::CRPCTable()

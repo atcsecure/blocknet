@@ -11,7 +11,7 @@
 
 #include "txdb.h"
 #include "walletdb.h"
-#include "bitcoinrpc.h"
+#include "rpc/bitcoinrpc.h"
 #include "net.h"
 #include "init.h"
 #include "util.h"

@@ -17,7 +17,7 @@
 
 #include "base58.h"
 #include "bignum.h"
-#include "bitcoinrpc.h"
+#include "rpc/bitcoinrpc.h"
 #include "wallet.h"
 #include "init.h"
 #include "key.h"

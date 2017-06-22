@@ -9,7 +9,7 @@
 #include "version.h"
 #include "config.h"
 #include "xuiconnector.h"
-#include "bitcoinrpc.h"
+#include "rpc/bitcoinrpc.h"
 #include "net.h"
 #include "util.h"
 #include "xkey.h"

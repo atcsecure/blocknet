@@ -191,7 +191,15 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/random.cpp \
     src/xbridge/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
-    src/xbridge/xbridgesessionbtc.cpp
+    src/xbridge/xbridgesessionbtc.cpp \
+    src/rpc/bitcoinrpc.cpp \
+    src/rpc/rpcblockchain.cpp \
+    src/rpc/rpcdump.cpp \
+    src/rpc/rpcmasternode.cpp \
+    src/rpc/rpcmining.cpp \
+    src/rpc/rpcnet.cpp \
+    src/rpc/rpcrawtransaction.cpp \
+    src/rpc/rpcwallet.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -333,7 +341,6 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/transactionfilterproxy.h \
     src/qt/transactionview.h \
     src/qt/walletmodel.h \
-    src/bitcoinrpc.h \
     src/qt/overviewpage.h \
     src/qt/csvmodelwriter.h \
     src/crypter.h \
@@ -423,7 +430,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/random.h \
     src/xbridge/crypto/sha512.h \
     src/xbridge/xbitcoinaddress.h \
-    src/xbridge/xbridgesessionbtc.h
+    src/xbridge/xbridgesessionbtc.h \
+    src/rpc/bitcoinrpc.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -469,13 +477,6 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactionfilterproxy.cpp \
     src/qt/transactionview.cpp \
     src/qt/walletmodel.cpp \
-    src/bitcoinrpc.cpp \
-    src/rpcdump.cpp \
-    src/rpcnet.cpp \
-    src/rpcmining.cpp \
-    src/rpcwallet.cpp \
-    src/rpcblockchain.cpp \
-    src/rpcrawtransaction.cpp \
     src/qt/overviewpage.cpp \
     src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \

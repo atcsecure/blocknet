@@ -29,7 +29,7 @@
 #include "guiutil.h"
 #include "rpcconsole.h"
 #include "wallet.h"
-#include "bitcoinrpc.h"
+#include "rpc/bitcoinrpc.h"
 #include "messagedialog/messagedialog.h"
 #include "xbridgeui/xbridgetransactionsview.h"
 #include "xbridge/xbridgeexchange.h"
