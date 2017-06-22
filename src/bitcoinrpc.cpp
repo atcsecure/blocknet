@@ -292,6 +292,8 @@ static const CRPCCommand vRPCCommands[] =
     { "importwallet",           &importwallet,           false,  false },
     { "importprivkey",          &importprivkey,          false,  false },
     { "listunspent",            &listunspent,            false,  false },
+    { "listlockunspent",        &listlockunspent,        false,  false },
+    { "lockunspent",            &lockunspent,            true,   false  },
     { "getrawtransaction",      &getrawtransaction,      false,  false },
     { "createrawtransaction",   &createrawtransaction,   false,  false },
     { "decoderawtransaction",   &decoderawtransaction,   false,  false },
@@ -1337,3 +1339,21 @@ int main(int argc, char *argv[])
 #endif
 
 const CRPCTable tableRPC;
+
+//std::string HelpExampleCli(const std::string& methodname, const std::string& args)
+//{
+//    return "> blocknet-cli " + methodname + " " + args + "\n";
+//}
+
+std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
+{
+    std::ostringstream o;
+    o << "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
+        "\"method\": \""
+      << methodname
+      << "\", \"params\": ["
+      << args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:"
+      << GetDefaultRPCPort()
+      << "/\n";
+    return o.str();
+}
