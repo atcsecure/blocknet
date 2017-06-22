@@ -122,6 +122,9 @@ public:
     std::map<CTxDestination, std::string> mapAddressBook;
 
     CPubKey vchDefaultKey;
+
+    std::set<COutPoint> setLockedCoins;
+
     int64_t nTimeFirstKey;
 
     // check whether we are allowed to upgrade (or already support) to the named feature
