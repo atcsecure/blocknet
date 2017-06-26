@@ -224,4 +224,12 @@ json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value getblockbynumber(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value dxGetTransactionList(const json_spirit::Array& params, bool fHelp); // in bitcoinrpchandlers.cpp
+extern json_spirit::Value dxGetTransactionsHistoryList(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value dxGetTransactionInfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value dxGetCurrencyList(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value dxCreateTransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value dxAcceptTransaction(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value dxCancelTransaction(const json_spirit::Array& params, bool fHelp);
+
 #endif

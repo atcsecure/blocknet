@@ -164,6 +164,7 @@ OBJS= \
     obj/xbridge/xbridgesession.o \
     obj/xbridge/util/xutil.o \
     obj/xbridge/bitcoinrpcconnector.o \
+    obj/xbridge/bitcoinrpchandlers.o \
     obj/xbridge/xbitcoinsecret.o \
     obj/xbridge/xbitcointransaction.o \
     obj/xbridge/xkey.o \

@@ -80,6 +80,7 @@ public:
     std::string strState() const;
 
     void updateTimestamp();
+    boost::posix_time::ptime createdTime() const;
 
     bool isFinished() const;
     bool isValid() const;

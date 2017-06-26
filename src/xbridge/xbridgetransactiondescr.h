@@ -29,6 +29,7 @@ struct XBridgeTransactionDescr
 
     enum State
     {
+        trExpired = -1,
         trNew = 0,
         trPending,
         trAccepting,
@@ -40,8 +41,7 @@ struct XBridgeTransactionDescr
         trRollback,
         trDropped,
         trCancelled,
-        trInvalid,
-        trExpired
+        trInvalid
     };
 
     uint256                    id;

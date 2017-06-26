@@ -205,6 +205,9 @@ bool XBridgeExchange::createTransaction(const uint256     & id,
     pendingId = h;
 
     {
+        boost::mutex::scoped_lock lh(m_transactionsHistoryLock);
+        m_transactionsHistory[h] = tr;
+
         boost::mutex::scoped_lock l(m_pendingTransactionsLock);
 
         if (!m_pendingTransactions.count(h))
@@ -279,6 +282,7 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
 
     {
         boost::mutex::scoped_lock l(m_pendingTransactionsLock);
+        boost::mutex::scoped_lock lh(m_transactionsHistoryLock);
 
         if (!m_pendingTransactions.count(h))
         {
@@ -288,16 +292,19 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
         else
         {
             boost::mutex::scoped_lock l2(m_pendingTransactions[h]->m_lock);
+            boost::mutex::scoped_lock lh2(m_transactionsHistory[h]->m_lock);
 
             // found, check if expired
             if (m_pendingTransactions[h]->isExpired())
             {
                 // if expired - delete old transaction
                 m_pendingTransactions.erase(h);
+                m_transactionsHistory.erase(h);
 
                 // create new
                 h = tr->hash1();
                 m_pendingTransactions[h] = tr;
+                m_transactionsHistory[h] = tr;
             }
             else
             {
@@ -310,6 +317,7 @@ bool XBridgeExchange::acceptTransaction(const uint256     & id,
                     // create new transaction
                     h = tr->hash1();
                     m_pendingTransactions[h] = tr;
+                    m_transactionsHistory[h] = tr;
                 }
                 else
                 {
@@ -612,6 +620,22 @@ std::list<XBridgeTransactionPtr> XBridgeExchange::transactions() const
 std::list<XBridgeTransactionPtr> XBridgeExchange::finishedTransactions() const
 {
     return transactions(true);
+}
+
+//*****************************************************************************
+//*****************************************************************************
+std::list<XBridgeTransactionPtr> XBridgeExchange::transactionsHistory() const
+{
+    boost::mutex::scoped_lock l(m_transactionsHistoryLock);
+
+    std::list<XBridgeTransactionPtr> list;
+
+    for (std::map<uint256, XBridgeTransactionPtr>::const_iterator i = m_transactionsHistory.begin(); i != m_transactionsHistory.end(); ++i)
+    {
+        list.push_back(i->second);
+    }
+
+    return list;
 }
 
 //*****************************************************************************
