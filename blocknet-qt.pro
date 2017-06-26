@@ -203,7 +203,8 @@ SOURCES += src/txdb-leveldb.cpp \
     src/rpc/rpcxbridge.cpp \
     src/masternode/masternodeconfig.cpp \
     src/masternode/masternodeman.cpp \
-    src/masternode/masternode.cpp
+    src/masternode/masternode.cpp \
+    src/masternode/activemasternode.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -438,7 +439,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/rpc/bitcoinrpc.h \
     src/masternode/masternodeconfig.h \
     src/masternode/masternodeman.h \
-    src/masternode/masternode.h
+    src/masternode/masternode.h \
+    src/masternode/activemasternode.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

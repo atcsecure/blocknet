@@ -2,7 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-// #include "activemasternode.h"
+#include "masternode/activemasternode.h"
 // #include "darksend.h"
 #include "init.h"
 #include "main.h"
@@ -156,57 +156,60 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "count")
     {
-//        if (params.size() > 2)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
+        if (params.size() > 2)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
 
-//        if (params.size() == 1)
-//            return mnodeman.size();
+        if (params.size() == 1)
+            return mnodeman.size();
 
-//        std::string strMode = params[1].get_str();
+        std::string strMode = params[1].get_str();
 
 //        if (strMode == "ps")
 //            return mnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION);
 
-//        if (strMode == "enabled")
-//            return mnodeman.CountEnabled();
+        if (strMode == "enabled")
+            return mnodeman.CountEnabled();
 
-//        int nCount;
-//        mnodeman.GetNextMasternodeInQueueForPayment(true, nCount);
+        int nCount;
+        mnodeman.GetNextMasternodeInQueueForPayment(true, nCount);
 
-//        if (strMode == "qualify")
-//            return nCount;
+        if (strMode == "qualify")
+            return nCount;
 
 //        if (strMode == "all")
 //            return strprintf("Total: %d (PS Compatible: %d / Enabled: %d / Qualify: %d)",
 //                mnodeman.size(), mnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION),
 //                mnodeman.CountEnabled(), nCount);
+        if (strMode == "all")
+            return strprintf("Total: %d (Enabled: %d / Qualify: %d)",
+                mnodeman.size(), mnodeman.CountEnabled(), nCount);
     }
 
     if (strCommand == "current" || strCommand == "winner")
     {
-//        int nCount;
-//        int nHeight;
-//        CMasternode* winner = NULL;
-//        {
+        int nCount = 0;
+        int nHeight = 0;
+        CMasternode* winner = NULL;
+        {
 //            LOCK(cs_main);
 //            nHeight = chainActive.Height() + (strCommand == "current" ? 1 : 10);
-//        }
-//        mnodeman.UpdateLastPaid();
-//        winner = mnodeman.GetNextMasternodeInQueueForPayment(nHeight, true, nCount);
-//        if(!winner) return "unknown";
+        }
+        mnodeman.UpdateLastPaid();
+        winner = mnodeman.GetNextMasternodeInQueueForPayment(nHeight, true, nCount);
+        if(!winner) return "unknown";
 
-//        UniValue obj(UniValue::VOBJ);
+        Object obj;
 
-//        obj.push_back(Pair("height",        nHeight));
-//        obj.push_back(Pair("IP:port",       winner->addr.ToString()));
-//        obj.push_back(Pair("protocol",      (int64_t)winner->nProtocolVersion));
-//        obj.push_back(Pair("vin",           winner->vin.prevout.ToStringShort()));
-//        obj.push_back(Pair("payee",         CBitcoinAddress(winner->pubKeyCollateralAddress.GetID()).ToString()));
-//        obj.push_back(Pair("lastseen",      (winner->lastPing == CMasternodePing()) ? winner->sigTime :
-//                                                    winner->lastPing.sigTime));
-//        obj.push_back(Pair("activeseconds", (winner->lastPing == CMasternodePing()) ? 0 :
-//                                                    (winner->lastPing.sigTime - winner->sigTime)));
-//        return obj;
+        obj.push_back(Pair("height",        nHeight));
+        obj.push_back(Pair("IP:port",       winner->addr.ToString()));
+        obj.push_back(Pair("protocol",      (int64_t)winner->nProtocolVersion));
+        obj.push_back(Pair("vin",           winner->vin.prevout.ToString()));
+        obj.push_back(Pair("payee",         CBitcoinAddress(winner->pubKeyCollateralAddress.GetID()).ToString()));
+        obj.push_back(Pair("lastseen",      (winner->lastPing == CMasternodePing()) ? winner->sigTime :
+                                                    winner->lastPing.sigTime));
+        obj.push_back(Pair("activeseconds", (winner->lastPing == CMasternodePing()) ? 0 :
+                                                    (winner->lastPing.sigTime - winner->sigTime)));
+        return obj;
     }
 
     if (strCommand == "debug")
