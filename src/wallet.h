@@ -37,6 +37,16 @@ enum WalletFeature
     FEATURE_LATEST = 60000
 };
 
+enum AvailableCoinsType
+{
+    ALL_COINS = 1,
+    // ONLY_DENOMINATED = 2,
+    // ONLY_NOT1000IFMN = 3,
+    // ONLY_NONDENOMINATED_NOT1000IFMN = 4,
+    ONLY_1000 = 5, // find masternode outputs including locked ones (use with caution)
+    // ONLY_PRIVATESEND_COLLATERAL = 6
+};
+
 /** A key pool entry */
 class CKeyPool
 {
@@ -131,7 +141,13 @@ public:
     bool CanSupportFeature(enum WalletFeature wf) { return nWalletMaxVersion >= wf; }
 
     void AvailableCoinsMinConf(std::vector<COutput>& vCoins, int nConf) const;
-    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl=NULL) const;
+
+    void AvailableCoins(std::vector<COutput>& vCoins,
+                        bool fOnlyConfirmed=true,
+                        const CCoinControl *coinControl=NULL,
+                        bool fIncludeZeroValue = false,
+                        AvailableCoinsType nCoinType = ALL_COINS) const;
+
     bool SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
     // keystore implementation
     // Generate a new key

@@ -8,8 +8,8 @@
 #include "main.h"
 // #include "masternode-payments.h"
 // #include "masternode-sync.h"
-// #include "masternodeconfig.h"
-// #include "masternodeman.h"
+#include "masternode/masternodeconfig.h"
+#include "masternode/masternodeman.h"
 #include "rpc/bitcoinrpc.h"
 // #include "util.h"
 // #include "utilmoneystr.h"
@@ -138,24 +138,24 @@ Value masternode(const Array & params, bool fHelp)
         return masternodelist(newParams, fHelp);
     }
 
-//    if(strCommand == "connect")
-//    {
-//        if (params.size() < 2)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Masternode address required");
+    if(strCommand == "connect")
+    {
+        if (params.size() < 2)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Masternode address required");
 
-//        std::string strAddress = params[1].get_str();
+        std::string strAddress = params[1].get_str();
 
-//        CService addr = CService(strAddress);
+        CService addr = CService(strAddress);
 
-//        CNode *pnode = ConnectNode((CAddress)addr, NULL);
-//        if(!pnode)
-//            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to masternode %s", strAddress));
+        CNode *pnode = ConnectNode((CAddress)addr, NULL);
+        if(!pnode)
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to masternode %s", strAddress));
 
-//        return "successfully connected";
-//    }
+        return "successfully connected";
+    }
 
-//    if (strCommand == "count")
-//    {
+    if (strCommand == "count")
+    {
 //        if (params.size() > 2)
 //            throw JSONRPCError(RPC_INVALID_PARAMETER, "Too many parameters");
 
@@ -180,10 +180,10 @@ Value masternode(const Array & params, bool fHelp)
 //            return strprintf("Total: %d (PS Compatible: %d / Enabled: %d / Qualify: %d)",
 //                mnodeman.size(), mnodeman.CountEnabled(MIN_PRIVATESEND_PEER_PROTO_VERSION),
 //                mnodeman.CountEnabled(), nCount);
-//    }
+    }
 
-//    if (strCommand == "current" || strCommand == "winner")
-//    {
+    if (strCommand == "current" || strCommand == "winner")
+    {
 //        int nCount;
 //        int nHeight;
 //        CMasternode* winner = NULL;
@@ -207,10 +207,10 @@ Value masternode(const Array & params, bool fHelp)
 //        obj.push_back(Pair("activeseconds", (winner->lastPing == CMasternodePing()) ? 0 :
 //                                                    (winner->lastPing.sigTime - winner->sigTime)));
 //        return obj;
-//    }
+    }
 
-//    if (strCommand == "debug")
-//    {
+    if (strCommand == "debug")
+    {
 //        if(activeMasternode.nState != ACTIVE_MASTERNODE_INITIAL || !masternodeSync.IsBlockchainSynced())
 //            return activeMasternode.GetStatus();
 
@@ -222,7 +222,7 @@ Value masternode(const Array & params, bool fHelp)
 //            throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing masternode input, please look at the documentation for instructions on masternode creation");
 
 //        return activeMasternode.GetStatus();
-//    }
+    }
 
     if (strCommand == "start")
     {
@@ -242,8 +242,8 @@ Value masternode(const Array & params, bool fHelp)
 //        return activeMasternode.GetStatus();
     }
 
-//    if (strCommand == "start-alias")
-//    {
+    if (strCommand == "start-alias")
+    {
 //        if (params.size() < 2)
 //            throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify an alias");
 
@@ -286,10 +286,10 @@ Value masternode(const Array & params, bool fHelp)
 
 //        return statusObj;
 
-//    }
+    }
 
-//    if (strCommand == "start-all" || strCommand == "start-missing" || strCommand == "start-disabled")
-//    {
+    if (strCommand == "start-all" || strCommand == "start-missing" || strCommand == "start-disabled")
+    {
 //        {
 //            LOCK(pwalletMain->cs_wallet);
 //            EnsureWalletIsUnlocked();
@@ -338,55 +338,57 @@ Value masternode(const Array & params, bool fHelp)
 //        returnObj.push_back(Pair("detail", resultsObj));
 
 //        return returnObj;
-//    }
+    }
 
-//    if (strCommand == "genkey")
-//    {
-//        CKey secret;
-//        secret.MakeNewKey(false);
+    if (strCommand == "genkey")
+    {
+        CKey secret;
+        secret.MakeNewKey(false);
+        bool compressed = false;
+        return CBitcoinSecret(secret.GetSecret(compressed), false).ToString();
+    }
 
-//        return CBitcoinSecret(secret).ToString();
-//    }
+    if (strCommand == "list-conf")
+    {
+        Object resultObj;
 
-//    if (strCommand == "list-conf")
-//    {
-//        UniValue resultObj(UniValue::VOBJ);
+        for (const CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        {
+            CTxIn vin = CTxIn(uint256(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
+            CMasternode *pmn = mnodeman.Find(vin);
 
-//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-//            CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
-//            CMasternode *pmn = mnodeman.Find(vin);
+            std::string strStatus = pmn ? pmn->GetStatus() : "MISSING";
 
-//            std::string strStatus = pmn ? pmn->GetStatus() : "MISSING";
+            Object mnObj;
+            mnObj.push_back(Pair("alias", mne.getAlias()));
+            mnObj.push_back(Pair("address", mne.getIp()));
+            mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
+            mnObj.push_back(Pair("txHash", mne.getTxHash()));
+            mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
+            mnObj.push_back(Pair("status", strStatus));
+            resultObj.push_back(Pair("masternode", mnObj));
+        }
 
-//            UniValue mnObj(UniValue::VOBJ);
-//            mnObj.push_back(Pair("alias", mne.getAlias()));
-//            mnObj.push_back(Pair("address", mne.getIp()));
-//            mnObj.push_back(Pair("privateKey", mne.getPrivKey()));
-//            mnObj.push_back(Pair("txHash", mne.getTxHash()));
-//            mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
-//            mnObj.push_back(Pair("status", strStatus));
-//            resultObj.push_back(Pair("masternode", mnObj));
-//        }
+        return resultObj;
+    }
 
-//        return resultObj;
-//    }
+    if (strCommand == "outputs")
+    {
+        // Find possible candidates
+        std::vector<COutput> vPossibleCoins;
+        pwalletMain->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_1000);
 
-//    if (strCommand == "outputs") {
-//        // Find possible candidates
-//        std::vector<COutput> vPossibleCoins;
-//        pwalletMain->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_1000);
+        Object obj;
+        for (const COutput & out : vPossibleCoins)
+        {
+            obj.push_back(Pair(out.tx->GetHash().ToString(), strprintf("%d", out.i)));
+        }
 
-//        UniValue obj(UniValue::VOBJ);
-//        BOOST_FOREACH(COutput& out, vPossibleCoins) {
-//            obj.push_back(Pair(out.tx->GetHash().ToString(), strprintf("%d", out.i)));
-//        }
+        return obj;
+    }
 
-//        return obj;
-
-//    }
-
-//    if (strCommand == "status")
-//    {
+    if (strCommand == "status")
+    {
 //        if (!fMasterNode)
 //            throw JSONRPCError(RPC_INTERNAL_ERROR, "This is not a masternode");
 
@@ -402,10 +404,10 @@ Value masternode(const Array & params, bool fHelp)
 
 //        mnObj.push_back(Pair("status", activeMasternode.GetStatus()));
 //        return mnObj;
-//    }
+    }
 
-//    if (strCommand == "winners")
-//    {
+    if (strCommand == "winners")
+    {
 //        int nHeight;
 //        {
 //            LOCK(cs_main);
@@ -438,7 +440,7 @@ Value masternode(const Array & params, bool fHelp)
 //        }
 
 //        return obj;
-//    }
+    }
 
     return Value();
 }

@@ -15,12 +15,12 @@
 #include <atomic>
 
 #include "bignum.h"
-#include "util/settings.h"
-#include "util/logger.h"
-#include "xbridgeapp.h"
-#include "xbridgeexchange.h"
-#include "xbridgetransaction.h"
-#include "bitcoinrpc.h"
+#include "xbridge/util/settings.h"
+#include "xbridge/util/logger.h"
+#include "xbridge/xbridgeapp.h"
+#include "xbridge/xbridgeexchange.h"
+#include "xbridge/xbridgetransaction.h"
+#include "rpc/bitcoinrpc.h"
 
 using namespace json_spirit;
 using namespace std;

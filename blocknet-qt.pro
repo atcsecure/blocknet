@@ -192,8 +192,6 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
     src/xbridge/xbridgesessionbtc.cpp \
-    src/xbridge/bitcoinrpchandlers.cpp \
-    src/xbridge/xbridgesessionbtc.cpp \
     src/rpc/bitcoinrpc.cpp \
     src/rpc/rpcblockchain.cpp \
     src/rpc/rpcdump.cpp \
@@ -202,7 +200,10 @@ SOURCES += src/txdb-leveldb.cpp \
     src/rpc/rpcnet.cpp \
     src/rpc/rpcrawtransaction.cpp \
     src/rpc/rpcwallet.cpp \
-    src/masternode/masternodeconfig.cpp
+    src/rpc/rpcxbridge.cpp \
+    src/masternode/masternodeconfig.cpp \
+    src/masternode/masternodeman.cpp \
+    src/masternode/masternode.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -435,7 +436,9 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/xbitcoinaddress.h \
     src/xbridge/xbridgesessionbtc.h \
     src/rpc/bitcoinrpc.h \
-    src/masternode/masternodeconfig.h
+    src/masternode/masternodeconfig.h \
+    src/masternode/masternodeman.h \
+    src/masternode/masternode.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

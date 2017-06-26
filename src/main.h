@@ -293,6 +293,11 @@ public:
         return !(a == b);
     }
 
+    friend bool operator<(const CTxIn& a, const CTxIn& b)
+    {
+        return a.prevout<b.prevout;
+    }
+
     std::string ToStringShort() const
     {
         return strprintf(" %s %d", prevout.hash.ToString().c_str(), prevout.n);

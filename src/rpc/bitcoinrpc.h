@@ -203,6 +203,8 @@ json_spirit::Value getnewpubkey(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Value getrawtransaction(const json_spirit::Array& params, bool fHelp); // in rcprawtransaction.cpp
 json_spirit::Value listunspent(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value listlockunspent(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value lockunspent(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value createrawtransaction(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value decoderawtransaction(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value decodescript(const json_spirit::Array& params, bool fHelp);
@@ -222,5 +224,16 @@ json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value masternode(const json_spirit::Array & params, bool fHelp);
 json_spirit::Value masternodelist(const json_spirit::Array & params, bool fHelp);
 json_spirit::Value masternodebroadcast(const json_spirit::Array & params, bool fHelp);
+
+json_spirit::Value dxGetTransactionList(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxGetTransactionsHistoryList(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxGetTransactionInfo(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxGetCurrencyList(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxCreateTransaction(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxAcceptTransaction(const json_spirit::Array& params, bool fHelp);
+json_spirit::Value dxCancelTransaction(const json_spirit::Array& params, bool fHelp);
+
+//std::string HelpExampleCli(const std::string& methodname, const std::string& args);
+std::string HelpExampleRpc(const std::string& methodname, const std::string& args);
 
 #endif

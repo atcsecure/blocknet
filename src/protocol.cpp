@@ -11,12 +11,140 @@
 # include <arpa/inet.h>
 #endif
 
+namespace NetMsgType {
+const char *NETVERSION="version";
+const char *VERACK="verack";
+const char *ADDR="addr";
+const char *INV="inv";
+const char *GETDATA="getdata";
+const char *MERKLEBLOCK="merkleblock";
+const char *GETBLOCKS="getblocks";
+const char *GETHEADERS="getheaders";
+const char *TX="tx";
+const char *HEADERS="headers";
+const char *BLOCK="block";
+const char *GETADDR="getaddr";
+const char *MEMPOOL="mempool";
+const char *PING="ping";
+const char *PONG="pong";
+const char *ALERT="alert";
+const char *NOTFOUND="notfound";
+const char *FILTERLOAD="filterload";
+const char *FILTERADD="filteradd";
+const char *FILTERCLEAR="filterclear";
+const char *REJECT="reject";
+const char *SENDHEADERS="sendheaders";
+// Dash message types
+const char *TXLOCKREQUEST="ix";
+const char *TXLOCKVOTE="txlvote";
+const char *SPORK="spork";
+const char *GETSPORKS="getsporks";
+const char *MASTERNODEPAYMENTVOTE="mnw";
+const char *MASTERNODEPAYMENTBLOCK="mnwb";
+const char *MASTERNODEPAYMENTSYNC="mnget";
+const char *MNBUDGETSYNC="mnvs"; // depreciated since 12.1
+const char *MNBUDGETVOTE="mvote"; // depreciated since 12.1
+const char *MNBUDGETPROPOSAL="mprop"; // depreciated since 12.1
+const char *MNBUDGETFINAL="fbs"; // depreciated since 12.1
+const char *MNBUDGETFINALVOTE="fbvote"; // depreciated since 12.1
+const char *MNQUORUM="mn quorum"; // not implemented
+const char *MNANNOUNCE="mnb";
+const char *MNPING="mnp";
+const char *DSACCEPT="dsa";
+const char *DSVIN="dsi";
+const char *DSFINALTX="dsf";
+const char *DSSIGNFINALTX="dss";
+const char *DSCOMPLETE="dsc";
+const char *DSSTATUSUPDATE="dssu";
+const char *DSTX="dstx";
+const char *DSQUEUE="dsq";
+const char *DSEG="dseg";
+const char *SYNCSTATUSCOUNT="ssc";
+const char *MNGOVERNANCESYNC="govsync";
+const char *MNGOVERNANCEOBJECT="govobj";
+const char *MNGOVERNANCEOBJECTVOTE="govobjvote";
+const char *MNVERIFY="mnv";
+};
+
 static const char* ppszTypeName[] =
 {
-    "ERROR",
-    "tx",
-    "block",
+    "ERROR", // Should never occur
+    NetMsgType::TX,
+    NetMsgType::BLOCK,
+    "filtered block", // Should never occur
+    // Dash message types
+    // NOTE: include non-implmented here, we must keep this list in sync with enum in protocol.h
+    NetMsgType::TXLOCKREQUEST,
+    NetMsgType::TXLOCKVOTE,
+    NetMsgType::SPORK,
+    NetMsgType::MASTERNODEPAYMENTVOTE,
+    NetMsgType::MASTERNODEPAYMENTBLOCK, // reusing, was MNSCANERROR previousely, was NOT used in 12.0, we need this for inv
+    NetMsgType::MNBUDGETVOTE, // depreciated since 12.1
+    NetMsgType::MNBUDGETPROPOSAL, // depreciated since 12.1
+    NetMsgType::MNBUDGETFINAL, // depreciated since 12.1
+    NetMsgType::MNBUDGETFINALVOTE, // depreciated since 12.1
+    NetMsgType::MNQUORUM, // not implemented
+    NetMsgType::MNANNOUNCE,
+    NetMsgType::MNPING,
+    NetMsgType::DSTX,
+    NetMsgType::MNGOVERNANCEOBJECT,
+    NetMsgType::MNGOVERNANCEOBJECTVOTE,
+    NetMsgType::MNVERIFY,
 };
+
+/** All known message types. Keep this in the same order as the list of
+ * messages above and in protocol.h.
+ */
+const static std::string allNetMessageTypes[] = {
+    NetMsgType::NETVERSION,
+    NetMsgType::VERACK,
+    NetMsgType::ADDR,
+    NetMsgType::INV,
+    NetMsgType::GETDATA,
+    NetMsgType::MERKLEBLOCK,
+    NetMsgType::GETBLOCKS,
+    NetMsgType::GETHEADERS,
+    NetMsgType::TX,
+    NetMsgType::HEADERS,
+    NetMsgType::BLOCK,
+    NetMsgType::GETADDR,
+    NetMsgType::MEMPOOL,
+    NetMsgType::PING,
+    NetMsgType::PONG,
+    NetMsgType::ALERT,
+    NetMsgType::NOTFOUND,
+    NetMsgType::FILTERLOAD,
+    NetMsgType::FILTERADD,
+    NetMsgType::FILTERCLEAR,
+    NetMsgType::REJECT,
+    NetMsgType::SENDHEADERS,
+    // Dash message types
+    // NOTE: do NOT include non-implmented here, we want them to be "Unknown command" in ProcessMessage()
+    NetMsgType::TXLOCKREQUEST,
+    NetMsgType::TXLOCKVOTE,
+    NetMsgType::SPORK,
+    NetMsgType::GETSPORKS,
+    NetMsgType::MASTERNODEPAYMENTVOTE,
+    // NetMsgType::MASTERNODEPAYMENTBLOCK, // there is no message for this, only inventory
+    NetMsgType::MASTERNODEPAYMENTSYNC,
+    NetMsgType::MNANNOUNCE,
+    NetMsgType::MNPING,
+    NetMsgType::DSACCEPT,
+    NetMsgType::DSVIN,
+    NetMsgType::DSFINALTX,
+    NetMsgType::DSSIGNFINALTX,
+    NetMsgType::DSCOMPLETE,
+    NetMsgType::DSSTATUSUPDATE,
+    NetMsgType::DSTX,
+    NetMsgType::DSQUEUE,
+    NetMsgType::DSEG,
+    NetMsgType::SYNCSTATUSCOUNT,
+    NetMsgType::MNGOVERNANCESYNC,
+    NetMsgType::MNGOVERNANCEOBJECT,
+    NetMsgType::MNGOVERNANCEOBJECTVOTE,
+    NetMsgType::MNVERIFY,
+};
+const static std::vector<std::string> allNetMessageTypesVec(allNetMessageTypes, allNetMessageTypes+ARRAYLEN(allNetMessageTypes));
 
 CMessageHeader::CMessageHeader()
 {

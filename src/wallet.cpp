@@ -1068,7 +1068,11 @@ int64_t CWallet::GetImmatureBalance() const
 }
 
 // populate vCoins with vector of spendable COutputs
-void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const CCoinControl *coinControl) const
+void CWallet::AvailableCoins(vector<COutput>& vCoins,
+                             bool fOnlyConfirmed,
+                             const CCoinControl *coinControl,
+                             bool fIncludeZeroValue,
+                             AvailableCoinsType nCoinType) const
 {
     vCoins.clear();
 
@@ -1096,11 +1100,26 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
             {
+                bool found = false;
+
+                if(nCoinType == ONLY_1000)
+                {
+                    found = pcoin->vout[i].nValue == 1000*COIN;
+                }
+                else
+                {
+                    found = true;
+                }
+                if(!found)
+                {
+                    continue;
+                }
+
                 if (!(pcoin->IsSpent(i)) &&
                     IsMine(pcoin->vout[i]) &&
                     pcoin->vout[i].nValue >= nMinimumInputValue &&
                     // (!IsLockedCoin((*it).first, i) || nCoinType == ONLY_1000) &&
-                    !IsLockedCoin((*it).first, i) &&
+                    (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
                     (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                 {
                     vCoins.push_back(COutput(pcoin, i, nDepth));

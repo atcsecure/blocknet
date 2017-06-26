@@ -626,7 +626,7 @@ inline const uint256 operator+(const uint256& a, const uint256& b)      { return
 inline const uint256 operator-(const uint256& a, const uint256& b)      { return (base_uint256)a -  (base_uint256)b; }
 
 
-
+#define arith_uint256 uint256
 
 
 //////////////////////////////////////////////////////////////////////////////
