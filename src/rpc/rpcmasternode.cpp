@@ -7,7 +7,7 @@
 #include "init.h"
 #include "main.h"
 // #include "masternode-payments.h"
-// #include "masternode-sync.h"
+#include "masternode/masternode-sync.h"
 #include "masternode/masternodeconfig.h"
 #include "masternode/masternodeman.h"
 #include "rpc/bitcoinrpc.h"
@@ -16,7 +16,6 @@
 
 #include <fstream>
 #include <iomanip>
-// #include <univalue.h>
 
 using namespace json_spirit;
 
@@ -247,48 +246,49 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "start-alias")
     {
-//        if (params.size() < 2)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify an alias");
+        if (params.size() < 2)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify an alias");
 
-//        {
-//            LOCK(pwalletMain->cs_wallet);
-//            EnsureWalletIsUnlocked();
-//        }
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
-//        std::string strAlias = params[1].get_str();
+        std::string strAlias = params[1].get_str();
 
-//        bool fFound = false;
+        bool fFound = false;
 
-//        UniValue statusObj(UniValue::VOBJ);
-//        statusObj.push_back(Pair("alias", strAlias));
+        Object statusObj;
+        statusObj.push_back(Pair("alias", strAlias));
 
-//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-//            if(mne.getAlias() == strAlias) {
-//                fFound = true;
-//                std::string strError;
-//                CMasternodeBroadcast mnb;
+        for (CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        {
+            if(mne.getAlias() == strAlias)
+            {
+                fFound = true;
+                std::string strError;
+                CMasternodeBroadcast mnb;
 
-//                bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
+                bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
 
-//                statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
-//                if(fResult) {
-//                    mnodeman.UpdateMasternodeList(mnb);
-//                    mnb.Relay();
-//                } else {
-//                    statusObj.push_back(Pair("errorMessage", strError));
-//                }
-//                mnodeman.NotifyMasternodeUpdates();
-//                break;
-//            }
-//        }
+                statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
+                if(fResult) {
+                    mnodeman.UpdateMasternodeList(mnb);
+                    mnb.Relay();
+                } else {
+                    statusObj.push_back(Pair("errorMessage", strError));
+                }
+                mnodeman.NotifyMasternodeUpdates();
+                break;
+            }
+        }
 
-//        if(!fFound) {
-//            statusObj.push_back(Pair("result", "failed"));
-//            statusObj.push_back(Pair("errorMessage", "Could not find alias in config. Verify with list-conf."));
-//        }
+        if(!fFound) {
+            statusObj.push_back(Pair("result", "failed"));
+            statusObj.push_back(Pair("errorMessage", "Could not find alias in config. Verify with list-conf."));
+        }
 
-//        return statusObj;
-
+        return statusObj;
     }
 
     if (strCommand == "start-all" || strCommand == "start-missing" || strCommand == "start-disabled")
