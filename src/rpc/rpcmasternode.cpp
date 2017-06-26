@@ -213,17 +213,17 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "debug")
     {
-//        if(activeMasternode.nState != ACTIVE_MASTERNODE_INITIAL || !masternodeSync.IsBlockchainSynced())
-//            return activeMasternode.GetStatus();
+        if(activeMasternode.nState != ACTIVE_MASTERNODE_INITIAL || !masternodeSync.IsBlockchainSynced())
+            return activeMasternode.GetStatus();
 
-//        CTxIn vin;
-//        CPubKey pubkey;
-//        CKey key;
+        CTxIn vin;
+        CPubKey pubkey;
+        CKey key;
 
-//        if(!pwalletMain || !pwalletMain->GetMasternodeVinAndKeys(vin, pubkey, key))
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing masternode input, please look at the documentation for instructions on masternode creation");
+        if(!pwalletMain || !pwalletMain->GetMasternodeVinAndKeys(vin, pubkey, key))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Missing masternode input, please look at the documentation for instructions on masternode creation");
 
-//        return activeMasternode.GetStatus();
+        return activeMasternode.GetStatus();
     }
 
     if (strCommand == "start")
