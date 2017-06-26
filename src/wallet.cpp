@@ -2542,7 +2542,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
     }
 
     // Find specific vin
-    uint256 txHash = uint256S(strTxHash);
+    uint256 txHash = uint256(strTxHash);
     int nOutputIndex = atoi(strOutputIndex.c_str());
 
     for (COutput & out : vPossibleCoins)
@@ -2581,7 +2581,7 @@ bool CWallet::GetVinAndKeysFromOutput(COutput out, CTxIn& txinRet, CPubKey& pubK
 
     if (!GetKey(keyID, keyRet))
     {
-        rptintf ("CWallet::GetVinAndKeysFromOutput -- Private key for address is not known\n");
+        printf("CWallet::GetVinAndKeysFromOutput -- Private key for address is not known\n");
         return false;
     }
 

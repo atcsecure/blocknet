@@ -150,6 +150,7 @@ extern bool fTestNet;
 extern bool fNoListen;
 extern bool fLogTimestamps;
 extern bool fReopenDebugLog;
+extern bool fMasterNode;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();

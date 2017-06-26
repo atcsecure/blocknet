@@ -897,7 +897,7 @@ bool AppInit2()
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 10a: setup masternode
-//    fMasterNode = GetBoolArg("-masternode", false);
+    fMasterNode = GetBoolArg("-masternode", false);
 
 //    if((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {
 //        return InitError("Enabling Masternode support requires turning on transaction indexing."
