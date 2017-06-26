@@ -292,6 +292,8 @@ static const CRPCCommand vRPCCommands[] =
     { "importwallet",           &importwallet,           false,  false },
     { "importprivkey",          &importprivkey,          false,  false },
     { "listunspent",            &listunspent,            false,  false },
+    { "listlockunspent",        &listlockunspent,        false,  false },
+    { "lockunspent",            &lockunspent,            true,   false  },
     { "getrawtransaction",      &getrawtransaction,      false,  false },
     { "createrawtransaction",   &createrawtransaction,   false,  false },
     { "decoderawtransaction",   &decoderawtransaction,   false,  false },
@@ -306,6 +308,16 @@ static const CRPCCommand vRPCCommands[] =
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
 
+    //xbridge
+    { "dxGetTransactionList",           &dxGetTransactionList,          true,   true},
+    { "dxGetTransactionsHistoryList",   &dxGetTransactionsHistoryList,  true,   true},
+    { "dxGetTransactionInfo",           &dxGetTransactionInfo,          true,   true},
+    { "dxGetCurrencyList",              &dxGetCurrencyList,             true,   true},
+    { "dxCreateTransaction",            &dxCreateTransaction,           true,   true},
+    { "dxAcceptTransaction",            &dxAcceptTransaction,           true,   true},
+    { "dxCancelTransaction",            &dxCancelTransaction,           true,   true},
+
+    // masternodes
     { "masternode",             &masternode,             true,   false },
     { "masternodelist",         &masternodelist,         true,   false },
     { "masternodebroadcast",    &masternodebroadcast,    true,   false },
@@ -1236,6 +1248,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
+    if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
 
     return params;
 }
@@ -1341,3 +1355,21 @@ int main(int argc, char *argv[])
 #endif
 
 const CRPCTable tableRPC;
+
+//std::string HelpExampleCli(const std::string& methodname, const std::string& args)
+//{
+//    return "> blocknet-cli " + methodname + " " + args + "\n";
+//}
+
+std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
+{
+    std::ostringstream o;
+    o << "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
+        "\"method\": \""
+      << methodname
+      << "\", \"params\": ["
+      << args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:"
+      << GetDefaultRPCPort()
+      << "/\n";
+    return o.str();
+}

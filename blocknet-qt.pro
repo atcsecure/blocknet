@@ -192,6 +192,8 @@ SOURCES += src/txdb-leveldb.cpp \
     src/xbridge/crypto/sha512.cpp \
     src/xbridge/xbitcoinaddress.cpp \
     src/xbridge/xbridgesessionbtc.cpp \
+    src/xbridge/bitcoinrpchandlers.cpp \
+    src/xbridge/xbridgesessionbtc.cpp \
     src/rpc/bitcoinrpc.cpp \
     src/rpc/rpcblockchain.cpp \
     src/rpc/rpcdump.cpp \
