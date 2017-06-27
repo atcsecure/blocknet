@@ -190,8 +190,8 @@ Value masternode(const Array & params, bool fHelp)
         int nHeight = 0;
         CMasternode* winner = NULL;
         {
-//            LOCK(cs_main);
-//            nHeight = chainActive.Height() + (strCommand == "current" ? 1 : 10);
+            LOCK(cs_main);
+            nHeight = nBestHeight + (strCommand == "current" ? 1 : 10);
         }
         mnodeman.UpdateLastPaid();
         winner = mnodeman.GetNextMasternodeInQueueForPayment(nHeight, true, nCount);
@@ -507,92 +507,119 @@ Value masternodelist(const Array & params, bool fHelp)
                 );
     }
 
-//    if (strMode == "full" || strMode == "lastpaidtime" || strMode == "lastpaidblock") {
-//        mnodeman.UpdateLastPaid();
-//    }
+    if (strMode == "full" || strMode == "lastpaidtime" || strMode == "lastpaidblock")
+    {
+        mnodeman.UpdateLastPaid();
+    }
 
-//    UniValue obj(UniValue::VOBJ);
-//    if (strMode == "rank") {
-//        std::vector<std::pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks();
-//        BOOST_FOREACH(PAIRTYPE(int, CMasternode)& s, vMasternodeRanks) {
-//            std::string strOutpoint = s.second.vin.prevout.ToStringShort();
-//            if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
-//            obj.push_back(Pair(strOutpoint, s.first));
-//        }
-//    } else {
-//        std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
-//        BOOST_FOREACH(CMasternode& mn, vMasternodes) {
-//            std::string strOutpoint = mn.vin.prevout.ToStringShort();
-//            if (strMode == "activeseconds") {
-//                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, (int64_t)(mn.lastPing.sigTime - mn.sigTime)));
-//            } else if (strMode == "addr") {
-//                std::string strAddress = mn.addr.ToString();
-//                if (strFilter !="" && strAddress.find(strFilter) == std::string::npos &&
-//                    strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, strAddress));
-//            } else if (strMode == "full") {
-//                std::ostringstream streamFull;
-//                streamFull << std::setw(18) <<
-//                               mn.GetStatus() << " " <<
-//                               mn.nProtocolVersion << " " <<
-//                               CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString() << " " <<
-//                               (int64_t)mn.lastPing.sigTime << " " << std::setw(8) <<
-//                               (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " << std::setw(10) <<
-//                               mn.GetLastPaidTime() << " "  << std::setw(6) <<
-//                               mn.GetLastPaidBlock() << " " <<
-//                               mn.addr.ToString();
-//                std::string strFull = streamFull.str();
-//                if (strFilter !="" && strFull.find(strFilter) == std::string::npos &&
-//                    strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, strFull));
-//            } else if (strMode == "lastpaidblock") {
-//                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, mn.GetLastPaidBlock()));
-//            } else if (strMode == "lastpaidtime") {
-//                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, mn.GetLastPaidTime()));
-//            } else if (strMode == "lastseen") {
-//                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, (int64_t)mn.lastPing.sigTime));
-//            } else if (strMode == "payee") {
-//                CBitcoinAddress address(mn.pubKeyCollateralAddress.GetID());
-//                std::string strPayee = address.ToString();
-//                if (strFilter !="" && strPayee.find(strFilter) == std::string::npos &&
-//                    strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, strPayee));
-//            } else if (strMode == "protocol") {
-//                if (strFilter !="" && strFilter != strprintf("%d", mn.nProtocolVersion) &&
-//                    strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, (int64_t)mn.nProtocolVersion));
-//            } else if (strMode == "status") {
-//                std::string strStatus = mn.GetStatus();
-//                if (strFilter !="" && strStatus.find(strFilter) == std::string::npos &&
-//                    strOutpoint.find(strFilter) == std::string::npos) continue;
-//                obj.push_back(Pair(strOutpoint, strStatus));
-//            }
-//        }
-//    }
-//    return obj;
-    return Value();
+    Object obj;
+    if (strMode == "rank")
+    {
+        std::vector<std::pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks();
+        for (PAIRTYPE(int, CMasternode) & s : vMasternodeRanks)
+        {
+            std::string strOutpoint = s.second.vin.prevout.ToString();
+            if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos)
+            {
+                continue;
+            }
+            obj.push_back(Pair(strOutpoint, s.first));
+        }
+    }
+    else
+    {
+        std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
+        for (CMasternode & mn : vMasternodes)
+        {
+            std::string strOutpoint = mn.vin.prevout.ToString();
+            if (strMode == "activeseconds")
+            {
+                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, (int64_t)(mn.lastPing.sigTime - mn.sigTime)));
+            }
+            else if (strMode == "addr")
+            {
+                std::string strAddress = mn.addr.ToString();
+                if (strFilter !="" && strAddress.find(strFilter) == std::string::npos &&
+                    strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, strAddress));
+            }
+            else if (strMode == "full")
+            {
+                std::ostringstream streamFull;
+                streamFull << std::setw(18) <<
+                               mn.GetStatus() << " " <<
+                               mn.nProtocolVersion << " " <<
+                               CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString() << " " <<
+                               (int64_t)mn.lastPing.sigTime << " " << std::setw(8) <<
+                               (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " << std::setw(10) <<
+                               mn.GetLastPaidTime() << " "  << std::setw(6) <<
+                               mn.GetLastPaidBlock() << " " <<
+                               mn.addr.ToString();
+                std::string strFull = streamFull.str();
+                if (strFilter !="" && strFull.find(strFilter) == std::string::npos &&
+                    strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, strFull));
+            }
+            else if (strMode == "lastpaidblock")
+            {
+                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, mn.GetLastPaidBlock()));
+            }
+            else if (strMode == "lastpaidtime")
+            {
+                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, mn.GetLastPaidTime()));
+            }
+            else if (strMode == "lastseen")
+            {
+                if (strFilter !="" && strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, (int64_t)mn.lastPing.sigTime));
+            }
+            else if (strMode == "payee")
+            {
+                CBitcoinAddress address(mn.pubKeyCollateralAddress.GetID());
+                std::string strPayee = address.ToString();
+                if (strFilter !="" && strPayee.find(strFilter) == std::string::npos &&
+                    strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, strPayee));
+            }
+            else if (strMode == "protocol")
+            {
+               if (strFilter !="" && strFilter != strprintf("%d", mn.nProtocolVersion) &&
+                    strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, (int64_t)mn.nProtocolVersion));
+            }
+            else if (strMode == "status")
+            {
+                std::string strStatus = mn.GetStatus();
+                if (strFilter !="" && strStatus.find(strFilter) == std::string::npos &&
+                    strOutpoint.find(strFilter) == std::string::npos) continue;
+                obj.push_back(Pair(strOutpoint, strStatus));
+            }
+        }
+    }
+    return obj;
 }
 
-//bool DecodeHexVecMnb(std::vector<CMasternodeBroadcast>& vecMnb, std::string strHexMnb) {
+bool DecodeHexVecMnb(std::vector<CMasternodeBroadcast>& vecMnb, std::string strHexMnb)
+{
+    if (!IsHex(strHexMnb))
+        return false;
 
-//    if (!IsHex(strHexMnb))
-//        return false;
+    std::vector<unsigned char> mnbData(ParseHex(strHexMnb));
+    CDataStream ssData(mnbData, SER_NETWORK, PROTOCOL_VERSION);
+    try
+    {
+        ssData >> vecMnb;
+    }
+    catch (const std::exception&)
+    {
+        return false;
+    }
 
-//    std::vector<unsigned char> mnbData(ParseHex(strHexMnb));
-//    CDataStream ssData(mnbData, SER_NETWORK, PROTOCOL_VERSION);
-//    try {
-//        ssData >> vecMnb;
-//    }
-//    catch (const std::exception&) {
-//        return false;
-//    }
-
-//    return true;
-//}
+    return true;
+}
 
 Value masternodebroadcast(const Array & params, bool fHelp)
 {
@@ -614,211 +641,233 @@ Value masternodebroadcast(const Array & params, bool fHelp)
                 "  relay         - Relay masternode broadcast message to the network\n"
                 );
 
-//    if (strCommand == "create-alias")
-//    {
-//        // wait for reindex and/or import to finish
+    if (strCommand == "create-alias")
+    {
+        // wait for reindex and/or import to finish
 //        if (fImporting || fReindex)
 //            throw JSONRPCError(RPC_INTERNAL_ERROR, "Wait for reindex and/or import to finish");
 
-//        if (params.size() < 2)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify an alias");
+        if (params.size() < 2)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Please specify an alias");
 
-//        {
-//            LOCK(pwalletMain->cs_wallet);
-//            EnsureWalletIsUnlocked();
-//        }
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
-//        bool fFound = false;
-//        std::string strAlias = params[1].get_str();
+        bool fFound = false;
+        std::string strAlias = params[1].get_str();
 
-//        UniValue statusObj(UniValue::VOBJ);
-//        std::vector<CMasternodeBroadcast> vecMnb;
+        Object statusObj;
+        std::vector<CMasternodeBroadcast> vecMnb;
 
-//        statusObj.push_back(Pair("alias", strAlias));
+        statusObj.push_back(Pair("alias", strAlias));
 
-//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-//            if(mne.getAlias() == strAlias) {
-//                fFound = true;
-//                std::string strError;
-//                CMasternodeBroadcast mnb;
+        for (CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        {
+           if(mne.getAlias() == strAlias) {
+                fFound = true;
+                std::string strError;
+                CMasternodeBroadcast mnb;
 
-//                bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb, true);
+                bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb, true);
 
-//                statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
-//                if(fResult) {
-//                    vecMnb.push_back(mnb);
-//                    CDataStream ssVecMnb(SER_NETWORK, PROTOCOL_VERSION);
-//                    ssVecMnb << vecMnb;
-//                    statusObj.push_back(Pair("hex", HexStr(ssVecMnb.begin(), ssVecMnb.end())));
-//                } else {
-//                    statusObj.push_back(Pair("errorMessage", strError));
-//                }
-//                break;
-//            }
-//        }
+                statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
+                if(fResult) {
+                    vecMnb.push_back(mnb);
+                    CDataStream ssVecMnb(SER_NETWORK, PROTOCOL_VERSION);
+                    ssVecMnb << vecMnb;
+                    statusObj.push_back(Pair("hex", HexStr(ssVecMnb.begin(), ssVecMnb.end())));
+                }
+                else
+                {
+                    statusObj.push_back(Pair("errorMessage", strError));
+                }
+                break;
+            }
+        }
 
-//        if(!fFound) {
-//            statusObj.push_back(Pair("result", "not found"));
-//            statusObj.push_back(Pair("errorMessage", "Could not find alias in config. Verify with list-conf."));
-//        }
+        if(!fFound) {
+            statusObj.push_back(Pair("result", "not found"));
+            statusObj.push_back(Pair("errorMessage", "Could not find alias in config. Verify with list-conf."));
+        }
 
-//        return statusObj;
+        return statusObj;
+    }
 
-//    }
-
-//    if (strCommand == "create-all")
-//    {
-//        // wait for reindex and/or import to finish
+    if (strCommand == "create-all")
+    {
+        // wait for reindex and/or import to finish
 //        if (fImporting || fReindex)
 //            throw JSONRPCError(RPC_INTERNAL_ERROR, "Wait for reindex and/or import to finish");
 
-//        {
-//            LOCK(pwalletMain->cs_wallet);
-//            EnsureWalletIsUnlocked();
-//        }
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
-//        std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
-//        mnEntries = masternodeConfig.getEntries();
+        std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
+        mnEntries = masternodeConfig.getEntries();
 
-//        int nSuccessful = 0;
-//        int nFailed = 0;
+        int nSuccessful = 0;
+        int nFailed = 0;
 
-//        UniValue resultsObj(UniValue::VOBJ);
-//        std::vector<CMasternodeBroadcast> vecMnb;
+        Object resultsObj;
+        std::vector<CMasternodeBroadcast> vecMnb;
 
-//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-//            std::string strError;
-//            CMasternodeBroadcast mnb;
+        for (CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        {
+            std::string strError;
+            CMasternodeBroadcast mnb;
 
-//            bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb, true);
+            bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb, true);
 
-//            UniValue statusObj(UniValue::VOBJ);
-//            statusObj.push_back(Pair("alias", mne.getAlias()));
-//            statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
+            Object statusObj;
+            statusObj.push_back(Pair("alias", mne.getAlias()));
+            statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
 
-//            if(fResult) {
-//                nSuccessful++;
-//                vecMnb.push_back(mnb);
-//            } else {
-//                nFailed++;
-//                statusObj.push_back(Pair("errorMessage", strError));
-//            }
+            if(fResult)
+            {
+                nSuccessful++;
+                vecMnb.push_back(mnb);
+            }
+            else
+            {
+                nFailed++;
+                statusObj.push_back(Pair("errorMessage", strError));
+            }
 
-//            resultsObj.push_back(Pair("status", statusObj));
-//        }
+            resultsObj.push_back(Pair("status", statusObj));
+        }
 
-//        CDataStream ssVecMnb(SER_NETWORK, PROTOCOL_VERSION);
-//        ssVecMnb << vecMnb;
-//        UniValue returnObj(UniValue::VOBJ);
-//        returnObj.push_back(Pair("overall", strprintf("Successfully created broadcast messages for %d masternodes, failed to create %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
-//        returnObj.push_back(Pair("detail", resultsObj));
-//        returnObj.push_back(Pair("hex", HexStr(ssVecMnb.begin(), ssVecMnb.end())));
+        CDataStream ssVecMnb(SER_NETWORK, PROTOCOL_VERSION);
+        ssVecMnb << vecMnb;
+        Object returnObj;
+        returnObj.push_back(Pair("overall", strprintf("Successfully created broadcast messages for %d masternodes, failed to create %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
+        returnObj.push_back(Pair("detail", resultsObj));
+        returnObj.push_back(Pair("hex", HexStr(ssVecMnb.begin(), ssVecMnb.end())));
 
-//        return returnObj;
-//    }
+        return returnObj;
+    }
 
-//    if (strCommand == "decode")
-//    {
-//        if (params.size() != 2)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'masternodebroadcast decode \"hexstring\"'");
+    if (strCommand == "decode")
+    {
+        if (params.size() != 2)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'masternodebroadcast decode \"hexstring\"'");
 
-//        std::vector<CMasternodeBroadcast> vecMnb;
+        std::vector<CMasternodeBroadcast> vecMnb;
 
-//        if (!DecodeHexVecMnb(vecMnb, params[1].get_str()))
-//            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Masternode broadcast message decode failed");
+        if (!DecodeHexVecMnb(vecMnb, params[1].get_str()))
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Masternode broadcast message decode failed");
 
-//        int nSuccessful = 0;
-//        int nFailed = 0;
-//        int nDos = 0;
-//        UniValue returnObj(UniValue::VOBJ);
+        int nSuccessful = 0;
+        int nFailed = 0;
+        int nDos = 0;
+        Object returnObj;
 
-//        BOOST_FOREACH(CMasternodeBroadcast& mnb, vecMnb) {
-//            UniValue resultObj(UniValue::VOBJ);
+        for (CMasternodeBroadcast & mnb : vecMnb)
+        {
+            Object resultObj;
 
-//            if(mnb.CheckSignature(nDos)) {
-//                nSuccessful++;
-//                resultObj.push_back(Pair("vin", mnb.vin.ToString()));
-//                resultObj.push_back(Pair("addr", mnb.addr.ToString()));
-//                resultObj.push_back(Pair("pubKeyCollateralAddress", CBitcoinAddress(mnb.pubKeyCollateralAddress.GetID()).ToString()));
-//                resultObj.push_back(Pair("pubKeyMasternode", CBitcoinAddress(mnb.pubKeyMasternode.GetID()).ToString()));
-//                resultObj.push_back(Pair("vchSig", EncodeBase64(&mnb.vchSig[0], mnb.vchSig.size())));
-//                resultObj.push_back(Pair("sigTime", mnb.sigTime));
-//                resultObj.push_back(Pair("protocolVersion", mnb.nProtocolVersion));
-//                resultObj.push_back(Pair("nLastDsq", mnb.nLastDsq));
+            if(mnb.CheckSignature(nDos))
+            {
+                nSuccessful++;
+                resultObj.push_back(Pair("vin", mnb.vin.ToString()));
+                resultObj.push_back(Pair("addr", mnb.addr.ToString()));
+                resultObj.push_back(Pair("pubKeyCollateralAddress", CBitcoinAddress(mnb.pubKeyCollateralAddress.GetID()).ToString()));
+                resultObj.push_back(Pair("pubKeyMasternode", CBitcoinAddress(mnb.pubKeyMasternode.GetID()).ToString()));
+                resultObj.push_back(Pair("vchSig", EncodeBase64(&mnb.vchSig[0], mnb.vchSig.size())));
+                resultObj.push_back(Pair("sigTime", mnb.sigTime));
+                resultObj.push_back(Pair("protocolVersion", mnb.nProtocolVersion));
+                resultObj.push_back(Pair("nLastDsq", mnb.nLastDsq));
 
-//                UniValue lastPingObj(UniValue::VOBJ);
-//                lastPingObj.push_back(Pair("vin", mnb.lastPing.vin.ToString()));
-//                lastPingObj.push_back(Pair("blockHash", mnb.lastPing.blockHash.ToString()));
-//                lastPingObj.push_back(Pair("sigTime", mnb.lastPing.sigTime));
-//                lastPingObj.push_back(Pair("vchSig", EncodeBase64(&mnb.lastPing.vchSig[0], mnb.lastPing.vchSig.size())));
+                Object lastPingObj;
+                lastPingObj.push_back(Pair("vin", mnb.lastPing.vin.ToString()));
+                lastPingObj.push_back(Pair("blockHash", mnb.lastPing.blockHash.ToString()));
+                lastPingObj.push_back(Pair("sigTime", mnb.lastPing.sigTime));
+                lastPingObj.push_back(Pair("vchSig", EncodeBase64(&mnb.lastPing.vchSig[0], mnb.lastPing.vchSig.size())));
 
-//                resultObj.push_back(Pair("lastPing", lastPingObj));
-//            } else {
-//                nFailed++;
-//                resultObj.push_back(Pair("errorMessage", "Masternode broadcast signature verification failed"));
-//            }
+                resultObj.push_back(Pair("lastPing", lastPingObj));
+            }
+            else
+            {
+                nFailed++;
+                resultObj.push_back(Pair("errorMessage", "Masternode broadcast signature verification failed"));
+            }
 
-//            returnObj.push_back(Pair(mnb.GetHash().ToString(), resultObj));
-//        }
+            returnObj.push_back(Pair(mnb.GetHash().ToString(), resultObj));
+        }
 
-//        returnObj.push_back(Pair("overall", strprintf("Successfully decoded broadcast messages for %d masternodes, failed to decode %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
+        returnObj.push_back(Pair("overall", strprintf("Successfully decoded broadcast messages for %d masternodes, failed to decode %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
 
-//        return returnObj;
-//    }
+        return returnObj;
+    }
 
-//    if (strCommand == "relay")
-//    {
-//        if (params.size() < 2 || params.size() > 3)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER,   "masternodebroadcast relay \"hexstring\" ( fast )\n"
-//                                                        "\nArguments:\n"
-//                                                        "1. \"hex\"      (string, required) Broadcast messages hex string\n"
-//                                                        "2. fast       (string, optional) If none, using safe method\n");
+    if (strCommand == "relay")
+    {
+        if (params.size() < 2 || params.size() > 3)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,   "masternodebroadcast relay \"hexstring\" ( fast )\n"
+                                                        "\nArguments:\n"
+                                                        "1. \"hex\"      (string, required) Broadcast messages hex string\n"
+                                                        "2. fast       (string, optional) If none, using safe method\n");
 
-//        std::vector<CMasternodeBroadcast> vecMnb;
+        std::vector<CMasternodeBroadcast> vecMnb;
 
-//        if (!DecodeHexVecMnb(vecMnb, params[1].get_str()))
-//            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Masternode broadcast message decode failed");
+        if (!DecodeHexVecMnb(vecMnb, params[1].get_str()))
+            throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Masternode broadcast message decode failed");
 
-//        int nSuccessful = 0;
-//        int nFailed = 0;
-//        bool fSafe = params.size() == 2;
-//        UniValue returnObj(UniValue::VOBJ);
+        int nSuccessful = 0;
+        int nFailed = 0;
+        bool fSafe = params.size() == 2;
+        Object returnObj;
 
-//        // verify all signatures first, bailout if any of them broken
-//        BOOST_FOREACH(CMasternodeBroadcast& mnb, vecMnb) {
-//            UniValue resultObj(UniValue::VOBJ);
+        // verify all signatures first, bailout if any of them broken
+        for (CMasternodeBroadcast & mnb : vecMnb)
+        {
+            Object resultObj;
 
-//            resultObj.push_back(Pair("vin", mnb.vin.ToString()));
-//            resultObj.push_back(Pair("addr", mnb.addr.ToString()));
+            resultObj.push_back(Pair("vin", mnb.vin.ToString()));
+            resultObj.push_back(Pair("addr", mnb.addr.ToString()));
 
-//            int nDos = 0;
-//            bool fResult;
-//            if (mnb.CheckSignature(nDos)) {
-//                if (fSafe) {
-//                    fResult = mnodeman.CheckMnbAndUpdateMasternodeList(NULL, mnb, nDos);
-//                } else {
-//                    mnodeman.UpdateMasternodeList(mnb);
-//                    mnb.Relay();
-//                    fResult = true;
-//                }
-//                mnodeman.NotifyMasternodeUpdates();
-//            } else fResult = false;
+            int nDos = 0;
+            bool fResult;
+            if (mnb.CheckSignature(nDos))
+            {
+                if (fSafe)
+                {
+                    fResult = mnodeman.CheckMnbAndUpdateMasternodeList(NULL, mnb, nDos);
+                }
+                else
+                {
+                    mnodeman.UpdateMasternodeList(mnb);
+                    mnb.Relay();
+                    fResult = true;
+                }
+                mnodeman.NotifyMasternodeUpdates();
+            }
+            else
+            {
+                fResult = false;
+            }
 
-//            if(fResult) {
-//                nSuccessful++;
-//                resultObj.push_back(Pair(mnb.GetHash().ToString(), "successful"));
-//            } else {
-//                nFailed++;
-//                resultObj.push_back(Pair("errorMessage", "Masternode broadcast signature verification failed"));
-//            }
+            if(fResult)
+            {
+                nSuccessful++;
+                resultObj.push_back(Pair(mnb.GetHash().ToString(), "successful"));
+            }
+            else
+            {
+                nFailed++;
+                resultObj.push_back(Pair("errorMessage", "Masternode broadcast signature verification failed"));
+            }
 
-//            returnObj.push_back(Pair(mnb.GetHash().ToString(), resultObj));
-//        }
+            returnObj.push_back(Pair(mnb.GetHash().ToString(), resultObj));
+        }
 
-//        returnObj.push_back(Pair("overall", strprintf("Successfully relayed broadcast messages for %d masternodes, failed to relay %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
+        returnObj.push_back(Pair("overall", strprintf("Successfully relayed broadcast messages for %d masternodes, failed to relay %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
 
-//        return returnObj;
-//    }
+        return returnObj;
+    }
 
     return Value();
 }
