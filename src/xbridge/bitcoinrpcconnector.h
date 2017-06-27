@@ -28,6 +28,13 @@ namespace rpc
                             const std::string & rpcport,
                             std::vector<AddressBookEntry> & entries);
 
+    bool requestAddressAmount(const std::string & rpcuser,
+                              const std::string & rpcpasswd,
+                              const std::string & rpcip,
+                              const std::string & rpcport,
+                              const std::string & address,
+                              uint64_t & amount);
+
     struct Info
     {
         uint32_t blocks;
