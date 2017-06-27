@@ -6,6 +6,7 @@
 #include "xbridge/xuiconnector.h"
 
 #include "util/verify.h"
+#include "util.h"
 
 #include <assert.h>
 
@@ -14,10 +15,12 @@
 XBridgeAddressBookModel::XBridgeAddressBookModel()
 {
     m_columns << trUtf8("Currency")
-              << trUtf8("Name") << trUtf8("Address");
+              << trUtf8("Name")
+              << trUtf8("Amount")
+              << trUtf8("Address");
 
     xuiConnector.NotifyXBridgeAddressBookEntryReceived.connect
-            (boost::bind(&XBridgeAddressBookModel::onAddressBookEntryReceived, this, _1, _2, _3));
+            (boost::bind(&XBridgeAddressBookModel::onAddressBookEntryReceived, this, _1, _2, _3, _4));
 }
 
 //******************************************************************************
@@ -25,7 +28,7 @@ XBridgeAddressBookModel::XBridgeAddressBookModel()
 XBridgeAddressBookModel::~XBridgeAddressBookModel()
 {
     xuiConnector.NotifyXBridgeAddressBookEntryReceived.disconnect
-            (boost::bind(&XBridgeAddressBookModel::onAddressBookEntryReceived, this, _1, _2, _3));
+            (boost::bind(&XBridgeAddressBookModel::onAddressBookEntryReceived, this, _1, _2, _3, _4));
 }
 
 //******************************************************************************
@@ -68,6 +71,11 @@ QVariant XBridgeAddressBookModel::data(const QModelIndex & idx, int role) const
             case Name:
             {
                 QString text = QString::fromStdString(std::get<Name>(m_addressBook[idx.row()]));
+                return QVariant(text);
+            }
+            case Amount:
+            {
+                QString text = QString::number(std::get<Amount>(m_addressBook[idx.row()]) / qreal(COIN), 'g', 10);
                 return QVariant(text);
             }
             case Address:
@@ -113,6 +121,7 @@ XBridgeAddressBookModel::AddressBookEntry XBridgeAddressBookModel::entry(const i
 //******************************************************************************
 void XBridgeAddressBookModel::onAddressBookEntryReceived(const std::string & currency,
                                                          const std::string & name,
+                                                         const uint64_t & amount,
                                                          const std::string & address)
 {
     if (m_addresses.count(address))
@@ -123,6 +132,6 @@ void XBridgeAddressBookModel::onAddressBookEntryReceived(const std::string & cur
     m_addresses.insert(address);
 
     emit beginInsertRows(QModelIndex(), m_addressBook.size(), m_addressBook.size());
-    m_addressBook.push_back(std::make_tuple(currency, name, address));
+    m_addressBook.push_back(std::make_tuple(currency, name, amount, address));
     emit endInsertRows();
 }
