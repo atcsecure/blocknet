@@ -5,6 +5,7 @@
 #ifndef ACTIVEMASTERNODE_H
 #define ACTIVEMASTERNODE_H
 
+#include "serialize.h"
 #include "net.h"
 #include "key.h"
 #include "wallet.h"

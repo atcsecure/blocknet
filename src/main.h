@@ -697,6 +697,7 @@ protected:
     const CTxOut& GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const;
 };
 
+typedef CTransaction CMutableTransaction;
 
 
 

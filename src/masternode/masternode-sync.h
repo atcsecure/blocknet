@@ -4,6 +4,7 @@
 #ifndef MASTERNODE_SYNC_H
 #define MASTERNODE_SYNC_H
 
+#include "serialize.h"
 // #include "chain.h"
 #include "net.h"
 

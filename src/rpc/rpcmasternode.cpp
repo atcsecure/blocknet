@@ -6,7 +6,7 @@
 // #include "darksend.h"
 #include "init.h"
 #include "main.h"
-// #include "masternode-payments.h"
+#include "masternode/masternode-payments.h"
 #include "masternode/masternode-sync.h"
 #include "masternode/masternodeconfig.h"
 #include "masternode/masternodeman.h"
@@ -228,20 +228,20 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "start")
     {
-//        if(!fMasterNode)
-//            throw JSONRPCError(RPC_INTERNAL_ERROR, "You must set masternode=1 in the configuration");
+        if(!fMasterNode)
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "You must set masternode=1 in the configuration");
 
-//        {
-//            LOCK(pwalletMain->cs_wallet);
-//            EnsureWalletIsUnlocked();
-//        }
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
-//        if(activeMasternode.nState != ACTIVE_MASTERNODE_STARTED){
-//            activeMasternode.nState = ACTIVE_MASTERNODE_INITIAL; // TODO: consider better way
-//            activeMasternode.ManageState();
-//        }
+        if(activeMasternode.nState != ACTIVE_MASTERNODE_STARTED){
+            activeMasternode.nState = ACTIVE_MASTERNODE_INITIAL; // TODO: consider better way
+            activeMasternode.ManageState();
+        }
 
-//        return activeMasternode.GetStatus();
+        return activeMasternode.GetStatus();
     }
 
     if (strCommand == "start-alias")
@@ -293,54 +293,65 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "start-all" || strCommand == "start-missing" || strCommand == "start-disabled")
     {
-//        {
-//            LOCK(pwalletMain->cs_wallet);
-//            EnsureWalletIsUnlocked();
-//        }
+        {
+            LOCK(pwalletMain->cs_wallet);
+            EnsureWalletIsUnlocked();
+        }
 
-//        if((strCommand == "start-missing" || strCommand == "start-disabled") && !masternodeSync.IsMasternodeListSynced()) {
-//            throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "You can't use this command until masternode list is synced");
-//        }
+        if((strCommand == "start-missing" || strCommand == "start-disabled") && !masternodeSync.IsMasternodeListSynced()) {
+            throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "You can't use this command until masternode list is synced");
+        }
 
-//        int nSuccessful = 0;
-//        int nFailed = 0;
+        int nSuccessful = 0;
+        int nFailed = 0;
 
-//        UniValue resultsObj(UniValue::VOBJ);
+        Object resultsObj;
 
-//        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-//            std::string strError;
+        for (CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        {
+            std::string strError;
 
-//            CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
-//            CMasternode *pmn = mnodeman.Find(vin);
-//            CMasternodeBroadcast mnb;
+            CTxIn vin = CTxIn(uint256(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
+            CMasternode * pmn = mnodeman.Find(vin);
+            CMasternodeBroadcast mnb;
 
-//            if(strCommand == "start-missing" && pmn) continue;
-//            if(strCommand == "start-disabled" && pmn && pmn->IsEnabled()) continue;
+            if(strCommand == "start-missing" && pmn)
+            {
+                continue;
+            }
 
-//            bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
+            if(strCommand == "start-disabled" && pmn && pmn->IsEnabled())
+            {
+                continue;
+            }
 
-//            UniValue statusObj(UniValue::VOBJ);
-//            statusObj.push_back(Pair("alias", mne.getAlias()));
-//            statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
+            bool fResult = CMasternodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
 
-//            if (fResult) {
-//                nSuccessful++;
-//                mnodeman.UpdateMasternodeList(mnb);
-//                mnb.Relay();
-//            } else {
-//                nFailed++;
-//                statusObj.push_back(Pair("errorMessage", strError));
-//            }
+            Object statusObj;
+            statusObj.push_back(Pair("alias", mne.getAlias()));
+            statusObj.push_back(Pair("result", fResult ? "successful" : "failed"));
 
-//            resultsObj.push_back(Pair("status", statusObj));
-//        }
-//        mnodeman.NotifyMasternodeUpdates();
+            if (fResult)
+            {
+                nSuccessful++;
+                mnodeman.UpdateMasternodeList(mnb);
+                mnb.Relay();
+            }
+            else
+            {
+                nFailed++;
+                statusObj.push_back(Pair("errorMessage", strError));
+            }
 
-//        UniValue returnObj(UniValue::VOBJ);
-//        returnObj.push_back(Pair("overall", strprintf("Successfully started %d masternodes, failed to start %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
-//        returnObj.push_back(Pair("detail", resultsObj));
+            resultsObj.push_back(Pair("status", statusObj));
+        }
+        mnodeman.NotifyMasternodeUpdates();
 
-//        return returnObj;
+        Object returnObj;
+        returnObj.push_back(Pair("overall", strprintf("Successfully started %d masternodes, failed to start %d, total %d", nSuccessful, nFailed, nSuccessful + nFailed)));
+        returnObj.push_back(Pair("detail", resultsObj));
+
+        return returnObj;
     }
 
     if (strCommand == "genkey")
@@ -392,57 +403,67 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "status")
     {
-//        if (!fMasterNode)
-//            throw JSONRPCError(RPC_INTERNAL_ERROR, "This is not a masternode");
+        if (!fMasterNode)
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "This is not a masternode");
 
-//        UniValue mnObj(UniValue::VOBJ);
+        Object mnObj;
 
-//        mnObj.push_back(Pair("vin", activeMasternode.vin.ToString()));
-//        mnObj.push_back(Pair("service", activeMasternode.service.ToString()));
+        mnObj.push_back(Pair("vin", activeMasternode.vin.ToString()));
+        mnObj.push_back(Pair("service", activeMasternode.service.ToString()));
 
-//        CMasternode mn;
-//        if(mnodeman.Get(activeMasternode.vin, mn)) {
-//            mnObj.push_back(Pair("payee", CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString()));
-//        }
+        CMasternode mn;
+        if(mnodeman.Get(activeMasternode.vin, mn))
+        {
+            mnObj.push_back(Pair("payee", CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString()));
+        }
 
-//        mnObj.push_back(Pair("status", activeMasternode.GetStatus()));
-//        return mnObj;
+        mnObj.push_back(Pair("status", activeMasternode.GetStatus()));
+        return mnObj;
     }
 
     if (strCommand == "winners")
     {
-//        int nHeight;
-//        {
-//            LOCK(cs_main);
-//            CBlockIndex* pindex = chainActive.Tip();
-//            if(!pindex) return NullUniValue;
+        int nHeight;
+        {
+            LOCK(cs_main);
+            CBlockIndex * pindex = FindBlockByHeight(nBestHeight); // chainActive.Tip();
+            if(!pindex)
+            {
+                return Object();
+            }
 
-//            nHeight = pindex->nHeight;
-//        }
+            nHeight = pindex->nHeight;
+        }
 
-//        int nLast = 10;
-//        std::string strFilter = "";
+        int nLast = 10;
+        std::string strFilter = "";
 
-//        if (params.size() >= 2) {
-//            nLast = atoi(params[1].get_str());
-//        }
+        if (params.size() >= 2)
+        {
+            nLast = atoi(params[1].get_str());
+        }
 
-//        if (params.size() == 3) {
-//            strFilter = params[2].get_str();
-//        }
+        if (params.size() == 3) {
+            strFilter = params[2].get_str();
+        }
 
-//        if (params.size() > 3)
-//            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'masternode winners ( \"count\" \"filter\" )'");
+        if (params.size() > 3)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'masternode winners ( \"count\" \"filter\" )'");
 
-//        UniValue obj(UniValue::VOBJ);
+        Object obj;
 
-//        for(int i = nHeight - nLast; i < nHeight + 20; i++) {
-//            std::string strPayment = GetRequiredPaymentsString(i);
-//            if (strFilter !="" && strPayment.find(strFilter) == std::string::npos) continue;
-//            obj.push_back(Pair(strprintf("%d", i), strPayment));
-//        }
+        for(int i = nHeight - nLast; i < nHeight + 20; i++)
+        {
+            std::string strPayment = GetRequiredPaymentsString(i);
+            if (strFilter !="" && strPayment.find(strFilter) == std::string::npos)
+            {
+                continue;
+            }
 
-//        return obj;
+            obj.push_back(Pair(strprintf("%d", i), strPayment));
+        }
+
+        return obj;
     }
 
     return Value();

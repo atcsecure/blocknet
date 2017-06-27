@@ -35,8 +35,10 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-static const int64_t COIN = 100000000;
-static const int64_t CENT = 1000000;
+typedef int64_t CAmount;
+
+static const CAmount COIN = 100000000;
+static const CAmount CENT = 1000000;
 
 #define BEGIN(a)            ((char*)&(a))
 #define END(a)              ((char*)&((&(a))[1]))

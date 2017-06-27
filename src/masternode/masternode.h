@@ -5,6 +5,7 @@
 #ifndef MASTERNODE_H
 #define MASTERNODE_H
 
+#include "serialize.h"
 #include "key.h"
 #include "main.h"
 #include "net.h"
