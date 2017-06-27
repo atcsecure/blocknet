@@ -444,7 +444,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/masternode/masternode.h \
     src/masternode/activemasternode.h \
     src/masternode/masternode-sync.h \
-    src/masternode/masternode-payments.h
+    src/masternode/masternode-payments.h \
+    src/tinyformat.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

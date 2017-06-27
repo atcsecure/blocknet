@@ -198,6 +198,7 @@ uint256 GetRandHash()
 
 
 
+string vstrprintf(const char *format, va_list ap);
 
 static FILE* fileout = NULL;
 
