@@ -671,5 +671,8 @@ class CTransaction;
 void RelayTransaction(const CTransaction& tx, const uint256& hash);
 void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
 
+std::vector<CNode*> CopyNodeVector();
+
+void ReleaseNodeVector(const std::vector<CNode*>& vecNodes);
 
 #endif

@@ -89,6 +89,10 @@ extern const char *VERACK;
  */
 extern const char *ADDR;
 /**
+ *  CHECKPOINT
+ */
+extern const char *CHECKPOINT;
+/**
  * The inv message (inventory message) transmits one or more inventories of
  * objects known to the transmitting peer.
  * @see https://bitcoin.org/en/developer-reference#inv

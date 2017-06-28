@@ -144,14 +144,6 @@ bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue);
 
-struct CNodeStateStats
-{
-    int nMisbehavior;
-    int nSyncHeight;
-    int nCommonHeight;
-    std::vector<int> vHeightInFlight;
-};
-
 /** Position on disk for a particular transaction. */
 class CDiskTxPos
 {

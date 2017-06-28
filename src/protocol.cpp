@@ -16,6 +16,7 @@ const char *NETVERSION="version";
 const char *VERACK="verack";
 const char *ADDR="addr";
 const char *INV="inv";
+const char *CHECKPOINT="checkpoint";
 const char *GETDATA="getdata";
 const char *MERKLEBLOCK="merkleblock";
 const char *GETBLOCKS="getblocks";
@@ -100,6 +101,7 @@ const static std::string allNetMessageTypes[] = {
     NetMsgType::VERACK,
     NetMsgType::ADDR,
     NetMsgType::INV,
+    NetMsgType::CHECKPOINT,
     NetMsgType::GETDATA,
     NetMsgType::MERKLEBLOCK,
     NetMsgType::GETBLOCKS,
