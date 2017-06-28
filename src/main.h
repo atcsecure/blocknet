@@ -97,6 +97,7 @@ static const uint64_t nMinDiskSpace = 52428800;
 class CReserveKey;
 class CTxDB;
 class CTxIndex;
+class CTxIn;
 
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
@@ -128,6 +129,9 @@ void StakeMiner(CWallet *pwallet);
 void ResendWalletTransactions(bool fForce = false);
 
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
+
+int GetInputDepthInMainChain(const CTxIn & txin);
+
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos

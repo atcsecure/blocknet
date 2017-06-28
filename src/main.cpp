@@ -3856,3 +3856,16 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     }
     return true;
 }
+
+int GetInputDepthInMainChain(const CTxIn & txin)
+{
+    CWalletTx tx;
+    if (!pwalletMain->GetTransaction(txin.prevout.hash, tx))
+    {
+        printf("Not found wallet transaction %s", txin.prevout.hash.ToString().c_str());
+        return -1;
+    }
+
+    CBlockIndex * block = nullptr;
+    return tx.GetDepthInMainChain(block);
+}

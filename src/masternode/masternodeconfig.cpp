@@ -8,6 +8,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
+// masternode parameters
+const uint32_t nMasternodeMinimumConfirmations = 256;
+
 CMasternodeConfig masternodeConfig;
 
 void CMasternodeConfig::add(std::string alias, std::string ip, std::string privKey,

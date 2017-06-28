@@ -6,6 +6,10 @@
 #ifndef SRC_MASTERNODECONFIG_H_
 #define SRC_MASTERNODECONFIG_H_
 
+// masternode parameters
+extern const uint32_t nMasternodeMinimumConfirmations;
+
+
 class CMasternodeConfig;
 extern CMasternodeConfig masternodeConfig;
 
