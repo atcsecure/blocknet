@@ -9,7 +9,9 @@
 #include <boost/filesystem/fstream.hpp>
 
 // masternode parameters
-const uint32_t nMasternodeMinimumConfirmations = 256;
+const uint32_t nMasternodeMinimumConfirmations =
+        fTestNet ? 1
+                 : 15;
 
 CMasternodeConfig masternodeConfig;
 
