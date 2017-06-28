@@ -278,3 +278,7 @@ void CInv::print() const
     printf("CInv(%s)\n", ToString().c_str());
 }
 
+const std::vector<std::string> &getAllNetMessageTypes()
+{
+    return allNetMessageTypesVec;
+}
