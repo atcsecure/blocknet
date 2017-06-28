@@ -138,6 +138,7 @@ int GetInputDepthInMainChain(const CTxIn & txin);
  */
 bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
 
+CAmount GetMasternodePayment(int nHeight, CAmount blockValue);
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos
