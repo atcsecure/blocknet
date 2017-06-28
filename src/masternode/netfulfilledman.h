@@ -23,7 +23,7 @@ private:
 
     //keep track of what node has/was asked for and when
     fulfilledreqmap_t mapFulfilledRequests;
-    CCriticalSection cs_mapFulfilledRequests;
+    mutable CCriticalSection cs_mapFulfilledRequests;
 
 public:
     CNetFulfilledRequestManager() {}

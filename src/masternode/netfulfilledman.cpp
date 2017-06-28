@@ -15,7 +15,7 @@ CNetFulfilledRequestManager netfulfilledman;
 void CNetFulfilledRequestManager::AddFulfilledRequest(CAddress addr, std::string strRequest)
 {
     LOCK(cs_mapFulfilledRequests);
-    mapFulfilledRequests[addr][strRequest] = GetTime() + Params().FulfilledRequestExpireTime();
+    mapFulfilledRequests[addr][strRequest] = GetTime() + nFulfilledRequestExpireTime;
 }
 
 bool CNetFulfilledRequestManager::HasFulfilledRequest(CAddress addr, std::string strRequest)
