@@ -27,14 +27,10 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
+void RandFailure();
+
 namespace xbridge
 {
-
-static void RandFailure()
-{
-    // LogPrintf("Failed to read randomness, aborting\n");
-    abort();
-}
 
 static inline int64_t GetPerformanceCounter()
 {
@@ -126,13 +122,6 @@ static void GetOSRand(unsigned char *ent32)
     } while (have < 32);
     close(f);
 #endif
-}
-
-void GetRandBytes(unsigned char* buf, int num)
-{
-    if (RAND_bytes(buf, num) != 1) {
-        RandFailure();
-    }
 }
 
 void GetStrongRandBytes(unsigned char* out, int num)

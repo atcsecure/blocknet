@@ -167,6 +167,19 @@ void RandAddSeedPerfmon()
 #endif
 }
 
+void RandFailure()
+{
+    printf("Failed to read randomness, aborting\n");
+    abort();
+}
+
+void GetRandBytes(unsigned char* buf, int num)
+{
+    if (RAND_bytes(buf, num) != 1) {
+        RandFailure();
+    }
+}
+
 uint64_t GetRand(uint64_t nMax)
 {
     if (nMax == 0)
