@@ -57,7 +57,6 @@ private:
     // Keep track of current block index
     const CBlockIndex *pCurrentBlockIndex;
 
-    bool CheckNodeHeight(CNode* pnode, bool fDisconnectStuckNodes = false);
     void Fail();
     void ClearFulfilledRequests();
 
