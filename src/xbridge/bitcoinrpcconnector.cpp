@@ -520,48 +520,6 @@ bool getaddressesbyaccount(const std::string & rpcuser, const std::string & rpcp
     return true;
 }
 
-bool requestAddressAmount(const std::string & rpcuser, const std::string & rpcpasswd,
-                          const std::string & rpcip, const std::string & rpcport,
-                          const std::string & address, uint64_t & amount)
-{
-    try
-    {
-        Array params;
-        params.push_back(address);
-        Object reply = CallRPC(rpcuser, rpcpasswd, rpcip, rpcport,
-                               "getreceivedbyaddress", params);
-
-        // Parse reply
-        const Value & result = find_value(reply, "result");
-        const Value & error  = find_value(reply, "error");
-
-        if (error.type() != null_type)
-        {
-            // Error
-            LOG() << "error: " << write_string(error, false);
-            // int code = find_value(error.get_obj(), "code").get_int();
-            return false;
-        }
-        else if (result.type() != real_type)
-        {
-            // Result
-            LOG() << "result not an real " <<
-                     (result.type() == null_type ? "" :
-                      write_string(result, true));
-            return false;
-        }
-
-        amount = result.get_real() * COIN;
-    }
-    catch (std::exception & e)
-    {
-        LOG() << "getreceivedbyaddress exception " << e.what();
-        return false;
-    }
-
-    return true;
-}
-
 //*****************************************************************************
 //*****************************************************************************
 bool requestAddressBook(const std::string & rpcuser, const std::string & rpcpasswd,

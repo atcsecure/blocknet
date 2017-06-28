@@ -31,6 +31,7 @@ struct XBridgeTransactionDescr
     {
         trExpired = -1,
         trNew = 0,
+        trOffline,
         trPending,
         trAccepting,
         trHold,

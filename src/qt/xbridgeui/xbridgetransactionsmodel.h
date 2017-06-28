@@ -27,16 +27,16 @@ public:
 
     enum ColumnIndex
     {
-        CreationDate = 0,
-        FirstColumn  = CreationDate,
-        AddressFrom  = 1,
-        AmountFrom   = 2,
-        AddressTo    = 3,
-        AmountTo     = 4,
-        State        = 5,
-        Tax          = 6,
-        LastColumn   = Tax
+        Total       = 0,
+        FirstColumn = Total,
+        Size        = 1,
+        BID         = 2,
+        State       = 3,
+        Fee         = 4,
+        LastColumn  = Fee
     };
+
+    static const int rawStateRole = Qt::UserRole + 1;
 
 public:
     // static QString   thisCurrency();

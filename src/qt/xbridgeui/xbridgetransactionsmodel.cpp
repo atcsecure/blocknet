@@ -16,11 +16,11 @@
 //******************************************************************************
 XBridgeTransactionsModel::XBridgeTransactionsModel()
 {
-    m_columns << trUtf8("Created")
-              << trUtf8("From") << trUtf8("Sell amount")
-              << trUtf8("To") << trUtf8("Buy amount")
-              << trUtf8("State")
-              << trUtf8("Fee");
+    m_columns << trUtf8("TOTAL")
+              << trUtf8("SIZE")
+              << trUtf8("BID")
+              << trUtf8("STATE")
+              << trUtf8("FEE");
 
     xuiConnector.NotifyXBridgePendingTransactionReceived.connect
             (boost::bind(&XBridgeTransactionsModel::onTransactionReceived, this, _1));
@@ -82,47 +82,31 @@ QVariant XBridgeTransactionsModel::data(const QModelIndex & idx, int role) const
     {
         switch (idx.column())
         {
-            case CreationDate:
-            {
-                std::ostringstream o;
-                o << d.created;
-                return QVariant(QString::fromStdString(o.str()));
-            }
-            case AddressFrom:
-            {
-                QString text;
-                if (d.from.size())
-                {
-                    text = QString::fromStdString(d.from);
-                }
-                return QVariant(text);
-            }
-            case AmountFrom:
+            case Total:
             {
                 double amount = (double)d.fromAmount / XBridgeTransactionDescr::COIN;
                 QString text = QString("%1 %2").arg(QString::number(amount), QString::fromStdString(d.fromCurrency));
                 return QVariant(text);
             }
-            case AddressTo:
-            {
-                QString text;
-                if (d.to.size())
-                {
-                    text = QString::fromStdString(d.to);
-                }
-                return QVariant(text);
-            }
-            case AmountTo:
+            case Size:
             {
                 double amount = (double)d.toAmount / XBridgeTransactionDescr::COIN;
                 QString text = QString("%1 %2").arg(QString::number(amount), QString::fromStdString(d.toCurrency));
                 return QVariant(text);
             }
+            case BID:
+            {
+                double amountTotal = (double)d.fromAmount / XBridgeTransactionDescr::COIN;
+                double amountSize = (double)d.toAmount / XBridgeTransactionDescr::COIN;
+                double bid = amountTotal / amountSize;
+
+                return QString::number(bid, 'g', 10);
+            }
             case State:
             {
                 return QVariant(transactionState(d.state));
             }
-            case Tax:
+            case Fee:
             {
                 return QString("%1%").arg(QString::number((double)d.tax / 1000, 10, 2));
             }
@@ -130,6 +114,14 @@ QVariant XBridgeTransactionsModel::data(const QModelIndex & idx, int role) const
             default:
                 return QVariant();
         }
+    }
+
+    if(role == rawStateRole)
+    {
+        if(idx.column() == State)
+            return QVariant(d.state);
+        else
+            return QVariant();
     }
 
     return QVariant();
@@ -299,14 +291,21 @@ void XBridgeTransactionsModel::onTimer()
                 boost::posix_time::second_clock::universal_time() -
                 m_transactions[i].txtime;
 
-        if (m_transactions[i].state == XBridgeTransactionDescr::trPending &&
-                td.total_seconds() > XBridgeTransaction::TTL/10)
+        if (m_transactions[i].state == XBridgeTransactionDescr::trNew &&
+                td.total_seconds() > XBridgeTransaction::TTL/60)
+        {
+            m_transactions[i].state = XBridgeTransactionDescr::trOffline;
+            emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
+        }
+        else if (m_transactions[i].state == XBridgeTransactionDescr::trPending &&
+                td.total_seconds() > XBridgeTransaction::TTL/6)
         {
             m_transactions[i].state = XBridgeTransactionDescr::trExpired;
             emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
         }
-        else if (m_transactions[i].state == XBridgeTransactionDescr::trExpired &&
-                         td.total_seconds() < XBridgeTransaction::TTL/10)
+        else if ((m_transactions[i].state == XBridgeTransactionDescr::trExpired ||
+                  m_transactions[i].state == XBridgeTransactionDescr::trOffline) &&
+                         td.total_seconds() < XBridgeTransaction::TTL/6)
         {
             m_transactions[i].state = XBridgeTransactionDescr::trPending;
             emit dataChanged(index(i, FirstColumn), index(i, LastColumn));
@@ -432,6 +431,7 @@ QString XBridgeTransactionsModel::transactionState(const XBridgeTransactionDescr
         case XBridgeTransactionDescr::trRollback:  return trUtf8("Rolled Back");
         case XBridgeTransactionDescr::trDropped:   return trUtf8("Dropped");
         case XBridgeTransactionDescr::trExpired:   return trUtf8("Expired");
+        case XBridgeTransactionDescr::trOffline:   return trUtf8("Offline");
         default:                                   return trUtf8("Unknown");
     }
 }

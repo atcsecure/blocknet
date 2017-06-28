@@ -45,11 +45,22 @@ void XBridgeTransactionsView::setupUi()
     QLabel * l = new QLabel(tr("Blocknet Decentralized Exchange"), this);
     vbox->addWidget(l);
 
-    m_proxy.setSourceModel(&m_txModel);
-    m_proxy.setDynamicSortFilter(true);
+    m_transactionsProxy.setSourceModel(&m_txModel);
+    m_transactionsProxy.setDynamicSortFilter(true);
+
+    QList<XBridgeTransactionDescr::State> transactionsAccetpedStates;
+    transactionsAccetpedStates << XBridgeTransactionDescr::trNew
+                               << XBridgeTransactionDescr::trPending
+                               << XBridgeTransactionDescr::trAccepting
+                               << XBridgeTransactionDescr::trHold
+                               << XBridgeTransactionDescr::trCreated
+                               << XBridgeTransactionDescr::trSigned
+                               << XBridgeTransactionDescr::trCommited;
+
+    m_transactionsProxy.setAcceptedStates(transactionsAccetpedStates);
 
     m_transactionsList = new QTableView(this);
-    m_transactionsList->setModel(&m_proxy);
+    m_transactionsList->setModel(&m_transactionsProxy);
     m_transactionsList->setContextMenuPolicy(Qt::CustomContextMenu);
     m_transactionsList->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_transactionsList->setSortingEnabled(true);
@@ -60,19 +71,26 @@ void XBridgeTransactionsView::setupUi()
 
     QHeaderView * header = m_transactionsList->horizontalHeader();
 #if QT_VERSION <0x050000
-    header->setResizeMode(XBridgeTransactionsModel::AddressFrom, QHeaderView::Stretch);
+    header->setResizeMode(XBridgeTransactionsModel::Total, QHeaderView::Stretch);
 #else
-    header->setSectionResizeMode(XBridgeTransactionsModel::AddressFrom, QHeaderView::Stretch);
+    header->setSectionResizeMode(XBridgeTransactionsModel::Total, QHeaderView::Stretch);
 #endif
-    header->resizeSection(XBridgeTransactionsModel::AmountFrom,  80);
 #if QT_VERSION <0x050000
-    header->setResizeMode(XBridgeTransactionsModel::AddressTo, QHeaderView::Stretch);
+    header->setResizeMode(XBridgeTransactionsModel::Size, QHeaderView::Stretch);
 #else
-    header->setSectionResizeMode(XBridgeTransactionsModel::AddressTo, QHeaderView::Stretch);
+    header->setSectionResizeMode(XBridgeTransactionsModel::Size, QHeaderView::Stretch);
 #endif
-    header->resizeSection(XBridgeTransactionsModel::AmountTo,    80);
-    header->resizeSection(XBridgeTransactionsModel::State,       128);
-    header->resizeSection(XBridgeTransactionsModel::Tax,         64);
+#if QT_VERSION <0x050000
+    header->setResizeMode(XBridgeTransactionsModel::BID, QHeaderView::Stretch);
+#else
+    header->setSectionResizeMode(XBridgeTransactionsModel::BID, QHeaderView::Stretch);
+#endif
+
+    header->resizeSection(XBridgeTransactionsModel::Total,      80);
+    header->resizeSection(XBridgeTransactionsModel::Size,       80);
+    header->resizeSection(XBridgeTransactionsModel::BID,        80);
+    header->resizeSection(XBridgeTransactionsModel::State,      128);
+    header->resizeSection(XBridgeTransactionsModel::Fee,        80);
     vbox->addWidget(m_transactionsList);
 
     QHBoxLayout * hbox = new QHBoxLayout;
@@ -94,11 +112,54 @@ void XBridgeTransactionsView::setupUi()
 
     hbox->addStretch();
 
-    QPushButton * showHideButton = new QPushButton(">>", this);
-    VERIFY(connect(showHideButton, SIGNAL(clicked()), this, SLOT(onShowLogs())));
+    QPushButton * showHideButton = new QPushButton("Toggle to log", this);
+    VERIFY(connect(showHideButton, SIGNAL(clicked()), this, SLOT(onToggleHistoricLogs())));
     hbox->addWidget(showHideButton);
 
     vbox->addLayout(hbox);
+
+    m_historicTransactionsProxy.setSourceModel(&m_txModel);
+    m_historicTransactionsProxy.setDynamicSortFilter(true);
+
+    QList<XBridgeTransactionDescr::State> historicTransactionsAccetpedStates;
+    historicTransactionsAccetpedStates << XBridgeTransactionDescr::trExpired
+                                       << XBridgeTransactionDescr::trOffline
+                                       << XBridgeTransactionDescr::trFinished
+                                       << XBridgeTransactionDescr::trDropped
+                                       << XBridgeTransactionDescr::trCancelled
+                                       << XBridgeTransactionDescr::trInvalid;
+
+    m_historicTransactionsProxy.setAcceptedStates(historicTransactionsAccetpedStates);
+
+    m_historicTransactionsList = new QTableView(this);
+    m_historicTransactionsList->setModel(&m_historicTransactionsProxy);
+    m_historicTransactionsList->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_historicTransactionsList->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_historicTransactionsList->setSortingEnabled(true);
+
+    QHeaderView * historicHeader = m_historicTransactionsList->horizontalHeader();
+#if QT_VERSION <0x050000
+    header->setResizeMode(XBridgeTransactionsModel::Total, QHeaderView::Stretch);
+#else
+    historicHeader->setSectionResizeMode(XBridgeTransactionsModel::Total, QHeaderView::Stretch);
+#endif
+#if QT_VERSION <0x050000
+    header->setResizeMode(XBridgeTransactionsModel::Size, QHeaderView::Stretch);
+#else
+    historicHeader->setSectionResizeMode(XBridgeTransactionsModel::Size, QHeaderView::Stretch);
+#endif
+#if QT_VERSION <0x050000
+    header->setResizeMode(XBridgeTransactionsModel::BID, QHeaderView::Stretch);
+#else
+    historicHeader->setSectionResizeMode(XBridgeTransactionsModel::BID, QHeaderView::Stretch);
+#endif
+
+    historicHeader->resizeSection(XBridgeTransactionsModel::Total,      80);
+    historicHeader->resizeSection(XBridgeTransactionsModel::Size,       80);
+    historicHeader->resizeSection(XBridgeTransactionsModel::BID,        80);
+    historicHeader->resizeSection(XBridgeTransactionsModel::State,      128);
+    historicHeader->resizeSection(XBridgeTransactionsModel::Fee,        80);
+    vbox->addWidget(m_historicTransactionsList);
 
     m_logStrings = new QTextEdit(this);
     m_logStrings->setMinimumHeight(64);
@@ -232,7 +293,7 @@ void XBridgeTransactionsView::onContextMenu(QPoint /*pt*/)
         return;
     }
 
-    m_contextMenuIndex = m_proxy.mapToSource(m_contextMenuIndex);
+    m_contextMenuIndex = m_transactionsProxy.mapToSource(m_contextMenuIndex);
     if (!m_contextMenuIndex.isValid())
     {
         return;
@@ -246,16 +307,22 @@ void XBridgeTransactionsView::onContextMenu(QPoint /*pt*/)
 
 //******************************************************************************
 //******************************************************************************
-void XBridgeTransactionsView::onShowLogs()
+void XBridgeTransactionsView::onToggleHistoricLogs()
 {
     QPushButton * btn = qobject_cast<QPushButton *>(sender());
 
-    bool visible = m_logStrings->isVisible();
-    btn->setText(visible ? ">>" : "<<");
+    bool logsVisible = m_logStrings->isVisible();
+    bool historicTrVisible = m_historicTransactionsList->isVisible();
 
-    m_logStrings->setVisible(!visible);
+    if(logsVisible)
+        btn->setText("Toggle to log");
+    else if(historicTrVisible)
+        btn->setText("Toggle to history");
 
-    if (!visible)
+    m_logStrings->setVisible(!logsVisible);
+    m_historicTransactionsList->setVisible(!historicTrVisible);
+
+    if (!logsVisible)
     {
         m_logStrings->clear();
 

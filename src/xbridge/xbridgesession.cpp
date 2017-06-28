@@ -2818,12 +2818,8 @@ void XBridgeSession::requestAddressBook()
             m_addressBook.insert(vaddr);
             app.storageStore(shared_from_this(), vaddr);
 
-            uint64_t amount;
-            if(!rpc::requestAddressAmount(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, addr, amount))
-                amount = 0;
-
             xuiConnector.NotifyXBridgeAddressBookEntryReceived
-                    (m_wallet.currency, e.first, amount, addr);
+                    (m_wallet.currency, e.first, addr);
         }
     }
 }
@@ -3059,4 +3055,21 @@ bool XBridgeSession::checkAmount(const uint64_t _amount) const
     }
 
     return false;
+}
+
+double XBridgeSession::getAccountBalance() const
+{
+    std::vector<rpc::Unspent> entries;
+    if (!rpc::listUnspent(m_wallet.user, m_wallet.passwd,
+                          m_wallet.ip, m_wallet.port, entries))
+    {
+        LOG() << "rpc::listUnspent failed" << __FUNCTION__;
+        return 0;
+    }
+
+    double amount = 0;
+    for (const rpc::Unspent & entry : entries)
+        amount += entry.amount;
+
+    return amount;
 }
