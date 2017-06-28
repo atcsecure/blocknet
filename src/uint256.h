@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 inline int Testuint256AdHoc(std::vector<std::string> vArg);
 
@@ -289,6 +290,15 @@ public:
         return (!(a == b));
     }
 
+    friend inline const base_uint operator>>(const base_uint& a, int shift)
+    {
+        return base_uint(a) >>= shift;
+    }
+
+    friend inline const base_uint operator<<(const base_uint& a, int shift)
+    {
+        return base_uint(a) <<= shift;
+    }
 
 
     std::string GetHex() const
@@ -382,6 +392,26 @@ public:
     friend class uint256;
 	friend class uint512;
     friend inline int Testuint256AdHoc(std::vector<std::string> vArg);
+
+    unsigned int bits() const
+    {
+        for (int pos = WIDTH - 1; pos >= 0; pos--) {
+            if (pn[pos]) {
+                for (int bits = 31; bits > 0; bits--) {
+                    if (pn[pos] & 1 << bits)
+                        return 32 * pos + bits + 1;
+                }
+                return 32 * pos + 1;
+            }
+        }
+        return 0;
+    }
+
+    uint64_t GetLow64() const
+    {
+        assert(WIDTH >= 2);
+        return pn[0] | (uint64_t)pn[1] << 32;
+    }
 };
 
 typedef base_uint<160> base_uint160;
@@ -573,6 +603,70 @@ public:
     explicit uint256(const unsigned char * ptr)
     {
         memcpy(pn, ptr, sizeof(pn));
+    }
+
+    /**
+     * The "compact" format is a representation of a whole
+     * number N using an unsigned 32bit number similar to a
+     * floating point format.
+     * The most significant 8 bits are the unsigned exponent of base 256.
+     * This exponent can be thought of as "number of bytes of N".
+     * The lower 23 bits are the mantissa.
+     * Bit number 24 (0x800000) represents the sign of N.
+     * N = (-1^sign) * mantissa * 256^(exponent-3)
+     *
+     * Satoshi's original implementation used BN_bn2mpi() and BN_mpi2bn().
+     * MPI uses the most significant bit of the first byte as sign.
+     * Thus 0x1234560000 is compact (0x05123456)
+     * and  0xc0de000000 is compact (0x0600c0de)
+     *
+     * Bitcoin only uses this "compact" format for encoding difficulty
+     * targets, which are unsigned 256bit quantities.  Thus, all the
+     * complexities of the sign bit and using base 256 are probably an
+     * implementation accident.
+     */
+    uint256 & SetCompact(uint32_t nCompact, bool *pfNegative = NULL, bool *pfOverflow = NULL)
+    {
+        int nSize = nCompact >> 24;
+        uint32_t nWord = nCompact & 0x007fffff;
+        if (nSize <= 3) {
+            nWord >>= 8 * (3 - nSize);
+            *this = nWord;
+        } else {
+            *this = nWord;
+            *this <<= 8 * (nSize - 3);
+        }
+        if (pfNegative)
+            *pfNegative = nWord != 0 && (nCompact & 0x00800000) != 0;
+        if (pfOverflow)
+            *pfOverflow = nWord != 0 && ((nSize > 34) ||
+                                         (nWord > 0xff && nSize > 33) ||
+                                         (nWord > 0xffff && nSize > 32));
+        return *this;
+
+    }
+
+    uint32_t GetCompact(bool fNegative = false) const
+    {
+        int nSize = (bits() + 7) / 8;
+        uint32_t nCompact = 0;
+        if (nSize <= 3) {
+            nCompact = GetLow64() << 8 * (3 - nSize);
+        } else {
+            uint256 bn = *this >> 8 * (nSize - 3);
+            nCompact = bn.GetLow64();
+        }
+        // The 0x00800000 bit denotes the sign.
+        // Thus, if it is already set, divide the mantissa by 256 and increase the exponent.
+        if (nCompact & 0x00800000) {
+            nCompact >>= 8;
+            nSize++;
+        }
+        assert((nCompact & ~0x007fffff) == 0);
+        assert(nSize < 256);
+        nCompact |= nSize << 24;
+        nCompact |= (fNegative && (nCompact & 0x007fffff) ? 0x00800000 : 0);
+        return nCompact;
     }
 };
 
