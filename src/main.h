@@ -132,6 +132,12 @@ bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
 int GetInputDepthInMainChain(const CTxIn & txin);
 
+/**
+ * Return true if hash can be found in chainActive at nBlockHeight height.
+ * Fills hashRet with found hash, if no nBlockHeight is specified - chainActive.Height() is used.
+ */
+bool GetBlockHash(uint256& hashRet, int nBlockHeight = -1);
+
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos

@@ -3869,3 +3869,32 @@ int GetInputDepthInMainChain(const CTxIn & txin)
     CBlockIndex * block = nullptr;
     return tx.GetDepthInMainChain(block);
 }
+
+bool GetBlockHash(uint256& hashRet, int nBlockHeight)
+{
+    LOCK(cs_main);
+    if (pindexBest == NULL)
+    {
+        return false;
+    }
+
+    if (nBlockHeight < -1 || nBlockHeight > pindexBest->nHeight)
+    {
+        return false;
+    }
+
+    if (nBlockHeight == -1)
+    {
+        nBlockHeight = pindexBest->nHeight;
+    }
+
+    CBlockIndex * found = FindBlockByHeight(nBlockHeight);
+    if (!found)
+    {
+        return false;
+    }
+
+    hashRet = found->GetBlockHash();
+
+    return true;
+}
