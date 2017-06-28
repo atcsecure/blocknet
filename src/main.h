@@ -60,7 +60,11 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + 10 * 60; } // up to 1
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
-extern std::map<uint256, CBlockIndex*> mapBlockIndex;
+
+// typedef boost::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
+typedef std::map<uint256, CBlockIndex*> BlockMap;
+extern BlockMap mapBlockIndex;
+
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern CBlockIndex* pindexGenesisBlock;
 extern unsigned int nStakeMinAge;
