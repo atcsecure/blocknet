@@ -82,6 +82,7 @@ public:
     std::list<XBridgeTransactionPtr> transactions() const;
     std::list<XBridgeTransactionPtr> finishedTransactions() const;
     std::list<XBridgeTransactionPtr> transactionsHistory() const;
+    void addToTransactionsHistory(const uint256 & id);
 
     std::vector<StringPair> listOfWallets() const;
 

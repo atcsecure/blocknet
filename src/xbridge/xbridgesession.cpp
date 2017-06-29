@@ -2818,8 +2818,12 @@ void XBridgeSession::requestAddressBook()
             m_addressBook.insert(vaddr);
             app.storageStore(shared_from_this(), vaddr);
 
+            uint64_t amount;
+            if(!rpc::requestAddressAmount(m_wallet.user, m_wallet.passwd, m_wallet.ip, m_wallet.port, addr, amount))
+                amount = 0;
+
             xuiConnector.NotifyXBridgeAddressBookEntryReceived
-                    (m_wallet.currency, e.first, addr);
+                    (m_wallet.currency, e.first, amount, addr);
         }
     }
 }
