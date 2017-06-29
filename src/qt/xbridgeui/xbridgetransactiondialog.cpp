@@ -6,6 +6,8 @@
 // #include "../xbridgeconnector.h"
 #include "xbridge/util/xutil.h"
 #include "xbridge/xbridgeexchange.h"
+#include "xbridge/xbridgeapp.h"
+#include "xbridge/xbridgesession.h"
 
 #include "util/verify.h"
 
@@ -203,6 +205,12 @@ void XBridgeTransactionDialog::setupUI()
     l = new QLabel(trUtf8(" --- >>> "), this);
     grid->addWidget(l, 1, 2, 3, 1, Qt::AlignHCenter | Qt::AlignCenter);
 
+    m_balanceFrom = new QLabel(trUtf8("Account balance:"));
+    m_balanceTo = new QLabel(trUtf8("Account balance:"));
+
+    grid->addWidget(m_balanceFrom, 4, 0, 1, 1);
+    grid->addWidget(m_balanceTo, 4, 3, 1, 1);
+
     m_btnSend = new QPushButton(trUtf8("New Transaction"), this);
     m_btnSend->setEnabled(false);
 
@@ -213,7 +221,7 @@ void XBridgeTransactionDialog::setupUI()
     hbox->addWidget(m_btnSend);
     hbox->addWidget(cancel);
 
-    grid->addLayout(hbox, 4, 0, 1, 5);
+    grid->addLayout(hbox, 5, 0, 1, 5);
 
     QVBoxLayout * vbox = new QVBoxLayout;
     vbox->addLayout(grid);
@@ -351,6 +359,11 @@ void XBridgeTransactionDialog::onAddressBookFrom()
         QString address = QString::fromStdString(m_addressBook.selectedAddress());
         m_addressFrom->setText(address);
         m_addressFrom->setFocus();
+
+        QString balance = QString::number(accountBalance(m_addressBook.selectedCurrency()), 'g', 10);
+        m_balanceFrom->setText(QString("Account balance: %1 %2").
+                               arg(balance).
+                               arg(currency));
     }
 }
 
@@ -373,5 +386,18 @@ void XBridgeTransactionDialog::onAddressBookTo()
         QString address  = QString::fromStdString(m_addressBook.selectedAddress());
         m_addressTo->setText(address);
         m_addressTo->setFocus();
+
+        QString balance = QString::number(accountBalance(m_addressBook.selectedCurrency()), 'g', 10);
+        m_balanceTo->setText(QString("Account balance: %1 %2").
+                             arg(balance).
+                             arg(currency));
     }
+}
+
+double XBridgeTransactionDialog::accountBalance(const std::string &currency)
+{
+    XBridgeApp & app = XBridgeApp::instance();
+    XBridgeSessionPtr session = app.sessionByCurrency(currency);
+
+    return session->getAccountBalance();
 }

@@ -18,6 +18,7 @@
 class QLineEdit;
 class QComboBox;
 class QPushButton;
+class QLabel;
 
 //******************************************************************************
 //******************************************************************************
@@ -52,6 +53,8 @@ private slots:
     void onAddressBookFrom();
     void onPasteTo();
     void onAddressBookTo();
+    
+    double accountBalance(const std::string & currency);
 
 private:
     // WalletModel              * m_walletModel;
@@ -67,6 +70,8 @@ private:
     QLineEdit    * m_amountTo;
     QComboBox    * m_currencyFrom;
     QComboBox    * m_currencyTo;
+    QLabel       * m_balanceFrom;
+    QLabel       * m_balanceTo;
     QPushButton  * m_btnSend;
 
     XBridgeAddressBookView m_addressBook;

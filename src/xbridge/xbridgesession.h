@@ -66,6 +66,7 @@ public:
     void requestUnconfirmedTx();
 
     bool checkAmount(const uint64_t amount) const;
+    double getAccountBalance() const;
 
 private:
     virtual void init();

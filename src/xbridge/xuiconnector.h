@@ -20,7 +20,6 @@ public:
 
     boost::signals2::signal<void (const std::string & currency,
                                   const std::string & name,
-                                  const uint64_t & amount,
                                   const std::string & address)> NotifyXBridgeAddressBookEntryReceived;
 
     boost::signals2::signal<void (const std::string str)> NotifyLogMessage;

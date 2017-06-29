@@ -16,6 +16,45 @@
 class QTableView;
 class QTextEdit;
 
+class StateSortFilterProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    StateSortFilterProxyModel(QObject *parent = 0) : QSortFilterProxyModel(parent) {}
+
+    void setAcceptedStates(const QList<XBridgeTransactionDescr::State> &acceptedStates)
+    {
+        m_acceptedStates = acceptedStates;
+    }
+
+protected:
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override
+    {
+        QModelIndex index = sourceModel()->index(source_row, XBridgeTransactionsModel::State, source_parent);
+        QVariant stateVariant = sourceModel()->data(index, XBridgeTransactionsModel::rawStateRole);
+
+        if(stateVariant.isValid())
+        {
+            bool ok;
+            int stateValue = stateVariant.toInt(&ok);
+
+            if(ok)
+            {
+                XBridgeTransactionDescr::State transactionState = static_cast<XBridgeTransactionDescr::State>(stateValue);
+                return m_acceptedStates.contains(transactionState);
+            }
+        }
+
+        return false;
+    }
+
+private:
+    QList<XBridgeTransactionDescr::State> m_acceptedStates;
+
+};
+
+
 //******************************************************************************
 //******************************************************************************
 class XBridgeTransactionsView : public QWidget
@@ -41,18 +80,20 @@ private slots:
 
     void onContextMenu(QPoint pt);
 
-    void onShowLogs();
+    void onToggleHistoricLogs();
     void onLogString(const std::string str);
 
 private:
     // WalletModel            * m_walletModel;
 
-    XBridgeTransactionsModel m_txModel;
-    QSortFilterProxyModel    m_proxy;
+    XBridgeTransactionsModel    m_txModel;
+    StateSortFilterProxyModel   m_transactionsProxy;
+    StateSortFilterProxyModel   m_historicTransactionsProxy;
 
     XBridgeTransactionDialog m_dlg;
 
     QTableView  * m_transactionsList;
+    QTableView  * m_historicTransactionsList;
 
     QModelIndex   m_contextMenuIndex;
 

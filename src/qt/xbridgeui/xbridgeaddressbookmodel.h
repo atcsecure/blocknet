@@ -22,7 +22,7 @@ public:
     XBridgeAddressBookModel();
     ~XBridgeAddressBookModel();
 
-    typedef std::tuple<std::string, std::string, uint64_t, std::string> AddressBookEntry;
+    typedef std::tuple<std::string, std::string, std::string> AddressBookEntry;
     typedef std::vector<AddressBookEntry> AddressBook;
 
     enum ColumnIndex
@@ -30,8 +30,7 @@ public:
         Currency     = 0,
         FirstColumn  = Currency,
         Name         = 1,
-        Amount       = 2,
-        Address      = 3,
+        Address      = 2,
         LastColumn   = Address
     };
 
@@ -45,7 +44,6 @@ public:
 private:
     void onAddressBookEntryReceived(const std::string & currency,
                                     const std::string & name,
-                                    const uint64_t & amount,
                                     const std::string & address);
 
 private:
