@@ -13,6 +13,7 @@
 #include "masternodeman.h"
 #include "masternodeconfig.h"
 #include "util.h"
+#include "datasigner.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -483,8 +484,7 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
         return false;
     }
 
-    // if(!darkSendSigner.GetKeysFromSecret(strKeyMasternode, keyMasternodeNew, pubKeyMasternodeNew))
-    if (true)
+    if(!DataSigner::GetKeysFromSecret(strKeyMasternode, keyMasternodeNew, pubKeyMasternodeNew))
     {
         strErrorRet = strprintf("Invalid masternode key %s", strKeyMasternode);
         printf("CMasternodeBroadcast::Create -- %s\n", strErrorRet.c_str());
@@ -754,9 +754,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
     // make sure the vout that was signed is related to the transaction that spawned the Masternode
     //  - this is expensive, so it's only done once per Masternode
 
-    // TODO implementation
-    // if(!darkSendSigner.IsVinAssociatedWithPubkey(vin, pubKeyCollateralAddress))
-    if (true)
+    if(!DataSigner::IsVinAssociatedWithPubkey(vin, pubKeyCollateralAddress))
     {
         printf("CMasternodeMan::CheckOutpoint -- Got mismatched pubKeyCollateralAddress and vin\n");
         nDos = 33;
@@ -800,17 +798,13 @@ bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
                     pubKeyCollateralAddress.GetID().ToString() + pubKeyMasternode.GetID().ToString() +
                     boost::lexical_cast<std::string>(nProtocolVersion);
 
-    // TODO implementation
-    // if(!darkSendSigner.SignMessage(strMessage, vchSig, keyCollateralAddress))
-    if (true)
+    if(!DataSigner::SignMessage(strMessage, vchSig, keyCollateralAddress))
     {
         printf("CMasternodeBroadcast::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError))
-    if (true)
+    if(!DataSigner::VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError))
     {
         printf("CMasternodeBroadcast::Sign -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return false;
@@ -833,9 +827,7 @@ bool CMasternodeBroadcast::CheckSignature(int& nDos)
            strMessage.c_str(), CBitcoinAddress(pubKeyCollateralAddress.GetID()).ToString().c_str(),
            EncodeBase64(&vchSig[0], vchSig.size()).c_str());
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError))
-    if (true)
+    if(!DataSigner::VerifyMessage(pubKeyCollateralAddress, vchSig, strMessage, strError))
     {
         printf("CMasternodeBroadcast::CheckSignature -- Got bad Masternode announce signature, error: %s\n", strError.c_str());
         nDos = 100;
@@ -873,17 +865,13 @@ bool CMasternodePing::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
     sigTime = GetAdjustedTime();
     std::string strMessage = vin.ToString() + blockHash.ToString() + boost::lexical_cast<std::string>(sigTime);
 
-    // TODO implementation
-    // if(!darkSendSigner.SignMessage(strMessage, vchSig, keyMasternode))
-    if (true)
+    if (!DataSigner::SignMessage(strMessage, vchSig, keyMasternode))
     {
         printf("CMasternodePing::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
-    if (true)
+    if (!DataSigner::VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
     {
         printf("CMasternodePing::Sign -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return false;
@@ -898,9 +886,7 @@ bool CMasternodePing::CheckSignature(CPubKey& pubKeyMasternode, int &nDos)
     std::string strError = "";
     nDos = 0;
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
-    if (true)
+    if (!DataSigner::VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
     {
         printf("CMasternodePing::CheckSignature -- Got bad Masternode ping signature, masternode=%s, error: %s\n",
                vin.prevout.ToString().c_str(), strError.c_str());

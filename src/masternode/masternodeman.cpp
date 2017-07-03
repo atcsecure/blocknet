@@ -11,6 +11,7 @@
 #include "masternodeman.h"
 #include "netfulfilledman.h"
 #include "util.h"
+#include "datasigner.h"
 
 /** Masternode manager */
 CMasternodeMan mnodeman;
@@ -1396,9 +1397,7 @@ void CMasternodeMan::SendVerifyReply(CNode* pnode, CMasternodeVerification& mnv)
 
     std::string strMessage = strprintf("%s%d%s", activeMasternode.service.ToString(), mnv.nonce, blockHash.ToString());
 
-    // TODO implementation
-    // if(!darkSendSigner.SignMessage(strMessage, mnv.vchSig1, activeMasternode.keyMasternode))
-    if (true)
+    if (!DataSigner::SignMessage(strMessage, mnv.vchSig1, activeMasternode.keyMasternode))
     {
         printf("MasternodeMan::SendVerifyReply -- SignMessage() failed\n");
         return;
@@ -1406,9 +1405,7 @@ void CMasternodeMan::SendVerifyReply(CNode* pnode, CMasternodeVerification& mnv)
 
     std::string strError;
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(activeMasternode.pubKeyMasternode, mnv.vchSig1, strMessage, strError))
-    if (true)
+    if (!DataSigner::VerifyMessage(activeMasternode.pubKeyMasternode, mnv.vchSig1, strMessage, strError))
     {
         printf("MasternodeMan::SendVerifyReply -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return;
@@ -1475,9 +1472,7 @@ void CMasternodeMan::ProcessVerifyReply(CNode* pnode, CMasternodeVerification& m
         {
             if((CAddress)it->addr == pnode->addr)
             {
-                // TODO implementation
-                // if(darkSendSigner.VerifyMessage(it->pubKeyMasternode, mnv.vchSig1, strMessage1, strError))
-                if (false)
+                if (DataSigner::VerifyMessage(it->pubKeyMasternode, mnv.vchSig1, strMessage1, strError))
                 {
                     // found it!
                     prealMasternode = &(*it);
@@ -1499,9 +1494,7 @@ void CMasternodeMan::ProcessVerifyReply(CNode* pnode, CMasternodeVerification& m
                     std::string strMessage2 = strprintf("%s%d%s%s%s", mnv.addr.ToString(), mnv.nonce, blockHash.ToString(),
                                             mnv.vin1.prevout.ToString(), mnv.vin2.prevout.ToString());
                     // ... and sign it
-                    // TODO implementation
-                    // if(!darkSendSigner.SignMessage(strMessage2, mnv.vchSig2, activeMasternode.keyMasternode))
-                    if (true)
+                    if (!DataSigner::SignMessage(strMessage2, mnv.vchSig2, activeMasternode.keyMasternode))
                     {
                         printf("MasternodeMan::ProcessVerifyReply -- SignMessage() failed\n");
                         return;
@@ -1509,9 +1502,7 @@ void CMasternodeMan::ProcessVerifyReply(CNode* pnode, CMasternodeVerification& m
 
                     std::string strError;
 
-                    // TODO implementation
-                    // if(!darkSendSigner.VerifyMessage(activeMasternode.pubKeyMasternode, mnv.vchSig2, strMessage2, strError))
-                    if (true)
+                    if (!DataSigner::VerifyMessage(activeMasternode.pubKeyMasternode, mnv.vchSig2, strMessage2, strError))
                     {
                         printf("MasternodeMan::ProcessVerifyReply -- VerifyMessage() failed, error: %s\n", strError.c_str());
                         return;
@@ -1631,17 +1622,13 @@ void CMasternodeMan::ProcessVerifyBroadcast(CNode* pnode, const CMasternodeVerif
             return;
         }
 
-        // TODO implementation
-        // if(darkSendSigner.VerifyMessage(pmn1->pubKeyMasternode, mnv.vchSig1, strMessage1, strError))
-        if (true)
+        if (DataSigner::VerifyMessage(pmn1->pubKeyMasternode, mnv.vchSig1, strMessage1, strError))
         {
             printf("MasternodeMan::ProcessVerifyBroadcast -- VerifyMessage() for masternode1 failed, error: %s\n", strError.c_str());
             return;
         }
 
-        // TODO implementation
-        // if(darkSendSigner.VerifyMessage(pmn2->pubKeyMasternode, mnv.vchSig2, strMessage2, strError))
-        if (true)
+        if (DataSigner::VerifyMessage(pmn2->pubKeyMasternode, mnv.vchSig2, strMessage2, strError))
         {
             printf("MasternodeMan::ProcessVerifyBroadcast -- VerifyMessage() for masternode2 failed, error: %s\n", strError.c_str());
             return;

@@ -11,6 +11,7 @@
 #include "netfulfilledman.h"
 // #include "spork.h"
 #include "util.h"
+#include "datasigner.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -457,17 +458,13 @@ bool CMasternodePaymentVote::Sign()
                 boost::lexical_cast<std::string>(nBlockHeight) +
                 payee.ToString();
 
-    // TODO implementation
-    // if(!darkSendSigner.SignMessage(strMessage, vchSig, activeMasternode.keyMasternode))
-    if (true)
+    if(!DataSigner::SignMessage(strMessage, vchSig, activeMasternode.keyMasternode))
     {
         printf("CMasternodePaymentVote::Sign -- SignMessage() failed\n");
         return false;
     }
 
-    // TODO implementation
-    // if(!darkSendSigner.VerifyMessage(activeMasternode.pubKeyMasternode, vchSig, strMessage, strError))
-    if (true)
+    if(!DataSigner::VerifyMessage(activeMasternode.pubKeyMasternode, vchSig, strMessage, strError))
     {
         printf("CMasternodePaymentVote::Sign -- VerifyMessage() failed, error: %s\n", strError.c_str());
         return false;
@@ -866,9 +863,7 @@ bool CMasternodePaymentVote::CheckSignature(const CPubKey& pubKeyMasternode, int
 
     std::string strError = "";
 
-    // TODO implementation
-    // if (!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
-    if (true)
+    if (!DataSigner::VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
     {
         // Only ban for future block vote when we are already synced.
         // Otherwise it could be the case when MN which signed this vote is using another key now
