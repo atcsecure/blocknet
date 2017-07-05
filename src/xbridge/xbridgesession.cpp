@@ -815,6 +815,7 @@ bool XBridgeSession::processTransactionHold(XBridgePacketPtr packet)
         if (!xtx->isLocal())
         {
             xtx->state = XBridgeTransactionDescr::trFinished;
+            XBridgeApp::m_historicTransactions[id] = xtx;
         }
         else
         {
@@ -2404,6 +2405,8 @@ bool XBridgeSession::processTransactionCancel(XBridgePacketPtr packet)
     // update transaction state for gui
     xtx->state = XBridgeTransactionDescr::trCancelled;
     xuiConnector.NotifyXBridgeTransactionCancelled(txid, XBridgeTransactionDescr::trCancelled, reason);
+
+    XBridgeApp::m_historicTransactions[txid] = xtx;
 
     // ..and retranslate
     // sendPacketBroadcast(packet);
