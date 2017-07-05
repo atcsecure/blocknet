@@ -224,6 +224,7 @@ json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value masternode(const json_spirit::Array & params, bool fHelp);
 json_spirit::Value masternodelist(const json_spirit::Array & params, bool fHelp);
 json_spirit::Value masternodebroadcast(const json_spirit::Array & params, bool fHelp);
+json_spirit::Value mnsync(const json_spirit::Array & params, bool fHelp);
 
 json_spirit::Value dxGetTransactionList(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value dxGetTransactionsHistoryList(const json_spirit::Array& params, bool fHelp);
