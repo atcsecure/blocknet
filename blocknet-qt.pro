@@ -449,7 +449,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/masternode/masternode-payments.h \
     src/tinyformat.h \
     src/masternode/netfulfilledman.h \
-    src/datasigner.h
+    src/datasigner.h \
+    src/flat-database.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

@@ -17,7 +17,12 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+#include "flat-database.h"
 #include "masternode/masternodeconfig.h"
+#include "masternode/masternodeman.h"
+#include "masternode/masternode-payments.h"
+#include "masternode/netfulfilledman.h"
+#include "masternode/masternode-sync.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -948,6 +953,57 @@ bool AppInit2()
             printf("  %s %s - locked successfully\n", mne.getTxHash().c_str(), mne.getOutputIndex().c_str());
         }
     }
+
+    // ********************************************************* Step 10b: Load cache data
+
+    // LOAD SERIALIZED DAT FILES INTO DATA CACHES FOR INTERNAL USE
+
+    uiInterface.InitMessage(_("Loading masternode cache..."));
+    CFlatDB<CMasternodeMan> flatdb1("mncache.dat", "magicMasternodeCache");
+    if(!flatdb1.Load(mnodeman))
+    {
+        return InitError("Failed to load masternode cache from mncache.dat");
+    }
+
+    if(mnodeman.size())
+    {
+        uiInterface.InitMessage(_("Loading masternode payment cache..."));
+        CFlatDB<CMasternodePayments> flatdb2("mnpayments.dat", "magicMasternodePaymentsCache");
+        if(!flatdb2.Load(mnpayments))
+        {
+            return InitError("Failed to load masternode payments cache from mnpayments.dat");
+        }
+
+//        uiInterface.InitMessage(_("Loading governance cache..."));
+//        CFlatDB<CGovernanceManager> flatdb3("governance.dat", "magicGovernanceCache");
+//        if(!flatdb3.Load(governance))
+//        {
+//            return InitError("Failed to load governance cache from governance.dat");
+//        }
+//        governance.InitOnLoad();
+    }
+    else
+    {
+        uiInterface.InitMessage(_("Masternode cache is empty, skipping payments and governance cache..."));
+    }
+
+    uiInterface.InitMessage(_("Loading fulfilled requests cache..."));
+    CFlatDB<CNetFulfilledRequestManager> flatdb4("netfulfilled.dat", "magicFulfilledCache");
+    if(!flatdb4.Load(netfulfilledman))
+    {
+        return InitError("Failed to load fulfilled requests cache from netfulfilled.dat");
+    }
+
+    // ********************************************************* Step 10c: update block tip in masternode modules
+
+    // force UpdatedBlockTip to initialize pCurrentBlockIndex for DS, MN payments and budgets
+    // but don't call it directly to prevent triggering of other listeners like zmq etc.
+    // GetMainSignals().UpdatedBlockTip(pindexBest);
+    mnodeman.UpdatedBlockTip(pindexBest);
+    // darkSendPool.UpdatedBlockTip(pindexBest);
+    mnpayments.UpdatedBlockTip(pindexBest);
+    masternodeSync.UpdatedBlockTip(pindexBest);
+    // governance.UpdatedBlockTip(pindexBest);
 
     // ********************************************************* Step 11: start node
 
