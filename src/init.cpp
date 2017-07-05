@@ -96,6 +96,17 @@ void Shutdown(void* parg)
     {
         fShutdown = true;
         nTransactionsUpdated++;
+
+        // STORE DATA CACHES INTO SERIALIZED DAT FILES
+        CFlatDB<CMasternodeMan> flatdb1("mncache.dat", "magicMasternodeCache");
+        flatdb1.Dump(mnodeman);
+        CFlatDB<CMasternodePayments> flatdb2("mnpayments.dat", "magicMasternodePaymentsCache");
+        flatdb2.Dump(mnpayments);
+        // CFlatDB<CGovernanceManager> flatdb3("governance.dat", "magicGovernanceCache");
+        // flatdb3.Dump(governance);
+        CFlatDB<CNetFulfilledRequestManager> flatdb4("netfulfilled.dat", "magicFulfilledCache");
+        flatdb4.Dump(netfulfilledman);
+
 //        CTxDB().Close();
         bitdb.Flush(false);
         StopNode();

@@ -48,7 +48,7 @@ private:
         // serialize, checksum data up to that point, then append checksum
         CDataStream ssObj(SER_DISK, CLIENT_VERSION);
         ssObj << strMagicMessage; // specific magic message for this type of object
-        ssObj << FLATDATA(Params().MessageStart()); // network specific magic number
+        ssObj << FLATDATA(pchMessageStart); // network specific magic number
         ssObj << objToSave;
         uint256 hash = Hash(ssObj.begin(), ssObj.end());
         ssObj << hash;
@@ -68,8 +68,8 @@ private:
         }
         fileout.fclose();
 
-        LogPrintf("Written info to %s  %dms\n", strFilename, GetTimeMillis() - nStart);
-        LogPrintf("     %s\n", objToSave.ToString());
+        printf("Written info to %s  %dms\n", strFilename.c_str(), GetTimeMillis() - nStart);
+        printf("     %s\n", objToSave.ToString().c_str());
 
         return true;
     }
