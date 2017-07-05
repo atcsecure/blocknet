@@ -925,7 +925,7 @@ bool AppInit2()
 //        }
 //    }
 
-    printf("Using masternode config file %s\n", GetMasternodeConfigFile().string());
+    printf("Using masternode config file %s\n", GetMasternodeConfigFile().string().c_str());
 
     if (GetBoolArg("-mnconflock", true) && pwalletMain && (masternodeConfig.getCount() > 0))
     {
