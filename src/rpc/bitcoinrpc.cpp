@@ -321,6 +321,7 @@ static const CRPCCommand vRPCCommands[] =
     { "masternode",             &masternode,             true,   false },
     { "masternodelist",         &masternodelist,         true,   false },
     { "masternodebroadcast",    &masternodebroadcast,    true,   false },
+    { "mnsync",                 &mnsync,                 true,   false },
 };
 
 CRPCTable::CRPCTable()
