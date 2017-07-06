@@ -78,7 +78,9 @@ CTxDB::CTxDB(const char* pszMode)
 
     bool fCreate = strchr(pszMode, 'c');
 
-    options = GetOptions();
+    //tmp object to prevent segfault on linux
+    leveldb::Options tmpOptions = GetOptions();
+    options = tmpOptions;
     options.create_if_missing = fCreate;
     options.filter_policy = leveldb::NewBloomFilterPolicy(10);
 
