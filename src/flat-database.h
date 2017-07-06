@@ -57,7 +57,7 @@ private:
         FILE *file = fopen(pathDB.string().c_str(), "wb");
         CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
         if (!fileout)
-            return error("%s: Failed to open file %s", __func__, pathDB.string());
+            return error("%s: Failed to open file %s", __func__, pathDB.string().c_str());
 
         // Write and commit header, data
         try {
@@ -84,7 +84,7 @@ private:
         CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
         if (!filein)
         {
-            error("%s: Failed to open file %s", __func__, pathDB.string());
+            error("%s: Failed to open file %s", __func__, pathDB.string().c_str());
             return FileError;
         }
 
