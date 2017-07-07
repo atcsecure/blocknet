@@ -23,6 +23,7 @@
 #include "masternode/masternode-payments.h"
 #include "masternode/netfulfilledman.h"
 #include "masternode/masternode-sync.h"
+#include "masternode/masternodecore.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -1015,6 +1016,9 @@ bool AppInit2()
     mnpayments.UpdatedBlockTip(pindexBest);
     masternodeSync.UpdatedBlockTip(pindexBest);
     // governance.UpdatedBlockTip(pindexBest);
+
+    // ********************************************************* Step 10d: start masternode service thread
+    NewThread(ThreadMasternodeService, NULL);
 
     // ********************************************************* Step 11: start node
 

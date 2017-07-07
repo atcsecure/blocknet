@@ -214,7 +214,8 @@ SOURCES += src/txdb-leveldb.cpp \
     src/masternode/masternode-sync.cpp \
     src/masternode/masternode-payments.cpp \
     src/masternode/netfulfilledman.cpp \
-    src/datasigner.cpp
+    src/datasigner.cpp \
+    src/masternode/masternodecore.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -456,7 +457,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/tinyformat.h \
     src/masternode/netfulfilledman.h \
     src/datasigner.h \
-    src/flat-database.h
+    src/flat-database.h \
+    src/masternode/masternodecore.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \

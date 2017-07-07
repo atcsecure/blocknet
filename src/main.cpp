@@ -2318,6 +2318,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty())
         Checkpoints::SendSyncCheckpoint(Checkpoints::AutoSelectSyncCheckpoint());
 
+    masternodeSync.IsBlockchainSynced(true);
+
     return true;
 }
 
