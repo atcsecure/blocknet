@@ -860,7 +860,7 @@ CMasternodePing::CMasternodePing(CTxIn& vinNew)
 bool CMasternodePing::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
 {
     std::string strError;
-    std::string strMasterNodeSignMessage;
+    // std::string strMasterNodeSignMessage;
 
     sigTime = GetAdjustedTime();
     std::string strMessage = vin.ToString() + blockHash.ToString() + boost::lexical_cast<std::string>(sigTime);

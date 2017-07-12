@@ -356,10 +356,13 @@ Value masternode(const Array & params, bool fHelp)
 
     if (strCommand == "genkey")
     {
-        CKey secret;
-        secret.MakeNewKey(false);
+        CKey key;
+        key.MakeNewKey(true);
+
         bool compressed = false;
-        return CBitcoinSecret(secret.GetSecret(compressed), false).ToString();
+        CSecret secret = key.GetSecret(compressed);
+
+        return CBitcoinSecret(secret, compressed).ToString();
     }
 
     if (strCommand == "list-conf")
