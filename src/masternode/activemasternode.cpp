@@ -239,9 +239,9 @@ void CActiveMasternode::ManageStateInitial()
         return;
     }
 
-    if (pwalletMain->GetBalance() < 1000*COIN)
+    if (pwalletMain->GetBalance() < MASTERNODE_AMOUNT*COIN)
     {
-        printf("CActiveMasternode::ManageStateInitial -- %s: Wallet balance is < 1000 BLOCKS\n", GetStateString().c_str());
+        printf("CActiveMasternode::ManageStateInitial -- %s: Wallet balance is < %d BLOCKS\n", GetStateString().c_str(), MASTERNODE_AMOUNT);
         return;
     }
 

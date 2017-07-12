@@ -12,6 +12,8 @@
 
 class CActiveMasternode;
 
+static const int MASTERNODE_AMOUNT                  = 1000;
+
 static const int ACTIVE_MASTERNODE_INITIAL          = 0; // initial state
 static const int ACTIVE_MASTERNODE_SYNC_IN_PROCESS  = 1;
 static const int ACTIVE_MASTERNODE_INPUT_TOO_NEW    = 2;

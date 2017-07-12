@@ -390,7 +390,7 @@ Value masternode(const Array & params, bool fHelp)
     {
         // Find possible candidates
         std::vector<COutput> vPossibleCoins;
-        pwalletMain->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_1000);
+        pwalletMain->AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_AMOUNT);
 
         Object obj;
         for (const COutput & out : vPossibleCoins)

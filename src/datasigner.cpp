@@ -5,6 +5,7 @@
 #include "serialize.h"
 #include "base58.h"
 #include "tinyformat.h"
+#include "masternode/activemasternode.h"
 
 //*****************************************************************************
 //*****************************************************************************
@@ -26,7 +27,7 @@ bool DataSigner::IsVinAssociatedWithPubkey(const CTxIn& txin, const CPubKey& pub
     {
         for (const CTxOut & out : tx.vout)
         {
-            if (out.nValue == 1000*COIN && out.scriptPubKey == payee)
+            if (out.nValue == MASTERNODE_AMOUNT*COIN && out.scriptPubKey == payee)
             {
                 return true;
             }
