@@ -1870,6 +1870,15 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         boost::thread t(runCommand, strCmd); // thread runs free
     }
 
+    // force UpdatedBlockTip to initialize pCurrentBlockIndex for DS, MN payments and budgets
+    // but don't call it directly to prevent triggering of other listeners like zmq etc.
+    // GetMainSignals().UpdatedBlockTip(pindexBest);
+    mnodeman.UpdatedBlockTip(pindexBest);
+    // darkSendPool.UpdatedBlockTip(pindexBest);
+    mnpayments.UpdatedBlockTip(pindexBest);
+    masternodeSync.UpdatedBlockTip(pindexBest);
+    // governance.UpdatedBlockTip(pindexBest);
+
     return true;
 }
 

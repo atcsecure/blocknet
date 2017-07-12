@@ -88,8 +88,9 @@ bool CMasternodeSync::IsBlockchainSynced(bool fBlockAccepted)
     }
 
     // same as !IsInitialBlockDownload() but no cs_main needed here
-    int64_t nMaxBlockTime = std::max(pCurrentBlockIndex->GetBlockTime(), pindexBest->GetBlockTime());
-    fBlockchainSynced = pindexBest->nHeight - pCurrentBlockIndex->nHeight < 24 * 6; // && GetTime() - nMaxBlockTime < Params().MaxTipAge();
+    // int64_t nMaxBlockTime = std::max(pCurrentBlockIndex->GetBlockTime(), pindexBest->GetBlockTime());
+    // fBlockchainSynced =  (pindexBest->nHeight - pCurrentBlockIndex->nHeight) < (24 * 6); // && GetTime() - nMaxBlockTime < Params().MaxTipAge();
+    fBlockchainSynced = (GetTime() - pCurrentBlockIndex->GetBlockTime()) < 90*60;
 
     return fBlockchainSynced;
 }
