@@ -147,8 +147,11 @@ CKey::CKey(const CKey& b)
 {
     pkey = EC_KEY_dup(b.pkey);
     if (pkey == NULL)
+    {
         throw key_error("CKey::CKey(const CKey&) : EC_KEY_dup failed");
-    fSet = b.fSet;
+    }
+    fSet              = b.fSet;
+    fCompressedPubKey = b.fCompressedPubKey;
 }
 
 CKey& CKey::operator=(const CKey& b)
