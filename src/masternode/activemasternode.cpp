@@ -194,7 +194,7 @@ void CActiveMasternode::ManageStateInitial()
         return;
     }
 
-    int mainnetDefaultPort = GetDefaultPort();
+    int mainnetDefaultPort = GetDefaultPort(false);
     if (!fTestNet)
     {
         if(service.GetPort() != mainnetDefaultPort)

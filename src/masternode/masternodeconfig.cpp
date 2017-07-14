@@ -85,7 +85,7 @@ bool CMasternodeConfig::read(std::string & strErr)
             streamConfig.close();
             return false;
         }
-        int mainnetDefaultPort = GetDefaultPort();
+        int mainnetDefaultPort = GetDefaultPort(false);
         if (!fTestNet)
         {
             if (port != mainnetDefaultPort)

@@ -468,7 +468,10 @@ void CMasternode::UpdateLastPaid(const CBlockIndex *pindex, int nMaxBlocksToScan
 //    // LogPrint("masternode", "CMasternode::UpdateLastPaidBlock -- searching for block with payment to %s -- keeping old %d\n", vin.prevout.ToString(), nBlockLastPaid);
 }
 
-bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMasternode, std::string strTxHash, std::string strOutputIndex, std::string& strErrorRet, CMasternodeBroadcast &mnbRet, bool fOffline)
+bool CMasternodeBroadcast::Create(const std::string & strService, const std::string & strKeyMasternode,
+                                  const std::string & strTxHash, const std::string & strOutputIndex,
+                                  std::string & strErrorRet, CMasternodeBroadcast & mnbRet,
+                                  const bool fOffline = false)
 {
     CTxIn txin;
     CPubKey pubKeyCollateralAddressNew;
@@ -491,7 +494,9 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
         return false;
     }
 
-    if(!pwalletMain->GetMasternodeVinAndKeys(txin, pubKeyCollateralAddressNew, keyCollateralAddressNew, strTxHash, strOutputIndex))
+    if(!pwalletMain->GetMasternodeVinAndKeys(txin,
+                                             pubKeyCollateralAddressNew, keyCollateralAddressNew,
+                                             strTxHash, strOutputIndex))
     {
         strErrorRet = strprintf("Could not allocate txin %s:%s for masternode %s", strTxHash, strOutputIndex, strService);
         printf("CMasternodeBroadcast::Create -- %s\n", strErrorRet.c_str());
@@ -499,7 +504,7 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
     }
 
     CService service = CService(strService);
-    int mainnetDefaultPort = GetDefaultPort();
+    int mainnetDefaultPort = GetDefaultPort(false);
     if (!fTestNet)
     {
         if (service.GetPort() != mainnetDefaultPort)
@@ -516,10 +521,18 @@ bool CMasternodeBroadcast::Create(std::string strService, std::string strKeyMast
         return false;
     }
 
-    return Create(txin, CService(strService), keyCollateralAddressNew, pubKeyCollateralAddressNew, keyMasternodeNew, pubKeyMasternodeNew, strErrorRet, mnbRet);
+    return Create(txin, CService(strService),
+                  keyCollateralAddressNew, pubKeyCollateralAddressNew,
+                  keyMasternodeNew, pubKeyMasternodeNew,
+                  strErrorRet, mnbRet);
 }
 
-bool CMasternodeBroadcast::Create(CTxIn txin, CService service, CKey keyCollateralAddressNew, CPubKey pubKeyCollateralAddressNew, CKey keyMasternodeNew, CPubKey pubKeyMasternodeNew, std::string &strErrorRet, CMasternodeBroadcast &mnbRet)
+bool CMasternodeBroadcast::Create(const CTxIn & txin, const CService & service,
+                                  const CKey & keyCollateralAddressNew,
+                                  const CPubKey & pubKeyCollateralAddressNew,
+                                  const CKey & keyMasternodeNew,
+                                  const CPubKey & pubKeyMasternodeNew,
+                                  std::string & strErrorRet, CMasternodeBroadcast & mnbRet)
 {
     // wait for reindex and/or import to finish
 //    if (fImporting || fReindex)
@@ -540,7 +553,9 @@ bool CMasternodeBroadcast::Create(CTxIn txin, CService service, CKey keyCollater
         return false;
     }
 
-    mnbRet = CMasternodeBroadcast(service, txin, pubKeyCollateralAddressNew, pubKeyMasternodeNew, PROTOCOL_VERSION);
+    mnbRet = CMasternodeBroadcast(service, txin,
+                                  pubKeyCollateralAddressNew, pubKeyMasternodeNew,
+                                  PROTOCOL_VERSION);
 
     if(!mnbRet.IsValidNetAddr())
     {
@@ -623,7 +638,7 @@ bool CMasternodeBroadcast::SimpleCheck(int& nDos)
         return false;
     }
 
-    int mainnetDefaultPort = GetDefaultPort();
+    int mainnetDefaultPort = GetDefaultPort(false);
     if (!fTestNet)
     {
         if (addr.GetPort() != mainnetDefaultPort)
@@ -787,7 +802,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
     return true;
 }
 
-bool CMasternodeBroadcast::Sign(CKey& keyCollateralAddress)
+bool CMasternodeBroadcast::Sign(const CKey & keyCollateralAddress)
 {
     std::string strError;
     std::string strMessage;
@@ -843,7 +858,7 @@ void CMasternodeBroadcast::Relay()
     RelayInventory(inv);
 }
 
-CMasternodePing::CMasternodePing(CTxIn& vinNew)
+CMasternodePing::CMasternodePing(const CTxIn & vinNew)
 {
     LOCK(cs_main);
     if (!pindexBest || pindexBest->nHeight < 12)
@@ -857,7 +872,7 @@ CMasternodePing::CMasternodePing(CTxIn& vinNew)
     vchSig = std::vector<unsigned char>();
 }
 
-bool CMasternodePing::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
+bool CMasternodePing::Sign(const CKey & keyMasternode, const CPubKey & pubKeyMasternode)
 {
     std::string strError;
     // std::string strMasterNodeSignMessage;

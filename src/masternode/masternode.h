@@ -44,7 +44,7 @@ public:
         vchSig()
         {}
 
-    CMasternodePing(CTxIn& vinNew);
+    CMasternodePing(const CTxIn & vinNew);
 
     IMPLEMENT_SERIALIZE(
         READWRITE(vin);
@@ -76,7 +76,7 @@ public:
 
     bool IsExpired() { return GetTime() - sigTime > MASTERNODE_NEW_START_REQUIRED_SECONDS; }
 
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    bool Sign(const CKey & keyMasternode, const CPubKey & pubKeyMasternode);
     bool CheckSignature(CPubKey& pubKeyMasternode, int &nDos);
     bool SimpleCheck(int& nDos);
     bool CheckAndUpdate(CMasternode* pmn, bool fFromNewBroadcast, int& nDos);
@@ -365,14 +365,22 @@ public:
     }
 
     /// Create Masternode broadcast, needs to be relayed manually after that
-    static bool Create(CTxIn vin, CService service, CKey keyCollateralAddressNew, CPubKey pubKeyCollateralAddressNew, CKey keyMasternodeNew, CPubKey pubKeyMasternodeNew, std::string &strErrorRet, CMasternodeBroadcast &mnbRet);
-    static bool Create(std::string strService, std::string strKey, std::string strTxHash, std::string strOutputIndex, std::string& strErrorRet, CMasternodeBroadcast &mnbRet, bool fOffline = false);
+    static bool Create(const CTxIn & txin, const CService & service,
+                       const CKey & keyCollateralAddressNew,
+                       const CPubKey & pubKeyCollateralAddressNew,
+                       const CKey & keyMasternodeNew,
+                       const CPubKey & pubKeyMasternodeNew,
+                       std::string & strErrorRet, CMasternodeBroadcast & mnbRet);
+    static bool Create(const std::string & strService, const std::string & strKeyMasternode,
+                       const std::string & strTxHash, const std::string & strOutputIndex,
+                       std::string & strErrorRet, CMasternodeBroadcast & mnbRet,
+                       const bool fOffline = false);
 
     bool SimpleCheck(int& nDos);
     bool Update(CMasternode* pmn, int& nDos);
     bool CheckOutpoint(int& nDos);
 
-    bool Sign(CKey& keyCollateralAddress);
+    bool Sign(const CKey & keyCollateralAddress);
     bool CheckSignature(int& nDos);
     void Relay();
 };
