@@ -317,10 +317,10 @@ static const CRPCCommand vRPCCommands[] =
     { "dxAcceptTransaction",            &dxAcceptTransaction,           true,   true},
     { "dxCancelTransaction",            &dxCancelTransaction,           true,   true},
 
-    // masternodes
-    { "masternode",             &masternode,             true,   false },
-    { "masternodelist",         &masternodelist,         true,   false },
-    { "masternodebroadcast",    &masternodebroadcast,    true,   false },
+    // servicenodes
+    { "servicenode",             &servicenode,             true,   false },
+    { "servicenodelist",         &servicenodelist,         true,   false },
+    { "servicenodebroadcast",    &servicenodebroadcast,    true,   false },
     { "mnsync",                 &mnsync,                 true,   false },
 };
 

@@ -221,9 +221,9 @@ json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value getblockbynumber(const json_spirit::Array& params, bool fHelp);
 json_spirit::Value getcheckpoint(const json_spirit::Array& params, bool fHelp);
 
-json_spirit::Value masternode(const json_spirit::Array & params, bool fHelp);
-json_spirit::Value masternodelist(const json_spirit::Array & params, bool fHelp);
-json_spirit::Value masternodebroadcast(const json_spirit::Array & params, bool fHelp);
+json_spirit::Value servicenode(const json_spirit::Array & params, bool fHelp);
+json_spirit::Value servicenodelist(const json_spirit::Array & params, bool fHelp);
+json_spirit::Value servicenodebroadcast(const json_spirit::Array & params, bool fHelp);
 json_spirit::Value mnsync(const json_spirit::Array & params, bool fHelp);
 
 json_spirit::Value dxGetTransactionList(const json_spirit::Array& params, bool fHelp);
