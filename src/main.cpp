@@ -2821,20 +2821,20 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 //    case MSG_SPORK:
 //        return mapSporks.count(inv.hash);
 
-    case MSG_MASTERNODE_PAYMENT_VOTE:
-        return mnpayments.mapMasternodePaymentVotes.count(inv.hash);
+    case MSG_SERVICENODE_PAYMENT_VOTE:
+        return mnpayments.mapServicenodePaymentVotes.count(inv.hash);
 
-    case MSG_MASTERNODE_PAYMENT_BLOCK:
+    case MSG_SERVICENODE_PAYMENT_BLOCK:
         {
             BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
-            return mi != mapBlockIndex.end() && mnpayments.mapMasternodeBlocks.find(mi->second->nHeight) != mnpayments.mapMasternodeBlocks.end();
+            return mi != mapBlockIndex.end() && mnpayments.mapServicenodeBlocks.find(mi->second->nHeight) != mnpayments.mapServicenodeBlocks.end();
         }
 
-    case MSG_MASTERNODE_ANNOUNCE:
-        return mnodeman.mapSeenMasternodeBroadcast.count(inv.hash) && !mnodeman.IsMnbRecoveryRequested(inv.hash);
+    case MSG_SERVICENODE_ANNOUNCE:
+        return mnodeman.mapSeenServicenodeBroadcast.count(inv.hash) && !mnodeman.IsMnbRecoveryRequested(inv.hash);
 
-    case MSG_MASTERNODE_PING:
-        return mnodeman.mapSeenMasternodePing.count(inv.hash);
+    case MSG_SERVICENODE_PING:
+        return mnodeman.mapSeenServicenodePing.count(inv.hash);
 
 //    case MSG_DSTX:
 //        return mapDarksendBroadcastTxes.count(inv.hash);
@@ -2843,8 +2843,8 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 //    case MSG_GOVERNANCE_OBJECT_VOTE:
 //        return ! governance.ConfirmInventoryRequest(inv);
 
-    case MSG_MASTERNODE_VERIFY:
-        return mnodeman.mapSeenMasternodeVerification.count(inv.hash);
+    case MSG_SERVICENODE_VERIFY:
+        return mnodeman.mapSeenServicenodeVerification.count(inv.hash);
     }
 
     // Don't know what it is, just say we already got one
@@ -3258,25 +3258,25 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 //                    }
 //                }
 
-                if (!pushed && inv.type == MSG_MASTERNODE_PAYMENT_VOTE)
+                if (!pushed && inv.type == MSG_SERVICENODE_PAYMENT_VOTE)
                 {
                     if(mnpayments.HasVerifiedPaymentVote(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mnpayments.mapMasternodePaymentVotes[inv.hash];
-                        pfrom->PushMessage(NetMsgType::MASTERNODEPAYMENTVOTE, ss);
+                        ss << mnpayments.mapServicenodePaymentVotes[inv.hash];
+                        pfrom->PushMessage(NetMsgType::SERVICENODEPAYMENTVOTE, ss);
                         pushed = true;
                     }
                 }
 
-                if (!pushed && inv.type == MSG_MASTERNODE_PAYMENT_BLOCK)
+                if (!pushed && inv.type == MSG_SERVICENODE_PAYMENT_BLOCK)
                 {
                     BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
-                    LOCK(cs_mapMasternodeBlocks);
-                    if (mi != mapBlockIndex.end() && mnpayments.mapMasternodeBlocks.count(mi->second->nHeight))
+                    LOCK(cs_mapServicenodeBlocks);
+                    if (mi != mapBlockIndex.end() && mnpayments.mapServicenodeBlocks.count(mi->second->nHeight))
                     {
-                        for (CMasternodePayee & payee : mnpayments.mapMasternodeBlocks[mi->second->nHeight].vecPayees)
+                        for (CServicenodePayee & payee : mnpayments.mapServicenodeBlocks[mi->second->nHeight].vecPayees)
                         {
                             std::vector<uint256> vecVoteHashes = payee.GetVoteHashes();
                             for (uint256 & hash : vecVoteHashes)
@@ -3285,8 +3285,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                                 {
                                     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                                     ss.reserve(1000);
-                                    ss << mnpayments.mapMasternodePaymentVotes[hash];
-                                    pfrom->PushMessage(NetMsgType::MASTERNODEPAYMENTVOTE, ss);
+                                    ss << mnpayments.mapServicenodePaymentVotes[hash];
+                                    pfrom->PushMessage(NetMsgType::SERVICENODEPAYMENTVOTE, ss);
                                 }
                             }
                         }
@@ -3294,25 +3294,25 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                     }
                 }
 
-                if (!pushed && inv.type == MSG_MASTERNODE_ANNOUNCE)
+                if (!pushed && inv.type == MSG_SERVICENODE_ANNOUNCE)
                 {
-                    if(mnodeman.mapSeenMasternodeBroadcast.count(inv.hash))
+                    if(mnodeman.mapSeenServicenodeBroadcast.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mnodeman.mapSeenMasternodeBroadcast[inv.hash].second;
+                        ss << mnodeman.mapSeenServicenodeBroadcast[inv.hash].second;
                         pfrom->PushMessage(NetMsgType::MNANNOUNCE, ss);
                         pushed = true;
                     }
                 }
 
-                if (!pushed && inv.type == MSG_MASTERNODE_PING)
+                if (!pushed && inv.type == MSG_SERVICENODE_PING)
                 {
-                    if(mnodeman.mapSeenMasternodePing.count(inv.hash))
+                    if(mnodeman.mapSeenServicenodePing.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mnodeman.mapSeenMasternodePing[inv.hash];
+                        ss << mnodeman.mapSeenServicenodePing[inv.hash];
                         pfrom->PushMessage(NetMsgType::MNPING, ss);
                         pushed = true;
                     }
@@ -3375,13 +3375,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 //                    }
 //                }
 
-                if (!pushed && inv.type == MSG_MASTERNODE_VERIFY)
+                if (!pushed && inv.type == MSG_SERVICENODE_VERIFY)
                 {
-                    if(mnodeman.mapSeenMasternodeVerification.count(inv.hash))
+                    if(mnodeman.mapSeenServicenodeVerification.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        ss << mnodeman.mapSeenMasternodeVerification[inv.hash];
+                        ss << mnodeman.mapSeenServicenodeVerification[inv.hash];
                         pfrom->PushMessage(NetMsgType::MNVERIFY, ss);
                         pushed = true;
                     }
@@ -4154,14 +4154,14 @@ bool GetBlockHash(uint256& hashRet, int nBlockHeight)
     return true;
 }
 
-CAmount GetMasternodePayment(int /*nHeight*/, CAmount blockValue)
+CAmount GetServicenodePayment(int /*nHeight*/, CAmount blockValue)
 {
     CAmount ret = blockValue/5; // start at 20%
 
     // TODO check implementation
 
-//    int nMNPIBlock = Params().GetConsensus().nMasternodePaymentsIncreaseBlock;
-//    int nMNPIPeriod = Params().GetConsensus().nMasternodePaymentsIncreasePeriod;
+//    int nMNPIBlock = Params().GetConsensus().nServicenodePaymentsIncreaseBlock;
+//    int nMNPIPeriod = Params().GetConsensus().nServicenodePaymentsIncreasePeriod;
 
 //                                                                      // mainnet:
 //    if(nHeight > nMNPIBlock)                  ret += blockValue / 20; // 158000 - 25.0% - 2014-10-24

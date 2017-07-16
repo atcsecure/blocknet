@@ -27,7 +27,7 @@ bool DataSigner::IsVinAssociatedWithPubkey(const CTxIn& txin, const CPubKey& pub
     {
         for (const CTxOut & out : tx.vout)
         {
-            if (out.nValue == MASTERNODE_AMOUNT*COIN && out.scriptPubKey == payee)
+            if (out.nValue == SERVICENODE_AMOUNT*COIN && out.scriptPubKey == payee)
             {
                 return true;
             }

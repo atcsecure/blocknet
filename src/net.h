@@ -34,7 +34,7 @@ bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool fConnectToMasternode = false);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool fConnectToServicenode = false);
 void MapPort();
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -78,19 +78,19 @@ enum {
     MSG_TXLOCK_REQUEST,
     MSG_TXLOCK_VOTE,
     MSG_SPORK,
-    MSG_MASTERNODE_PAYMENT_VOTE,
-    MSG_MASTERNODE_PAYMENT_BLOCK, // reusing, was MSG_MASTERNODE_SCANNING_ERROR previousely, was NOT used in 12.0
+    MSG_SERVICENODE_PAYMENT_VOTE,
+    MSG_SERVICENODE_PAYMENT_BLOCK, // reusing, was MSG_SERVICENODE_SCANNING_ERROR previousely, was NOT used in 12.0
     MSG_BUDGET_VOTE, // depreciated since 12.1
     MSG_BUDGET_PROPOSAL, // depreciated since 12.1
     MSG_BUDGET_FINALIZED, // depreciated since 12.1
     MSG_BUDGET_FINALIZED_VOTE, // depreciated since 12.1
-    MSG_MASTERNODE_QUORUM, // not implemented
-    MSG_MASTERNODE_ANNOUNCE,
-    MSG_MASTERNODE_PING,
+    MSG_SERVICENODE_QUORUM, // not implemented
+    MSG_SERVICENODE_ANNOUNCE,
+    MSG_SERVICENODE_PING,
     MSG_DSTX,
     MSG_GOVERNANCE_OBJECT,
     MSG_GOVERNANCE_OBJECT_VOTE,
-    MSG_MASTERNODE_VERIFY,
+    MSG_SERVICENODE_VERIFY,
 };
 
 class CRequestTracker
@@ -197,7 +197,7 @@ public:
     bool fDisconnect;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
-    bool fMasternode;
+    bool fServicenode;
 protected:
 
     // Denial-of-service detection/prevention
@@ -256,7 +256,7 @@ public:
         nMisbehavior = 0;
         hashCheckpointKnown = 0;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
-        fMasternode = false;
+        fServicenode = false;
 
         // Be shy and don't send version until we hear
         if (hSocket != INVALID_SOCKET && !fInbound)

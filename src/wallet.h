@@ -41,9 +41,9 @@ enum AvailableCoinsType
 {
     ALL_COINS = 1,
     // ONLY_DENOMINATED = 2,
-    // ONLY_NOT_MASTERNODE_AMOUNT_IFMN = 3,
-    // ONLY_NONDENOMINATED_NOT_MASTERNODE_AMOUNT_IFMN = 4,
-    ONLY_MASTERNODE_AMOUNT = 5, // find servicenode outputs including locked ones (use with caution)
+    // ONLY_NOT_SERVICENODE_AMOUNT_IFMN = 3,
+    // ONLY_NONDENOMINATED_NOT_SERVICENODE_AMOUNT_IFMN = 4,
+    ONLY_SERVICENODE_AMOUNT = 5, // find servicenode outputs including locked ones (use with caution)
     // ONLY_PRIVATESEND_COLLATERAL = 6
 };
 
@@ -339,8 +339,8 @@ public:
     void UnlockAllCoins();
     void ListLockedCoins(std::vector<COutPoint>& vOutpts);
 
-    /// Get 1000BLOCKS output and keys which can be used for the Masternode
-    bool GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash = "", std::string strOutputIndex = "");
+    /// Get 1000BLOCKS output and keys which can be used for the Servicenode
+    bool GetServicenodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash = "", std::string strOutputIndex = "");
     /// Extract txin information and keys from output
     bool GetVinAndKeysFromOutput(COutput out, CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet);
 

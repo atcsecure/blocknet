@@ -1104,9 +1104,9 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
             {
                 bool found = false;
 
-                if(nCoinType == ONLY_MASTERNODE_AMOUNT)
+                if(nCoinType == ONLY_SERVICENODE_AMOUNT)
                 {
-                    found = pcoin->vout[i].nValue == MASTERNODE_AMOUNT * COIN;
+                    found = pcoin->vout[i].nValue == SERVICENODE_AMOUNT * COIN;
                 }
                 else
                 {
@@ -1120,7 +1120,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins,
                 if (!(pcoin->IsSpent(i)) &&
                     IsMine(pcoin->vout[i]) &&
                     pcoin->vout[i].nValue >= nMinimumInputValue &&
-                    // (!IsLockedCoin((*it).first, i) || nCoinType == ONLY_MASTERNODE_AMOUNT) &&
+                    // (!IsLockedCoin((*it).first, i) || nCoinType == ONLY_SERVICENODE_AMOUNT) &&
                     (pcoin->vout[i].nValue > 0 || fIncludeZeroValue) &&
                     (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                 {
@@ -2519,7 +2519,7 @@ void CWallet::ListLockedCoins(std::vector<COutPoint>& vOutpts)
     }
 }
 
-bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet,
+bool CWallet::GetServicenodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet,
                                       std::string strTxHash, std::string strOutputIndex)
 {
     // wait for reindex and/or import to finish
@@ -2530,10 +2530,10 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
 
     // Find possible candidates
     std::vector<COutput> vPossibleCoins;
-    AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_AMOUNT);
+    AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_SERVICENODE_AMOUNT);
     if(vPossibleCoins.empty())
     {
-        printf("CWallet::GetMasternodeVinAndKeys -- Could not locate any valid servicenode vin\n");
+        printf("CWallet::GetServicenodeVinAndKeys -- Could not locate any valid servicenode vin\n");
         return false;
     }
 
@@ -2553,7 +2553,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
             return GetVinAndKeysFromOutput(out, txinRet, pubKeyRet, keyRet);
     }
 
-    printf("CWallet::GetMasternodeVinAndKeys -- Could not locate specified servicenode vin\n");
+    printf("CWallet::GetServicenodeVinAndKeys -- Could not locate specified servicenode vin\n");
     return false;
 }
 

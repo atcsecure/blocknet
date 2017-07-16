@@ -465,10 +465,10 @@ CNode* FindNode(const CService& addr)
     return NULL;
 }
 
-CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToMasternode)
+CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToServicenode)
 {
     if (pszDest == NULL) {
-        if (IsLocal(addrConnect) && !fConnectToMasternode)
+        if (IsLocal(addrConnect) && !fConnectToServicenode)
             return NULL;
 
         // Look for an existing connection
@@ -477,9 +477,9 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToMas
         {
             // we have existing connection to this node but it was not a connection to servicenode,
             // change flag and add reference so that we can correctly clear it later
-            if (fConnectToMasternode && !pnode->fMasternode)
+            if (fConnectToServicenode && !pnode->fServicenode)
             {
-                pnode->fMasternode = true;
+                pnode->fServicenode = true;
             }
             pnode->AddRef();
             return pnode;
@@ -522,9 +522,9 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToMas
 
         pnode->nTimeConnected = GetTime();
 
-        if (fConnectToMasternode)
+        if (fConnectToServicenode)
         {
-            pnode->fMasternode = true;
+            pnode->fServicenode = true;
         }
 
         return pnode;

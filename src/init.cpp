@@ -99,9 +99,9 @@ void Shutdown(void* parg)
         nTransactionsUpdated++;
 
         // STORE DATA CACHES INTO SERIALIZED DAT FILES
-        CFlatDB<CMasternodeMan> flatdb1("mncache.dat", "magicMasternodeCache");
+        CFlatDB<CServicenodeMan> flatdb1("mncache.dat", "magicServicenodeCache");
         flatdb1.Dump(mnodeman);
-        CFlatDB<CMasternodePayments> flatdb2("mnpayments.dat", "magicMasternodePaymentsCache");
+        CFlatDB<CServicenodePayments> flatdb2("mnpayments.dat", "magicServicenodePaymentsCache");
         flatdb2.Dump(mnpayments);
         // CFlatDB<CGovernanceManager> flatdb3("governance.dat", "magicGovernanceCache");
         // flatdb3.Dump(governance);
@@ -915,42 +915,42 @@ bool AppInit2()
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 10a: setup servicenode
-    fMasterNode = GetBoolArg("-servicenode", false);
+    fServiceNode = GetBoolArg("-servicenode", false);
 
-//    if((fMasterNode || servicenodeConfig.getCount() > -1) && fTxIndex == false) {
-//        return InitError("Enabling Masternode support requires turning on transaction indexing."
+//    if((fServiceNode || servicenodeConfig.getCount() > -1) && fTxIndex == false) {
+//        return InitError("Enabling Servicenode support requires turning on transaction indexing."
 //                  "Please add txindex=1 to your configuration and start with -reindex");
 //    }
 
-//    if(fMasterNode) {
-//        LogPrintf("MASTERNODE:\n");
+//    if(fServiceNode) {
+//        LogPrintf("SERVICENODE:\n");
 
 //        if(!GetArg("-servicenodeaddr", "").empty()) {
 //            // Hot servicenode (either local or remote) should get its address in
-//            // CActiveMasternode::ManageState() automatically and no longer relies on servicenodeaddr.
+//            // CActiveServicenode::ManageState() automatically and no longer relies on servicenodeaddr.
 //            return InitError(_("servicenodeaddr option is deprecated. Please use servicenode.conf to manage your remote servicenodes."));
 //        }
 
-//        std::string strMasterNodePrivKey = GetArg("-servicenodeprivkey", "");
-//        if(!strMasterNodePrivKey.empty()) {
-//            if(!darkSendSigner.GetKeysFromSecret(strMasterNodePrivKey, activeMasternode.keyMasternode, activeMasternode.pubKeyMasternode))
+//        std::string strServiceNodePrivKey = GetArg("-servicenodeprivkey", "");
+//        if(!strServiceNodePrivKey.empty()) {
+//            if(!darkSendSigner.GetKeysFromSecret(strServiceNodePrivKey, activeServicenode.keyServicenode, activeServicenode.pubKeyServicenode))
 //                return InitError(_("Invalid servicenodeprivkey. Please see documenation."));
 
-//            LogPrintf("  pubKeyMasternode: %s\n", CBitcoinAddress(activeMasternode.pubKeyMasternode.GetID()).ToString());
+//            LogPrintf("  pubKeyServicenode: %s\n", CBitcoinAddress(activeServicenode.pubKeyServicenode.GetID()).ToString());
 //        } else {
 //            return InitError(_("You must specify a servicenodeprivkey in the configuration. Please see documentation for help."));
 //        }
 //    }
 
-    printf("Using servicenode config file %s\n", GetMasternodeConfigFile().string().c_str());
+    printf("Using servicenode config file %s\n", GetServicenodeConfigFile().string().c_str());
 
     if (GetBoolArg("-mnconflock", true) && pwalletMain && (servicenodeConfig.getCount() > 0))
     {
         LOCK(pwalletMain->cs_wallet);
-        printf("Locking Masternodes:\n");
+        printf("Locking Servicenodes:\n");
         uint256 mnTxHash;
         int outputIndex;
-        for (CMasternodeConfig::CMasternodeEntry & mne : servicenodeConfig.getEntries())
+        for (CServicenodeConfig::CServicenodeEntry & mne : servicenodeConfig.getEntries())
         {
             mnTxHash.SetHex(mne.getTxHash());
             outputIndex = boost::lexical_cast<unsigned int>(mne.getOutputIndex());
@@ -971,7 +971,7 @@ bool AppInit2()
     // LOAD SERIALIZED DAT FILES INTO DATA CACHES FOR INTERNAL USE
 
     uiInterface.InitMessage(_("Loading servicenode cache..."));
-    CFlatDB<CMasternodeMan> flatdb1("mncache.dat", "magicMasternodeCache");
+    CFlatDB<CServicenodeMan> flatdb1("mncache.dat", "magicServicenodeCache");
     if(!flatdb1.Load(mnodeman))
     {
         return InitError("Failed to load servicenode cache from mncache.dat");
@@ -980,7 +980,7 @@ bool AppInit2()
     if(mnodeman.size())
     {
         uiInterface.InitMessage(_("Loading servicenode payment cache..."));
-        CFlatDB<CMasternodePayments> flatdb2("mnpayments.dat", "magicMasternodePaymentsCache");
+        CFlatDB<CServicenodePayments> flatdb2("mnpayments.dat", "magicServicenodePaymentsCache");
         if(!flatdb2.Load(mnpayments))
         {
             return InitError("Failed to load servicenode payments cache from mnpayments.dat");
@@ -996,7 +996,7 @@ bool AppInit2()
     }
     else
     {
-        uiInterface.InitMessage(_("Masternode cache is empty, skipping payments and governance cache..."));
+        uiInterface.InitMessage(_("Servicenode cache is empty, skipping payments and governance cache..."));
     }
 
     uiInterface.InitMessage(_("Loading fulfilled requests cache..."));
@@ -1018,7 +1018,7 @@ bool AppInit2()
     // governance.UpdatedBlockTip(pindexBest);
 
     // ********************************************************* Step 10d: start servicenode service thread
-    NewThread(ThreadMasternodeService, NULL);
+    NewThread(ThreadServicenodeService, NULL);
 
     // ********************************************************* Step 11: start node
 
