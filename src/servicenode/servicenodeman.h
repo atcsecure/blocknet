@@ -2,18 +2,18 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MASTERNODEMAN_H
-#define MASTERNODEMAN_H
+#ifndef SERVICENODEMAN_H
+#define SERVICENODEMAN_H
 
 #include "serialize.h"
-#include "masternode.h"
+#include "servicenode.h"
 #include "sync.h"
 
 using namespace std;
 
-class CMasternodeMan;
+class CServicenodeMan;
 
-extern CMasternodeMan mnodeman;
+extern CServicenodeMan mnodeman;
 
 /**
  * Provides a forward and reverse index between MN vin's and integers.
@@ -22,9 +22,9 @@ extern CMasternodeMan mnodeman;
  * It is only rebuilt if the size of the index exceeds the expected maximum number
  * of MN's and the current number of known MN's.
  *
- * The external interface to this index is provided via delegation by CMasternodeMan
+ * The external interface to this index is provided via delegation by CServicenodeMan
  */
-class CMasternodeIndex
+class CServicenodeIndex
 {
 public: // Types
     typedef std::map<CTxIn,int> index_m_t;
@@ -47,19 +47,19 @@ private:
     rindex_m_t           mapReverseIndex;
 
 public:
-    CMasternodeIndex();
+    CServicenodeIndex();
 
     int GetSize() const {
         return nSize;
     }
 
-    /// Retrieve masternode vin by index
-    bool Get(int nIndex, CTxIn& vinMasternode) const;
+    /// Retrieve servicenode vin by index
+    bool Get(int nIndex, CTxIn& vinServicenode) const;
 
-    /// Get index of a masternode vin
-    int GetMasternodeIndex(const CTxIn& vinMasternode) const;
+    /// Get index of a servicenode vin
+    int GetServicenodeIndex(const CTxIn& vinServicenode) const;
 
-    void AddMasternodeVIN(const CTxIn& vinMasternode);
+    void AddServicenodeVIN(const CTxIn& vinServicenode);
 
     void Clear();
 
@@ -70,13 +70,13 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(mapIndex);
         if (fRead) {
-            const_cast<CMasternodeIndex *>(this)->RebuildIndex();
+            const_cast<CServicenodeIndex *>(this)->RebuildIndex();
         }
     )
 
 };
 
-class CMasternodeMan
+class CServicenodeMan
 {
 public:
     typedef std::map<CTxIn,int> index_m_t;
@@ -116,97 +116,97 @@ private:
     const CBlockIndex *pCurrentBlockIndex;
 
     // map to hold all MNs
-    std::vector<CMasternode> vMasternodes;
-    // who's asked for the Masternode list and the last time
-    std::map<CNetAddr, int64_t> mAskedUsForMasternodeList;
-    // who we asked for the Masternode list and the last time
-    std::map<CNetAddr, int64_t> mWeAskedForMasternodeList;
-    // which Masternodes we've asked for
-    std::map<COutPoint, std::map<CNetAddr, int64_t> > mWeAskedForMasternodeListEntry;
-    // who we asked for the masternode verification
-    std::map<CNetAddr, CMasternodeVerification> mWeAskedForVerification;
+    std::vector<CServicenode> vServicenodes;
+    // who's asked for the Servicenode list and the last time
+    std::map<CNetAddr, int64_t> mAskedUsForServicenodeList;
+    // who we asked for the Servicenode list and the last time
+    std::map<CNetAddr, int64_t> mWeAskedForServicenodeList;
+    // which Servicenodes we've asked for
+    std::map<COutPoint, std::map<CNetAddr, int64_t> > mWeAskedForServicenodeListEntry;
+    // who we asked for the servicenode verification
+    std::map<CNetAddr, CServicenodeVerification> mWeAskedForVerification;
 
-    // these maps are used for masternode recovery from MASTERNODE_NEW_START_REQUIRED state
+    // these maps are used for servicenode recovery from SERVICENODE_NEW_START_REQUIRED state
     std::map<uint256, std::pair< int64_t, std::set<CNetAddr> > > mMnbRecoveryRequests;
-    std::map<uint256, std::vector<CMasternodeBroadcast> > mMnbRecoveryGoodReplies;
+    std::map<uint256, std::vector<CServicenodeBroadcast> > mMnbRecoveryGoodReplies;
     std::list< std::pair<CService, uint256> > listScheduledMnbRequestConnections;
 
     int64_t nLastIndexRebuildTime;
 
-    CMasternodeIndex indexMasternodes;
+    CServicenodeIndex indexServicenodes;
 
-    CMasternodeIndex indexMasternodesOld;
+    CServicenodeIndex indexServicenodesOld;
 
     /// Set when index has been rebuilt, clear when read
     bool fIndexRebuilt;
 
-    /// Set when masternodes are added, cleared when CGovernanceManager is notified
-    bool fMasternodesAdded;
+    /// Set when servicenodes are added, cleared when CGovernanceManager is notified
+    bool fServicenodesAdded;
 
-    /// Set when masternodes are removed, cleared when CGovernanceManager is notified
-    bool fMasternodesRemoved;
+    /// Set when servicenodes are removed, cleared when CGovernanceManager is notified
+    bool fServicenodesRemoved;
 
     std::vector<uint256> vecDirtyGovernanceObjectHashes;
 
     int64_t nLastWatchdogVoteTime;
 
-    friend class CMasternodeSync;
+    friend class CServicenodeSync;
 
 public:
     // Keep track of all broadcasts I've seen
-    std::map<uint256, std::pair<int64_t, CMasternodeBroadcast> > mapSeenMasternodeBroadcast;
+    std::map<uint256, std::pair<int64_t, CServicenodeBroadcast> > mapSeenServicenodeBroadcast;
     // Keep track of all pings I've seen
-    std::map<uint256, CMasternodePing> mapSeenMasternodePing;
+    std::map<uint256, CServicenodePing> mapSeenServicenodePing;
     // Keep track of all verifications I've seen
-    std::map<uint256, CMasternodeVerification> mapSeenMasternodeVerification;
-    // keep track of dsq count to prevent masternodes from gaming darksend queue
+    std::map<uint256, CServicenodeVerification> mapSeenServicenodeVerification;
+    // keep track of dsq count to prevent servicenodes from gaming darksend queue
     int64_t nDsqCount;
 
 
-    CMasternodeMan();
+    CServicenodeMan();
 
     /// Add an entry
-    bool Add(CMasternode &mn);
+    bool Add(CServicenode &mn);
 
     /// Ask (source) node for mnb
     void AskForMN(CNode *pnode, const CTxIn &vin);
     void AskForMnb(CNode *pnode, const uint256 &hash);
 
-    /// Check all Masternodes
+    /// Check all Servicenodes
     void Check();
 
-    /// Check all Masternodes and remove inactive
+    /// Check all Servicenodes and remove inactive
     void CheckAndRemove();
 
-    /// Clear Masternode vector
+    /// Clear Servicenode vector
     void Clear();
 
-    /// Count Masternodes filtered by nProtocolVersion.
-    /// Masternode nProtocolVersion should match or be above the one specified in param here.
-    int CountMasternodes(int nProtocolVersion = -1);
-    /// Count enabled Masternodes filtered by nProtocolVersion.
-    /// Masternode nProtocolVersion should match or be above the one specified in param here.
+    /// Count Servicenodes filtered by nProtocolVersion.
+    /// Servicenode nProtocolVersion should match or be above the one specified in param here.
+    int CountServicenodes(int nProtocolVersion = -1);
+    /// Count enabled Servicenodes filtered by nProtocolVersion.
+    /// Servicenode nProtocolVersion should match or be above the one specified in param here.
     int CountEnabled(int nProtocolVersion = -1);
 
-    /// Count Masternodes by network type - NET_IPV4, NET_IPV6, NET_TOR
+    /// Count Servicenodes by network type - NET_IPV4, NET_IPV6, NET_TOR
     // int CountByIP(int nNetworkType);
 
     void DsegUpdate(CNode* pnode);
 
     /// Find an entry
-    CMasternode* Find(const CScript &payee);
-    CMasternode* Find(const CTxIn& vin);
-    CMasternode* Find(const CPubKey& pubKeyMasternode);
+    CServicenode* Find(const CScript &payee);
+    CServicenode* Find(const CTxIn& vin);
+    CServicenode* Find(const CPubKey& pubKeyServicenode);
 
     /// Versions of Find that are safe to use from outside the class
-    bool Get(const CPubKey& pubKeyMasternode, CMasternode& masternode);
-    bool Get(const CTxIn& vin, CMasternode& masternode);
+    bool Get(const CPubKey& pubKeyServicenode, CServicenode& servicenode);
+    bool Get(const CTxIn& vin, CServicenode& servicenode);
 
-    /// Retrieve masternode vin by index
-    bool Get(int nIndex, CTxIn& vinMasternode, bool& fIndexRebuiltOut) {
+    /// Retrieve servicenode vin by index
+    bool Get(int nIndex, CTxIn& vinServicenode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
-        return indexMasternodes.Get(nIndex, vinMasternode);
+        return indexServicenodes.Get(nIndex, vinServicenode);
     }
 
     bool GetIndexRebuiltFlag() {
@@ -214,83 +214,83 @@ public:
         return fIndexRebuilt;
     }
 
-    /// Get index of a masternode vin
-    int GetMasternodeIndex(const CTxIn& vinMasternode) {
+    /// Get index of a servicenode vin
+    int GetServicenodeIndex(const CTxIn& vinServicenode) {
         LOCK(cs);
-        return indexMasternodes.GetMasternodeIndex(vinMasternode);
+        return indexServicenodes.GetServicenodeIndex(vinServicenode);
     }
 
-    /// Get old index of a masternode vin
-    int GetMasternodeIndexOld(const CTxIn& vinMasternode) {
+    /// Get old index of a servicenode vin
+    int GetServicenodeIndexOld(const CTxIn& vinServicenode) {
         LOCK(cs);
-        return indexMasternodesOld.GetMasternodeIndex(vinMasternode);
+        return indexServicenodesOld.GetServicenodeIndex(vinServicenode);
     }
 
-    /// Get masternode VIN for an old index value
-    bool GetMasternodeVinForIndexOld(int nMasternodeIndex, CTxIn& vinMasternodeOut) {
+    /// Get servicenode VIN for an old index value
+    bool GetServicenodeVinForIndexOld(int nServicenodeIndex, CTxIn& vinServicenodeOut) {
         LOCK(cs);
-        return indexMasternodesOld.Get(nMasternodeIndex, vinMasternodeOut);
+        return indexServicenodesOld.Get(nServicenodeIndex, vinServicenodeOut);
     }
 
-    /// Get index of a masternode vin, returning rebuild flag
-    int GetMasternodeIndex(const CTxIn& vinMasternode, bool& fIndexRebuiltOut) {
+    /// Get index of a servicenode vin, returning rebuild flag
+    int GetServicenodeIndex(const CTxIn& vinServicenode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
-        return indexMasternodes.GetMasternodeIndex(vinMasternode);
+        return indexServicenodes.GetServicenodeIndex(vinServicenode);
     }
 
-    void ClearOldMasternodeIndex() {
+    void ClearOldServicenodeIndex() {
         LOCK(cs);
-        indexMasternodesOld.Clear();
+        indexServicenodesOld.Clear();
         fIndexRebuilt = false;
     }
 
     bool Has(const CTxIn& vin);
 
-    masternode_info_t GetMasternodeInfo(const CTxIn& vin);
+    servicenode_info_t GetServicenodeInfo(const CTxIn& vin);
 
-    masternode_info_t GetMasternodeInfo(const CPubKey& pubKeyMasternode);
+    servicenode_info_t GetServicenodeInfo(const CPubKey& pubKeyServicenode);
 
-    /// Find an entry in the masternode list that is next to be paid
-    CMasternode* GetNextMasternodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCount);
+    /// Find an entry in the servicenode list that is next to be paid
+    CServicenode* GetNextServicenodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCount);
     /// Same as above but use current block height
-    CMasternode* GetNextMasternodeInQueueForPayment(bool fFilterSigTime, int& nCount);
+    CServicenode* GetNextServicenodeInQueueForPayment(bool fFilterSigTime, int& nCount);
 
     /// Find a random entry
-    CMasternode* FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, int nProtocolVersion = -1);
+    CServicenode* FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, int nProtocolVersion = -1);
 
-    std::vector<CMasternode> GetFullMasternodeVector() { return vMasternodes; }
+    std::vector<CServicenode> GetFullServicenodeVector() { return vServicenodes; }
 
-    std::vector<std::pair<int, CMasternode> > GetMasternodeRanks(int nBlockHeight = -1, int nMinProtocol=0);
-    int GetMasternodeRank(const CTxIn &vin, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
-    CMasternode* GetMasternodeByRank(int nRank, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
+    std::vector<std::pair<int, CServicenode> > GetServicenodeRanks(int nBlockHeight = -1, int nMinProtocol=0);
+    int GetServicenodeRank(const CTxIn &vin, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
+    CServicenode* GetServicenodeByRank(int nRank, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
 
-    void ProcessMasternodeConnections();
+    void ProcessServicenodeConnections();
     std::pair<CService, std::set<uint256> > PopScheduledMnbRequestConnection();
 
     void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
     void DoFullVerificationStep();
     void CheckSameAddr();
-    bool SendVerifyRequest(const CAddress& addr, const std::vector<CMasternode*>& vSortedByAddr);
-    void SendVerifyReply(CNode* pnode, CMasternodeVerification& mnv);
-    void ProcessVerifyReply(CNode* pnode, CMasternodeVerification& mnv);
-    void ProcessVerifyBroadcast(CNode* pnode, const CMasternodeVerification& mnv);
+    bool SendVerifyRequest(const CAddress& addr, const std::vector<CServicenode*>& vSortedByAddr);
+    void SendVerifyReply(CNode* pnode, CServicenodeVerification& mnv);
+    void ProcessVerifyReply(CNode* pnode, CServicenodeVerification& mnv);
+    void ProcessVerifyBroadcast(CNode* pnode, const CServicenodeVerification& mnv);
 
-    /// Return the number of (unique) Masternodes
-    int size() { return vMasternodes.size(); }
+    /// Return the number of (unique) Servicenodes
+    int size() { return vServicenodes.size(); }
 
     std::string ToString() const;
 
-    /// Update masternode list and maps using provided CMasternodeBroadcast
-    void UpdateMasternodeList(CMasternodeBroadcast mnb);
+    /// Update servicenode list and maps using provided CServicenodeBroadcast
+    void UpdateServicenodeList(CServicenodeBroadcast mnb);
     /// Perform complete check and only then update list and maps
-    bool CheckMnbAndUpdateMasternodeList(CNode* pfrom, CMasternodeBroadcast mnb, int& nDos);
+    bool CheckMnbAndUpdateServicenodeList(CNode* pfrom, CServicenodeBroadcast mnb, int& nDos);
     bool IsMnbRecoveryRequested(const uint256& hash) { return mMnbRecoveryRequests.count(hash); }
 
     void UpdateLastPaid();
 
-    void CheckAndRebuildMasternodeIndex();
+    void CheckAndRebuildServicenodeIndex();
 
     void AddDirtyGovernanceObjectHash(const uint256& nHash)
     {
@@ -311,22 +311,22 @@ public:
     bool AddGovernanceVote(const CTxIn& vin, uint256 nGovernanceObjectHash);
     void RemoveGovernanceObject(uint256 nGovernanceObjectHash);
 
-    void CheckMasternode(const CTxIn& vin, bool fForce = false);
-    void CheckMasternode(const CPubKey& pubKeyMasternode, bool fForce = false);
+    void CheckServicenode(const CTxIn& vin, bool fForce = false);
+    void CheckServicenode(const CPubKey& pubKeyServicenode, bool fForce = false);
 
-    int GetMasternodeState(const CTxIn& vin);
-    int GetMasternodeState(const CPubKey& pubKeyMasternode);
+    int GetServicenodeState(const CTxIn& vin);
+    int GetServicenodeState(const CPubKey& pubKeyServicenode);
 
-    bool IsMasternodePingedWithin(const CTxIn& vin, int nSeconds, int64_t nTimeToCheckAt = -1);
-    void SetMasternodeLastPing(const CTxIn& vin, const CMasternodePing& mnp);
+    bool IsServicenodePingedWithin(const CTxIn& vin, int nSeconds, int64_t nTimeToCheckAt = -1);
+    void SetServicenodeLastPing(const CTxIn& vin, const CServicenodePing& mnp);
 
     void UpdatedBlockTip(const CBlockIndex *pindex);
 
     /**
-     * Called to notify CGovernanceManager that the masternode index has been updated.
-     * Must be called while not holding the CMasternodeMan::cs mutex
+     * Called to notify CGovernanceManager that the servicenode index has been updated.
+     * Must be called while not holding the CServicenodeMan::cs mutex
      */
-    void NotifyMasternodeUpdates();
+    void NotifyServicenodeUpdates();
 
 public:
     IMPLEMENT_SERIALIZE(
@@ -340,20 +340,20 @@ public:
             READWRITE(strVersion);
         }
 
-        READWRITE(vMasternodes);
-        READWRITE(mAskedUsForMasternodeList);
-        READWRITE(mWeAskedForMasternodeList);
-        READWRITE(mWeAskedForMasternodeListEntry);
+        READWRITE(vServicenodes);
+        READWRITE(mAskedUsForServicenodeList);
+        READWRITE(mWeAskedForServicenodeList);
+        READWRITE(mWeAskedForServicenodeListEntry);
         READWRITE(mMnbRecoveryRequests);
         READWRITE(mMnbRecoveryGoodReplies);
         READWRITE(nLastWatchdogVoteTime);
         READWRITE(nDsqCount);
 
-        READWRITE(mapSeenMasternodeBroadcast);
-        READWRITE(mapSeenMasternodePing);
-        READWRITE(indexMasternodes);
+        READWRITE(mapSeenServicenodeBroadcast);
+        READWRITE(mapSeenServicenodePing);
+        READWRITE(indexServicenodes);
         if (fRead && (strVersion != SERIALIZATION_VERSION_STRING)) {
-            const_cast<CMasternodeMan *>(this)->Clear();
+            const_cast<CServicenodeMan *>(this)->Clear();
         }
     )
 };

@@ -2,8 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef MASTERNODE_H
-#define MASTERNODE_H
+#ifndef SERVICENODE_H
+#define SERVICENODE_H
 
 #include "serialize.h"
 #include "key.h"
@@ -12,23 +12,23 @@
 // #include "spork.h"
 // #include "timedata.h"
 
-class CMasternode;
-class CMasternodeBroadcast;
-class CMasternodePing;
+class CServicenode;
+class CServicenodeBroadcast;
+class CServicenodePing;
 
-static const int MASTERNODE_CHECK_SECONDS               =   5;
-static const int MASTERNODE_MIN_MNB_SECONDS             =   5 * 60;
-static const int MASTERNODE_MIN_MNP_SECONDS             =  10 * 60;
-static const int MASTERNODE_EXPIRATION_SECONDS          =  65 * 60;
-static const int MASTERNODE_WATCHDOG_MAX_SECONDS        = 120 * 60;
-static const int MASTERNODE_NEW_START_REQUIRED_SECONDS  = 180 * 60;
+static const int SERVICENODE_CHECK_SECONDS               =   5;
+static const int SERVICENODE_MIN_MNB_SECONDS             =   5 * 60;
+static const int SERVICENODE_MIN_MNP_SECONDS             =  10 * 60;
+static const int SERVICENODE_EXPIRATION_SECONDS          =  65 * 60;
+static const int SERVICENODE_WATCHDOG_MAX_SECONDS        = 120 * 60;
+static const int SERVICENODE_NEW_START_REQUIRED_SECONDS  = 180 * 60;
 
-static const int MASTERNODE_POSE_BAN_MAX_SCORE          = 5;
+static const int SERVICENODE_POSE_BAN_MAX_SCORE          = 5;
 //
-// The Masternode Ping Class : Contains a different serialize method for sending pings from masternodes throughout the network
+// The Servicenode Ping Class : Contains a different serialize method for sending pings from servicenodes throughout the network
 //
 
-class CMasternodePing
+class CServicenodePing
 {
 public:
     CTxIn vin;
@@ -37,14 +37,14 @@ public:
     std::vector<unsigned char> vchSig;
     //removed stop
 
-    CMasternodePing() :
+    CServicenodePing() :
         vin(),
         blockHash(),
         sigTime(0),
         vchSig()
         {}
 
-    CMasternodePing(const CTxIn & vinNew);
+    CServicenodePing(const CTxIn & vinNew);
 
     IMPLEMENT_SERIALIZE(
         READWRITE(vin);
@@ -53,7 +53,7 @@ public:
         READWRITE(vchSig);
     )
 
-    void swap(CMasternodePing& first, CMasternodePing& second) // nothrow
+    void swap(CServicenodePing& first, CServicenodePing& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
@@ -74,37 +74,37 @@ public:
         return ss.GetHash();
     }
 
-    bool IsExpired() { return GetTime() - sigTime > MASTERNODE_NEW_START_REQUIRED_SECONDS; }
+    bool IsExpired() { return GetTime() - sigTime > SERVICENODE_NEW_START_REQUIRED_SECONDS; }
 
-    bool Sign(const CKey & keyMasternode, const CPubKey & pubKeyMasternode);
-    bool CheckSignature(CPubKey& pubKeyMasternode, int &nDos);
+    bool Sign(const CKey & keyServicenode, const CPubKey & pubKeyServicenode);
+    bool CheckSignature(CPubKey& pubKeyServicenode, int &nDos);
     bool SimpleCheck(int& nDos);
-    bool CheckAndUpdate(CMasternode* pmn, bool fFromNewBroadcast, int& nDos);
+    bool CheckAndUpdate(CServicenode* pmn, bool fFromNewBroadcast, int& nDos);
     void Relay();
 
-    CMasternodePing& operator=(CMasternodePing from)
+    CServicenodePing& operator=(CServicenodePing from)
     {
         swap(*this, from);
         return *this;
     }
-    friend bool operator==(const CMasternodePing& a, const CMasternodePing& b)
+    friend bool operator==(const CServicenodePing& a, const CServicenodePing& b)
     {
         return a.vin == b.vin && a.blockHash == b.blockHash;
     }
-    friend bool operator!=(const CMasternodePing& a, const CMasternodePing& b)
+    friend bool operator!=(const CServicenodePing& a, const CServicenodePing& b)
     {
         return !(a == b);
     }
 
 };
 
-struct masternode_info_t
+struct servicenode_info_t
 {
-    masternode_info_t()
+    servicenode_info_t()
         : vin(),
           addr(),
           pubKeyCollateralAddress(),
-          pubKeyMasternode(),
+          pubKeyServicenode(),
           sigTime(0),
           nLastDsq(0),
           nTimeLastChecked(0),
@@ -119,7 +119,7 @@ struct masternode_info_t
     CTxIn vin;
     CService addr;
     CPubKey pubKeyCollateralAddress;
-    CPubKey pubKeyMasternode;
+    CPubKey pubKeyServicenode;
     int64_t sigTime; //mnb message time
     int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
     int64_t nTimeLastChecked;
@@ -132,10 +132,10 @@ struct masternode_info_t
 };
 
 //
-// The Masternode Class. It contains the input of the masternode amount, signature to prove
+// The Servicenode Class. It contains the input of the servicenode amount, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
-class CMasternode
+class CServicenode
 {
 private:
     // critical section to protect the inner data structures
@@ -143,21 +143,21 @@ private:
 
 public:
     enum state {
-        MASTERNODE_PRE_ENABLED,
-        MASTERNODE_ENABLED,
-        MASTERNODE_EXPIRED,
-        MASTERNODE_OUTPOINT_SPENT,
-        MASTERNODE_UPDATE_REQUIRED,
-        MASTERNODE_WATCHDOG_EXPIRED,
-        MASTERNODE_NEW_START_REQUIRED,
-        MASTERNODE_POSE_BAN
+        SERVICENODE_PRE_ENABLED,
+        SERVICENODE_ENABLED,
+        SERVICENODE_EXPIRED,
+        SERVICENODE_OUTPOINT_SPENT,
+        SERVICENODE_UPDATE_REQUIRED,
+        SERVICENODE_WATCHDOG_EXPIRED,
+        SERVICENODE_NEW_START_REQUIRED,
+        SERVICENODE_POSE_BAN
     };
 
     CTxIn vin;
     CService addr;
     CPubKey pubKeyCollateralAddress;
-    CPubKey pubKeyMasternode;
-    CMasternodePing lastPing;
+    CPubKey pubKeyServicenode;
+    CServicenodePing lastPing;
     std::vector<unsigned char> vchSig;
     int64_t sigTime; //mnb message time
     int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
@@ -173,20 +173,20 @@ public:
     bool fAllowMixingTx;
     bool fUnitTest;
 
-    // KEEP TRACK OF GOVERNANCE ITEMS EACH MASTERNODE HAS VOTE UPON FOR RECALCULATION
+    // KEEP TRACK OF GOVERNANCE ITEMS EACH SERVICENODE HAS VOTE UPON FOR RECALCULATION
     std::map<uint256, int> mapGovernanceObjectsVotedOn;
 
-    CMasternode();
-    CMasternode(const CMasternode& other);
-    CMasternode(const CMasternodeBroadcast& mnb);
-    CMasternode(CService addrNew, CTxIn vinNew, CPubKey pubKeyCollateralAddressNew, CPubKey pubKeyMasternodeNew, int nProtocolVersionIn);
+    CServicenode();
+    CServicenode(const CServicenode& other);
+    CServicenode(const CServicenodeBroadcast& mnb);
+    CServicenode(CService addrNew, CTxIn vinNew, CPubKey pubKeyCollateralAddressNew, CPubKey pubKeyServicenodeNew, int nProtocolVersionIn);
 
     IMPLEMENT_SERIALIZE(
         LOCK(cs);
         READWRITE(vin);
         READWRITE(addr);
         READWRITE(pubKeyCollateralAddress);
-        READWRITE(pubKeyMasternode);
+        READWRITE(pubKeyServicenode);
         READWRITE(lastPing);
         READWRITE(vchSig);
         READWRITE(sigTime);
@@ -205,7 +205,7 @@ public:
         READWRITE(mapGovernanceObjectsVotedOn);
     )
 
-    void swap(CMasternode& first, CMasternode& second) // nothrow
+    void swap(CServicenode& first, CServicenode& second) // nothrow
     {
         // enable ADL (not necessary in our case, but good practice)
         using std::swap;
@@ -215,7 +215,7 @@ public:
         swap(first.vin, second.vin);
         swap(first.addr, second.addr);
         swap(first.pubKeyCollateralAddress, second.pubKeyCollateralAddress);
-        swap(first.pubKeyMasternode, second.pubKeyMasternode);
+        swap(first.pubKeyServicenode, second.pubKeyServicenode);
         swap(first.lastPing, second.lastPing);
         swap(first.vchSig, second.vchSig);
         swap(first.sigTime, second.sigTime);
@@ -237,7 +237,7 @@ public:
     // CALCULATE A RANK AGAINST OF GIVEN BLOCK
     arith_uint256 CalculateScore(const uint256& blockHash);
 
-    bool UpdateFromNewBroadcast(CMasternodeBroadcast& mnb);
+    bool UpdateFromNewBroadcast(CServicenodeBroadcast& mnb);
 
     void Check(bool fForce = false);
 
@@ -245,7 +245,7 @@ public:
 
     bool IsPingedWithin(int nSeconds, int64_t nTimeToCheckAt = -1)
     {
-        if(lastPing == CMasternodePing()) return false;
+        if(lastPing == CServicenodePing()) return false;
 
         if(nTimeToCheckAt == -1) {
             nTimeToCheckAt = GetAdjustedTime();
@@ -253,32 +253,32 @@ public:
         return nTimeToCheckAt - lastPing.sigTime < nSeconds;
     }
 
-    bool IsEnabled() { return nActiveState == MASTERNODE_ENABLED; }
-    bool IsPreEnabled() { return nActiveState == MASTERNODE_PRE_ENABLED; }
-    bool IsPoSeBanned() { return nActiveState == MASTERNODE_POSE_BAN; }
+    bool IsEnabled() { return nActiveState == SERVICENODE_ENABLED; }
+    bool IsPreEnabled() { return nActiveState == SERVICENODE_PRE_ENABLED; }
+    bool IsPoSeBanned() { return nActiveState == SERVICENODE_POSE_BAN; }
     // NOTE: this one relies on nPoSeBanScore, not on nActiveState as everything else here
-    bool IsPoSeVerified() { return nPoSeBanScore <= -MASTERNODE_POSE_BAN_MAX_SCORE; }
-    bool IsExpired() { return nActiveState == MASTERNODE_EXPIRED; }
-    bool IsOutpointSpent() { return nActiveState == MASTERNODE_OUTPOINT_SPENT; }
-    bool IsUpdateRequired() { return nActiveState == MASTERNODE_UPDATE_REQUIRED; }
-    bool IsWatchdogExpired() { return nActiveState == MASTERNODE_WATCHDOG_EXPIRED; }
-    bool IsNewStartRequired() { return nActiveState == MASTERNODE_NEW_START_REQUIRED; }
+    bool IsPoSeVerified() { return nPoSeBanScore <= -SERVICENODE_POSE_BAN_MAX_SCORE; }
+    bool IsExpired() { return nActiveState == SERVICENODE_EXPIRED; }
+    bool IsOutpointSpent() { return nActiveState == SERVICENODE_OUTPOINT_SPENT; }
+    bool IsUpdateRequired() { return nActiveState == SERVICENODE_UPDATE_REQUIRED; }
+    bool IsWatchdogExpired() { return nActiveState == SERVICENODE_WATCHDOG_EXPIRED; }
+    bool IsNewStartRequired() { return nActiveState == SERVICENODE_NEW_START_REQUIRED; }
 
     static bool IsValidStateForAutoStart(int nActiveStateIn)
     {
-        return  nActiveStateIn == MASTERNODE_ENABLED ||
-                nActiveStateIn == MASTERNODE_PRE_ENABLED ||
-                nActiveStateIn == MASTERNODE_EXPIRED ||
-                nActiveStateIn == MASTERNODE_WATCHDOG_EXPIRED;
+        return  nActiveStateIn == SERVICENODE_ENABLED ||
+                nActiveStateIn == SERVICENODE_PRE_ENABLED ||
+                nActiveStateIn == SERVICENODE_EXPIRED ||
+                nActiveStateIn == SERVICENODE_WATCHDOG_EXPIRED;
     }
 
     bool IsValidForPayment()
     {
-        if(nActiveState == MASTERNODE_ENABLED) {
+        if(nActiveState == SERVICENODE_ENABLED) {
             return true;
         }
 //        if(!sporkManager.IsSporkActive(SPORK_14_REQUIRE_SENTINEL_FLAG) &&
-//           (nActiveState == MASTERNODE_WATCHDOG_EXPIRED)) {
+//           (nActiveState == SERVICENODE_WATCHDOG_EXPIRED)) {
 //            return true;
 //        }
 
@@ -288,10 +288,10 @@ public:
     bool IsValidNetAddr();
     static bool IsValidNetAddr(CService addrIn);
 
-    void IncreasePoSeBanScore() { if(nPoSeBanScore < MASTERNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore++; }
-    void DecreasePoSeBanScore() { if(nPoSeBanScore > -MASTERNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore--; }
+    void IncreasePoSeBanScore() { if(nPoSeBanScore < SERVICENODE_POSE_BAN_MAX_SCORE) nPoSeBanScore++; }
+    void DecreasePoSeBanScore() { if(nPoSeBanScore > -SERVICENODE_POSE_BAN_MAX_SCORE) nPoSeBanScore--; }
 
-    masternode_info_t GetInfo();
+    servicenode_info_t GetInfo();
 
     static std::string StateToString(int nStateIn);
     std::string GetStateString() const;
@@ -312,16 +312,16 @@ public:
 
     void UpdateWatchdogVoteTime();
 
-    CMasternode& operator=(CMasternode from)
+    CServicenode& operator=(CServicenode from)
     {
         swap(*this, from);
         return *this;
     }
-    friend bool operator==(const CMasternode& a, const CMasternode& b)
+    friend bool operator==(const CServicenode& a, const CServicenode& b)
     {
         return a.vin == b.vin;
     }
-    friend bool operator!=(const CMasternode& a, const CMasternode& b)
+    friend bool operator!=(const CServicenode& a, const CServicenode& b)
     {
         return !(a.vin == b.vin);
     }
@@ -330,25 +330,25 @@ public:
 
 
 //
-// The Masternode Broadcast Class : Contains a different serialize method for sending masternodes through the network
+// The Servicenode Broadcast Class : Contains a different serialize method for sending servicenodes through the network
 //
 
-class CMasternodeBroadcast : public CMasternode
+class CServicenodeBroadcast : public CServicenode
 {
 public:
 
     bool fRecovery;
 
-    CMasternodeBroadcast() : CMasternode(), fRecovery(false) {}
-    CMasternodeBroadcast(const CMasternode& mn) : CMasternode(mn), fRecovery(false) {}
-    CMasternodeBroadcast(CService addrNew, CTxIn vinNew, CPubKey pubKeyCollateralAddressNew, CPubKey pubKeyMasternodeNew, int nProtocolVersionIn) :
-        CMasternode(addrNew, vinNew, pubKeyCollateralAddressNew, pubKeyMasternodeNew, nProtocolVersionIn), fRecovery(false) {}
+    CServicenodeBroadcast() : CServicenode(), fRecovery(false) {}
+    CServicenodeBroadcast(const CServicenode& mn) : CServicenode(mn), fRecovery(false) {}
+    CServicenodeBroadcast(CService addrNew, CTxIn vinNew, CPubKey pubKeyCollateralAddressNew, CPubKey pubKeyServicenodeNew, int nProtocolVersionIn) :
+        CServicenode(addrNew, vinNew, pubKeyCollateralAddressNew, pubKeyServicenodeNew, nProtocolVersionIn), fRecovery(false) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(vin);
         READWRITE(addr);
         READWRITE(pubKeyCollateralAddress);
-        READWRITE(pubKeyMasternode);
+        READWRITE(pubKeyServicenode);
         READWRITE(vchSig);
         READWRITE(sigTime);
         READWRITE(nProtocolVersion);
@@ -364,20 +364,20 @@ public:
         return ss.GetHash();
     }
 
-    /// Create Masternode broadcast, needs to be relayed manually after that
+    /// Create Servicenode broadcast, needs to be relayed manually after that
     static bool Create(const CTxIn & txin, const CService & service,
                        const CKey & keyCollateralAddressNew,
                        const CPubKey & pubKeyCollateralAddressNew,
-                       const CKey & keyMasternodeNew,
-                       const CPubKey & pubKeyMasternodeNew,
-                       std::string & strErrorRet, CMasternodeBroadcast & mnbRet);
-    static bool Create(const std::string & strService, const std::string & strKeyMasternode,
+                       const CKey & keyServicenodeNew,
+                       const CPubKey & pubKeyServicenodeNew,
+                       std::string & strErrorRet, CServicenodeBroadcast & mnbRet);
+    static bool Create(const std::string & strService, const std::string & strKeyServicenode,
                        const std::string & strTxHash, const std::string & strOutputIndex,
-                       std::string & strErrorRet, CMasternodeBroadcast & mnbRet,
+                       std::string & strErrorRet, CServicenodeBroadcast & mnbRet,
                        const bool fOffline = false);
 
     bool SimpleCheck(int& nDos);
-    bool Update(CMasternode* pmn, int& nDos);
+    bool Update(CServicenode* pmn, int& nDos);
     bool CheckOutpoint(int& nDos);
 
     bool Sign(const CKey & keyCollateralAddress);
@@ -385,7 +385,7 @@ public:
     void Relay();
 };
 
-class CMasternodeVerification
+class CServicenodeVerification
 {
 public:
     CTxIn vin1;
@@ -396,7 +396,7 @@ public:
     std::vector<unsigned char> vchSig1;
     std::vector<unsigned char> vchSig2;
 
-    CMasternodeVerification() :
+    CServicenodeVerification() :
         vin1(),
         vin2(),
         addr(),
@@ -406,7 +406,7 @@ public:
         vchSig2()
         {}
 
-    CMasternodeVerification(CService addr, int nonce, int nBlockHeight) :
+    CServicenodeVerification(CService addr, int nonce, int nBlockHeight) :
         vin1(),
         vin2(),
         addr(addr),
@@ -439,7 +439,7 @@ public:
 
     void Relay() const
     {
-        CInv inv(MSG_MASTERNODE_VERIFY, GetHash());
+        CInv inv(MSG_SERVICENODE_VERIFY, GetHash());
         RelayInventory(inv);
     }
 };

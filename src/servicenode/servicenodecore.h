@@ -1,6 +1,6 @@
-#ifndef MASTERNODECORE_H
-#define MASTERNODECORE_H
+#ifndef SERVICENODECORE_H
+#define SERVICENODECORE_H
 
-void ThreadMasternodeService();
+void ThreadServicenodeService();
 
-#endif // MASTERNODECORE_H
+#endif // SERVICENODECORE_H

@@ -2,70 +2,70 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ACTIVEMASTERNODE_H
-#define ACTIVEMASTERNODE_H
+#ifndef ACTIVESERVICENODE_H
+#define ACTIVESERVICENODE_H
 
 #include "serialize.h"
 #include "net.h"
 #include "key.h"
 #include "wallet.h"
 
-class CActiveMasternode;
+class CActiveServicenode;
 
-static const int MASTERNODE_AMOUNT                  = 1000;
+static const int SERVICENODE_AMOUNT                  = 1000;
 
-static const int ACTIVE_MASTERNODE_INITIAL          = 0; // initial state
-static const int ACTIVE_MASTERNODE_SYNC_IN_PROCESS  = 1;
-static const int ACTIVE_MASTERNODE_INPUT_TOO_NEW    = 2;
-static const int ACTIVE_MASTERNODE_NOT_CAPABLE      = 3;
-static const int ACTIVE_MASTERNODE_STARTED          = 4;
+static const int ACTIVE_SERVICENODE_INITIAL          = 0; // initial state
+static const int ACTIVE_SERVICENODE_SYNC_IN_PROCESS  = 1;
+static const int ACTIVE_SERVICENODE_INPUT_TOO_NEW    = 2;
+static const int ACTIVE_SERVICENODE_NOT_CAPABLE      = 3;
+static const int ACTIVE_SERVICENODE_STARTED          = 4;
 
-extern CActiveMasternode activeMasternode;
+extern CActiveServicenode activeServicenode;
 
-// Responsible for activating the Masternode and pinging the network
-class CActiveMasternode
+// Responsible for activating the Servicenode and pinging the network
+class CActiveServicenode
 {
 public:
-    enum masternode_type_enum_t {
-        MASTERNODE_UNKNOWN = 0,
-        MASTERNODE_REMOTE  = 1,
-        MASTERNODE_LOCAL   = 2
+    enum servicenode_type_enum_t {
+        SERVICENODE_UNKNOWN = 0,
+        SERVICENODE_REMOTE  = 1,
+        SERVICENODE_LOCAL   = 2
     };
 
 private:
     // critical section to protect the inner data structures
     mutable CCriticalSection cs;
 
-    masternode_type_enum_t eType;
+    servicenode_type_enum_t eType;
 
     bool fPingerEnabled;
 
-    /// Ping Masternode
-    bool SendMasternodePing();
+    /// Ping Servicenode
+    bool SendServicenodePing();
 
 public:
-    // Keys for the active Masternode
-    CPubKey pubKeyMasternode;
-    CKey keyMasternode;
+    // Keys for the active Servicenode
+    CPubKey pubKeyServicenode;
+    CKey keyServicenode;
 
-    // Initialized while registering Masternode
+    // Initialized while registering Servicenode
     CTxIn vin;
     CService service;
 
-    int nState; // should be one of ACTIVE_MASTERNODE_XXXX
+    int nState; // should be one of ACTIVE_SERVICENODE_XXXX
     std::string strNotCapableReason;
 
-    CActiveMasternode()
-        : eType(MASTERNODE_UNKNOWN),
+    CActiveServicenode()
+        : eType(SERVICENODE_UNKNOWN),
           fPingerEnabled(false),
-          pubKeyMasternode(),
-          keyMasternode(),
+          pubKeyServicenode(),
+          keyServicenode(),
           vin(),
           service(),
-          nState(ACTIVE_MASTERNODE_INITIAL)
+          nState(ACTIVE_SERVICENODE_INITIAL)
     {}
 
-    /// Manage state of active Masternode
+    /// Manage state of active Servicenode
     void ManageState();
 
     std::string GetStateString() const;

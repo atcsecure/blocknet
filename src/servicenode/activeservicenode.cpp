@@ -2,98 +2,98 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activemasternode.h"
-#include "masternode.h"
-#include "masternode-sync.h"
-#include "masternodeman.h"
-#include "masternodeconfig.h"
+#include "activeservicenode.h"
+#include "servicenode.h"
+#include "servicenode-sync.h"
+#include "servicenodeman.h"
+#include "servicenodeconfig.h"
 #include "protocol.h"
 
 extern CWallet* pwalletMain;
 
-// Keep track of the active Masternode
-CActiveMasternode activeMasternode;
+// Keep track of the active Servicenode
+CActiveServicenode activeServicenode;
 
-void CActiveMasternode::ManageState()
+void CActiveServicenode::ManageState()
 {
-    printf("CActiveMasternode::ManageState -- Start\n");
-    if(!fMasterNode)
+    printf("CActiveServicenode::ManageState -- Start\n");
+    if(!fServiceNode)
     {
-        printf("CActiveMasternode::ManageState -- Not a masternode, returning\n");
+        printf("CActiveServicenode::ManageState -- Not a servicenode, returning\n");
         return;
     }
 
-    if (!masternodeSync.IsBlockchainSynced())
+    if (!servicenodeSync.IsBlockchainSynced())
     {
-        nState = ACTIVE_MASTERNODE_SYNC_IN_PROCESS;
-        printf("CActiveMasternode::ManageState -- %s: %s\n", GetStateString().c_str(), GetStatus().c_str());
+        nState = ACTIVE_SERVICENODE_SYNC_IN_PROCESS;
+        printf("CActiveServicenode::ManageState -- %s: %s\n", GetStateString().c_str(), GetStatus().c_str());
         return;
     }
 
-    if (nState == ACTIVE_MASTERNODE_SYNC_IN_PROCESS)
+    if (nState == ACTIVE_SERVICENODE_SYNC_IN_PROCESS)
     {
-        nState = ACTIVE_MASTERNODE_INITIAL;
+        nState = ACTIVE_SERVICENODE_INITIAL;
     }
 
-    printf("CActiveMasternode::ManageState -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
+    printf("CActiveServicenode::ManageState -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
 
-    if (eType == MASTERNODE_UNKNOWN)
+    if (eType == SERVICENODE_UNKNOWN)
     {
         ManageStateInitial();
     }
 
-    if(eType == MASTERNODE_REMOTE)
+    if(eType == SERVICENODE_REMOTE)
     {
         ManageStateRemote();
     }
-    else if(eType == MASTERNODE_LOCAL)
+    else if(eType == SERVICENODE_LOCAL)
     {
-        // Try Remote Start first so the started local masternode can be restarted without recreate masternode broadcast.
+        // Try Remote Start first so the started local servicenode can be restarted without recreate servicenode broadcast.
         ManageStateRemote();
-        if(nState != ACTIVE_MASTERNODE_STARTED)
+        if(nState != ACTIVE_SERVICENODE_STARTED)
         {
             ManageStateLocal();
         }
     }
 
-    SendMasternodePing();
+    SendServicenodePing();
 }
 
-std::string CActiveMasternode::GetStateString() const
+std::string CActiveServicenode::GetStateString() const
 {
     switch (nState) {
-        case ACTIVE_MASTERNODE_INITIAL:         return "INITIAL";
-        case ACTIVE_MASTERNODE_SYNC_IN_PROCESS: return "SYNC_IN_PROCESS";
-        case ACTIVE_MASTERNODE_INPUT_TOO_NEW:   return "INPUT_TOO_NEW";
-        case ACTIVE_MASTERNODE_NOT_CAPABLE:     return "NOT_CAPABLE";
-        case ACTIVE_MASTERNODE_STARTED:         return "STARTED";
+        case ACTIVE_SERVICENODE_INITIAL:         return "INITIAL";
+        case ACTIVE_SERVICENODE_SYNC_IN_PROCESS: return "SYNC_IN_PROCESS";
+        case ACTIVE_SERVICENODE_INPUT_TOO_NEW:   return "INPUT_TOO_NEW";
+        case ACTIVE_SERVICENODE_NOT_CAPABLE:     return "NOT_CAPABLE";
+        case ACTIVE_SERVICENODE_STARTED:         return "STARTED";
         default:                                return "UNKNOWN";
     }
 }
 
-std::string CActiveMasternode::GetStatus() const
+std::string CActiveServicenode::GetStatus() const
 {
     switch (nState) {
-        case ACTIVE_MASTERNODE_INITIAL:         return "Node just started, not yet activated";
-        case ACTIVE_MASTERNODE_SYNC_IN_PROCESS: return "Sync in progress. Must wait until sync is complete to start Masternode";
-        case ACTIVE_MASTERNODE_INPUT_TOO_NEW:   return strprintf("Masternode input must have at least %d confirmations", nMasternodeMinimumConfirmations);
-        case ACTIVE_MASTERNODE_NOT_CAPABLE:     return "Not capable masternode: " + strNotCapableReason;
-        case ACTIVE_MASTERNODE_STARTED:         return "Masternode successfully started";
+        case ACTIVE_SERVICENODE_INITIAL:         return "Node just started, not yet activated";
+        case ACTIVE_SERVICENODE_SYNC_IN_PROCESS: return "Sync in progress. Must wait until sync is complete to start Servicenode";
+        case ACTIVE_SERVICENODE_INPUT_TOO_NEW:   return strprintf("Servicenode input must have at least %d confirmations", nServicenodeMinimumConfirmations);
+        case ACTIVE_SERVICENODE_NOT_CAPABLE:     return "Not capable servicenode: " + strNotCapableReason;
+        case ACTIVE_SERVICENODE_STARTED:         return "Servicenode successfully started";
         default:                                return "Unknown";
     }
 }
 
-std::string CActiveMasternode::GetTypeString() const
+std::string CActiveServicenode::GetTypeString() const
 {
     std::string strType;
     switch(eType) {
-    case MASTERNODE_UNKNOWN:
+    case SERVICENODE_UNKNOWN:
         strType = "UNKNOWN";
         break;
-    case MASTERNODE_REMOTE:
+    case SERVICENODE_REMOTE:
         strType = "REMOTE";
         break;
-    case MASTERNODE_LOCAL:
+    case SERVICENODE_LOCAL:
         strType = "LOCAL";
         break;
     default:
@@ -103,55 +103,55 @@ std::string CActiveMasternode::GetTypeString() const
     return strType;
 }
 
-bool CActiveMasternode::SendMasternodePing()
+bool CActiveServicenode::SendServicenodePing()
 {
     if(!fPingerEnabled)
     {
-        printf("CActiveMasternode::SendMasternodePing -- %s: masternode ping service is disabled, skipping...\n", GetStateString().c_str());
+        printf("CActiveServicenode::SendServicenodePing -- %s: servicenode ping service is disabled, skipping...\n", GetStateString().c_str());
         return false;
     }
 
     if(!mnodeman.Has(vin))
     {
-        strNotCapableReason = "Masternode not in masternode list";
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
-        printf("CActiveMasternode::SendMasternodePing -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        strNotCapableReason = "Servicenode not in servicenode list";
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
+        printf("CActiveServicenode::SendServicenodePing -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
         return false;
     }
 
-    CMasternodePing mnp(vin);
-    if(!mnp.Sign(keyMasternode, pubKeyMasternode))
+    CServicenodePing mnp(vin);
+    if(!mnp.Sign(keyServicenode, pubKeyServicenode))
     {
-        printf("CActiveMasternode::SendMasternodePing -- ERROR: Couldn't sign Masternode Ping\n");
+        printf("CActiveServicenode::SendServicenodePing -- ERROR: Couldn't sign Servicenode Ping\n");
         return false;
     }
 
-    // Update lastPing for our masternode in Masternode list
-    if(mnodeman.IsMasternodePingedWithin(vin, MASTERNODE_MIN_MNP_SECONDS, mnp.sigTime))
+    // Update lastPing for our servicenode in Servicenode list
+    if(mnodeman.IsServicenodePingedWithin(vin, SERVICENODE_MIN_MNP_SECONDS, mnp.sigTime))
     {
-        printf("CActiveMasternode::SendMasternodePing -- Too early to send Masternode Ping\n");
+        printf("CActiveServicenode::SendServicenodePing -- Too early to send Servicenode Ping\n");
         return false;
     }
 
-    mnodeman.SetMasternodeLastPing(vin, mnp);
+    mnodeman.SetServicenodeLastPing(vin, mnp);
 
-    printf("CActiveMasternode::SendMasternodePing -- Relaying ping, collateral=%s\n", vin.ToString().c_str());
+    printf("CActiveServicenode::SendServicenodePing -- Relaying ping, collateral=%s\n", vin.ToString().c_str());
     mnp.Relay();
 
     return true;
 }
 
-void CActiveMasternode::ManageStateInitial()
+void CActiveServicenode::ManageStateInitial()
 {
-    printf("CActiveMasternode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
+    printf("CActiveServicenode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
 
     // Check that our local network configuration is correct
     if (fNoListen)
     {
         // listen option is probably overwritten by smth else, no good
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
-        strNotCapableReason = "Masternode must accept connections from outside. Make sure listen configuration option is not overwritten by some another parameter.";
-        printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
+        strNotCapableReason = "Servicenode must accept connections from outside. Make sure listen configuration option is not overwritten by some another parameter.";
+        printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
         return;
     }
 
@@ -160,15 +160,15 @@ void CActiveMasternode::ManageStateInitial()
         LOCK(cs_vNodes);
 
         // First try to find whatever local address is specified by externalip option
-        fFoundLocal = GetLocal(service) && CMasternode::IsValidNetAddr(service);
+        fFoundLocal = GetLocal(service) && CServicenode::IsValidNetAddr(service);
         if(!fFoundLocal)
         {
             // nothing and no live connections, can't do anything for now
             if (vNodes.empty())
             {
-                nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+                nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
                 strNotCapableReason = "Can't detect valid external address. Will retry when there are some connections available.";
-                printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+                printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
                 return;
             }
             // We have some peers, let's try to find our local address from one of them
@@ -176,7 +176,7 @@ void CActiveMasternode::ManageStateInitial()
             {
                 if (pnode->fSuccessfullyConnected && pnode->addr.IsIPv4())
                 {
-                    fFoundLocal = GetLocal(service, &pnode->addr) && CMasternode::IsValidNetAddr(service);
+                    fFoundLocal = GetLocal(service, &pnode->addr) && CServicenode::IsValidNetAddr(service);
                     if(fFoundLocal)
                     {
                         break;
@@ -188,9 +188,9 @@ void CActiveMasternode::ManageStateInitial()
 
     if(!fFoundLocal)
     {
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
         strNotCapableReason = "Can't detect valid external address. Please consider using the externalip configuration option if problem persists. Make sure to use IPv4 address only.";
-        printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
         return;
     }
 
@@ -199,49 +199,49 @@ void CActiveMasternode::ManageStateInitial()
     {
         if(service.GetPort() != mainnetDefaultPort)
         {
-            nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+            nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
             strNotCapableReason = strprintf("Invalid port: %u - only %d is supported on mainnet.", service.GetPort(), mainnetDefaultPort);
-            printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+            printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
     }
     else if(service.GetPort() == mainnetDefaultPort)
     {
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
         strNotCapableReason = strprintf("Invalid port: %u - %d is only supported on mainnet.", service.GetPort(), mainnetDefaultPort);
-        printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
         return;
     }
 
-    printf("CActiveMasternode::ManageStateInitial -- Checking inbound connection to '%s'\n", service.ToString().c_str());
+    printf("CActiveServicenode::ManageStateInitial -- Checking inbound connection to '%s'\n", service.ToString().c_str());
 
     if (!ConnectNode((CAddress)service, NULL, true))
     {
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
         strNotCapableReason = "Could not connect to " + service.ToString();
-        printf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        printf("CActiveServicenode::ManageStateInitial -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
         return;
     }
 
     // Default to REMOTE
-    eType = MASTERNODE_REMOTE;
+    eType = SERVICENODE_REMOTE;
 
     // Check if wallet funds are available
     if(!pwalletMain)
     {
-        printf("CActiveMasternode::ManageStateInitial -- %s: Wallet not available\n", GetStateString().c_str());
+        printf("CActiveServicenode::ManageStateInitial -- %s: Wallet not available\n", GetStateString().c_str());
         return;
     }
 
     if(pwalletMain->IsLocked())
     {
-        printf("CActiveMasternode::ManageStateInitial -- %s: Wallet is locked\n", GetStateString().c_str());
+        printf("CActiveServicenode::ManageStateInitial -- %s: Wallet is locked\n", GetStateString().c_str());
         return;
     }
 
-    if (pwalletMain->GetBalance() < MASTERNODE_AMOUNT*COIN)
+    if (pwalletMain->GetBalance() < SERVICENODE_AMOUNT*COIN)
     {
-        printf("CActiveMasternode::ManageStateInitial -- %s: Wallet balance is < %d BLOCKS\n", GetStateString().c_str(), MASTERNODE_AMOUNT);
+        printf("CActiveServicenode::ManageStateInitial -- %s: Wallet balance is < %d BLOCKS\n", GetStateString().c_str(), SERVICENODE_AMOUNT);
         return;
     }
 
@@ -250,65 +250,65 @@ void CActiveMasternode::ManageStateInitial()
     CKey keyCollateral;
 
     // If collateral is found switch to LOCAL mode
-    if(pwalletMain->GetMasternodeVinAndKeys(vin, pubKeyCollateral, keyCollateral))
+    if(pwalletMain->GetServicenodeVinAndKeys(vin, pubKeyCollateral, keyCollateral))
     {
-        eType = MASTERNODE_LOCAL;
+        eType = SERVICENODE_LOCAL;
     }
 
-    printf("CActiveMasternode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
+    printf("CActiveServicenode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
 }
 
-void CActiveMasternode::ManageStateRemote()
+void CActiveServicenode::ManageStateRemote()
 {
-    printf("CActiveMasternode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyMasternode.GetID() = %s\n",
-             GetStatus().c_str(), fPingerEnabled, GetTypeString().c_str(), pubKeyMasternode.GetID().ToString().c_str());
+    printf("CActiveServicenode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyServicenode.GetID() = %s\n",
+             GetStatus().c_str(), fPingerEnabled, GetTypeString().c_str(), pubKeyServicenode.GetID().ToString().c_str());
 
-    mnodeman.CheckMasternode(pubKeyMasternode);
-    masternode_info_t infoMn = mnodeman.GetMasternodeInfo(pubKeyMasternode);
+    mnodeman.CheckServicenode(pubKeyServicenode);
+    servicenode_info_t infoMn = mnodeman.GetServicenodeInfo(pubKeyServicenode);
     if (infoMn.fInfoValid)
     {
         if (infoMn.nProtocolVersion != PROTOCOL_VERSION)
         {
-            nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+            nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
             strNotCapableReason = "Invalid protocol version";
-            printf("CActiveMasternode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+            printf("CActiveServicenode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
         if(service != infoMn.addr)
         {
-            nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
-            strNotCapableReason = "Broadcasted IP doesn't match our external address. Make sure you issued a new broadcast if IP of this masternode changed recently.";
-            printf("CActiveMasternode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+            nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
+            strNotCapableReason = "Broadcasted IP doesn't match our external address. Make sure you issued a new broadcast if IP of this servicenode changed recently.";
+            printf("CActiveServicenode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
-        if  (!CMasternode::IsValidStateForAutoStart(infoMn.nActiveState))
+        if  (!CServicenode::IsValidStateForAutoStart(infoMn.nActiveState))
         {
-           nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
-            strNotCapableReason = strprintf("Masternode in %s state", CMasternode::StateToString(infoMn.nActiveState));
-            printf("CActiveMasternode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+           nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
+            strNotCapableReason = strprintf("Servicenode in %s state", CServicenode::StateToString(infoMn.nActiveState));
+            printf("CActiveServicenode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
-        if (nState != ACTIVE_MASTERNODE_STARTED)
+        if (nState != ACTIVE_SERVICENODE_STARTED)
         {
-            printf("CActiveMasternode::ManageStateRemote -- STARTED!\n");
+            printf("CActiveServicenode::ManageStateRemote -- STARTED!\n");
             vin = infoMn.vin;
             service = infoMn.addr;
             fPingerEnabled = true;
-            nState = ACTIVE_MASTERNODE_STARTED;
+            nState = ACTIVE_SERVICENODE_STARTED;
         }
     }
     else
     {
-        nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
-        strNotCapableReason = "Masternode not in masternode list";
-        printf("CActiveMasternode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+        nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
+        strNotCapableReason = "Servicenode not in servicenode list";
+        printf("CActiveServicenode::ManageStateRemote -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
     }
 }
 
-void CActiveMasternode::ManageStateLocal()
+void CActiveServicenode::ManageStateLocal()
 {
-    printf("CActiveMasternode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
-    if (nState == ACTIVE_MASTERNODE_STARTED)
+    printf("CActiveServicenode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n", GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled);
+    if (nState == ACTIVE_SERVICENODE_STARTED)
     {
         return;
     }
@@ -317,14 +317,14 @@ void CActiveMasternode::ManageStateLocal()
     CPubKey pubKeyCollateral;
     CKey keyCollateral;
 
-    if (pwalletMain->GetMasternodeVinAndKeys(vin, pubKeyCollateral, keyCollateral))
+    if (pwalletMain->GetServicenodeVinAndKeys(vin, pubKeyCollateral, keyCollateral))
     {
         int nInputAge = GetInputDepthInMainChain(vin);
-        if (nInputAge < nMasternodeMinimumConfirmations)
+        if (nInputAge < nServicenodeMinimumConfirmations)
         {
-            nState = ACTIVE_MASTERNODE_INPUT_TOO_NEW;
+            nState = ACTIVE_SERVICENODE_INPUT_TOO_NEW;
             strNotCapableReason = strprintf(_("%s - %d confirmations"), GetStatus(), nInputAge);
-            printf("CActiveMasternode::ManageStateLocal -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+            printf("CActiveServicenode::ManageStateLocal -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
 
@@ -333,26 +333,26 @@ void CActiveMasternode::ManageStateLocal()
             pwalletMain->LockCoin(vin.prevout);
         }
 
-        CMasternodeBroadcast mnb;
+        CServicenodeBroadcast mnb;
         std::string strError;
-        if (!CMasternodeBroadcast::Create(vin, service, keyCollateral, pubKeyCollateral, keyMasternode, pubKeyMasternode, strError, mnb))
+        if (!CServicenodeBroadcast::Create(vin, service, keyCollateral, pubKeyCollateral, keyServicenode, pubKeyServicenode, strError, mnb))
         {
-            nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
+            nState = ACTIVE_SERVICENODE_NOT_CAPABLE;
             strNotCapableReason = "Error creating mastenode broadcast: " + strError;
-            printf("CActiveMasternode::ManageStateLocal -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
+            printf("CActiveServicenode::ManageStateLocal -- %s: %s\n", GetStateString().c_str(), strNotCapableReason.c_str());
             return;
         }
 
         fPingerEnabled = true;
-        nState = ACTIVE_MASTERNODE_STARTED;
+        nState = ACTIVE_SERVICENODE_STARTED;
 
-        // update to masternode list
-        printf("CActiveMasternode::ManageStateLocal -- Update Masternode List\n");
-        mnodeman.UpdateMasternodeList(mnb);
-        mnodeman.NotifyMasternodeUpdates();
+        // update to servicenode list
+        printf("CActiveServicenode::ManageStateLocal -- Update Servicenode List\n");
+        mnodeman.UpdateServicenodeList(mnb);
+        mnodeman.NotifyServicenodeUpdates();
 
         //send to all peers
-        printf("CActiveMasternode::ManageStateLocal -- Relay broadcast, vin=%s\n", vin.ToString().c_str());
+        printf("CActiveServicenode::ManageStateLocal -- Relay broadcast, vin=%s\n", vin.ToString().c_str());
         mnb.Relay();
     }
 }
