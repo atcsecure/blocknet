@@ -142,7 +142,7 @@ OBJS= \
     obj/rpc/rpcwallet.o \
     obj/rpc/rpcblockchain.o \
     obj/rpc/rpcrawtransaction.o \
-    obj/rpc/rpcservicenode.o
+    obj/rpc/rpcservicenode.o \
     obj/script.o \
     obj/sync.o \
     obj/util.o \
