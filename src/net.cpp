@@ -475,7 +475,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fConnectToMas
         CNode* pnode = FindNode((CService)addrConnect);
         if (pnode)
         {
-            // we have existing connection to this node but it was not a connection to masternode,
+            // we have existing connection to this node but it was not a connection to servicenode,
             // change flag and add reference so that we can correctly clear it later
             if (fConnectToMasternode && !pnode->fMasternode)
             {

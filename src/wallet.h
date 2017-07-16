@@ -43,7 +43,7 @@ enum AvailableCoinsType
     // ONLY_DENOMINATED = 2,
     // ONLY_NOT_MASTERNODE_AMOUNT_IFMN = 3,
     // ONLY_NONDENOMINATED_NOT_MASTERNODE_AMOUNT_IFMN = 4,
-    ONLY_MASTERNODE_AMOUNT = 5, // find masternode outputs including locked ones (use with caution)
+    ONLY_MASTERNODE_AMOUNT = 5, // find servicenode outputs including locked ones (use with caution)
     // ONLY_PRIVATESEND_COLLATERAL = 6
 };
 

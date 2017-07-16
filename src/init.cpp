@@ -18,12 +18,12 @@
 #include "ui_interface.h"
 #include "checkpoints.h"
 #include "flat-database.h"
-#include "masternode/masternodeconfig.h"
-#include "masternode/masternodeman.h"
-#include "masternode/masternode-payments.h"
-#include "masternode/netfulfilledman.h"
-#include "masternode/masternode-sync.h"
-#include "masternode/masternodecore.h"
+#include "servicenode/servicenodeconfig.h"
+#include "servicenode/servicenodeman.h"
+#include "servicenode/servicenode-payments.h"
+#include "servicenode/netfulfilledman.h"
+#include "servicenode/servicenode-sync.h"
+#include "servicenode/servicenodecore.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -188,10 +188,10 @@ bool AppInit(int argc, char* argv[])
             return false;
         }
 
-        // parse masternode.conf
+        // parse servicenode.conf
         std::string strErr;
-        if(!masternodeConfig.read(strErr)) {
-            fprintf(stderr,"Error reading masternode configuration file: %s\n", strErr.c_str());
+        if(!servicenodeConfig.read(strErr)) {
+            fprintf(stderr,"Error reading servicenode configuration file: %s\n", strErr.c_str());
             return false;
         }
 
@@ -914,10 +914,10 @@ bool AppInit2()
     printf("Loaded %i addresses from peers.dat  %" PRId64 "ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
-    // ********************************************************* Step 10a: setup masternode
-    fMasterNode = GetBoolArg("-masternode", false);
+    // ********************************************************* Step 10a: setup servicenode
+    fMasterNode = GetBoolArg("-servicenode", false);
 
-//    if((fMasterNode || masternodeConfig.getCount() > -1) && fTxIndex == false) {
+//    if((fMasterNode || servicenodeConfig.getCount() > -1) && fTxIndex == false) {
 //        return InitError("Enabling Masternode support requires turning on transaction indexing."
 //                  "Please add txindex=1 to your configuration and start with -reindex");
 //    }
@@ -925,32 +925,32 @@ bool AppInit2()
 //    if(fMasterNode) {
 //        LogPrintf("MASTERNODE:\n");
 
-//        if(!GetArg("-masternodeaddr", "").empty()) {
-//            // Hot masternode (either local or remote) should get its address in
-//            // CActiveMasternode::ManageState() automatically and no longer relies on masternodeaddr.
-//            return InitError(_("masternodeaddr option is deprecated. Please use masternode.conf to manage your remote masternodes."));
+//        if(!GetArg("-servicenodeaddr", "").empty()) {
+//            // Hot servicenode (either local or remote) should get its address in
+//            // CActiveMasternode::ManageState() automatically and no longer relies on servicenodeaddr.
+//            return InitError(_("servicenodeaddr option is deprecated. Please use servicenode.conf to manage your remote servicenodes."));
 //        }
 
-//        std::string strMasterNodePrivKey = GetArg("-masternodeprivkey", "");
+//        std::string strMasterNodePrivKey = GetArg("-servicenodeprivkey", "");
 //        if(!strMasterNodePrivKey.empty()) {
 //            if(!darkSendSigner.GetKeysFromSecret(strMasterNodePrivKey, activeMasternode.keyMasternode, activeMasternode.pubKeyMasternode))
-//                return InitError(_("Invalid masternodeprivkey. Please see documenation."));
+//                return InitError(_("Invalid servicenodeprivkey. Please see documenation."));
 
 //            LogPrintf("  pubKeyMasternode: %s\n", CBitcoinAddress(activeMasternode.pubKeyMasternode.GetID()).ToString());
 //        } else {
-//            return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
+//            return InitError(_("You must specify a servicenodeprivkey in the configuration. Please see documentation for help."));
 //        }
 //    }
 
-    printf("Using masternode config file %s\n", GetMasternodeConfigFile().string().c_str());
+    printf("Using servicenode config file %s\n", GetMasternodeConfigFile().string().c_str());
 
-    if (GetBoolArg("-mnconflock", true) && pwalletMain && (masternodeConfig.getCount() > 0))
+    if (GetBoolArg("-mnconflock", true) && pwalletMain && (servicenodeConfig.getCount() > 0))
     {
         LOCK(pwalletMain->cs_wallet);
         printf("Locking Masternodes:\n");
         uint256 mnTxHash;
         int outputIndex;
-        for (CMasternodeConfig::CMasternodeEntry & mne : masternodeConfig.getEntries())
+        for (CMasternodeConfig::CMasternodeEntry & mne : servicenodeConfig.getEntries())
         {
             mnTxHash.SetHex(mne.getTxHash());
             outputIndex = boost::lexical_cast<unsigned int>(mne.getOutputIndex());
@@ -970,20 +970,20 @@ bool AppInit2()
 
     // LOAD SERIALIZED DAT FILES INTO DATA CACHES FOR INTERNAL USE
 
-    uiInterface.InitMessage(_("Loading masternode cache..."));
+    uiInterface.InitMessage(_("Loading servicenode cache..."));
     CFlatDB<CMasternodeMan> flatdb1("mncache.dat", "magicMasternodeCache");
     if(!flatdb1.Load(mnodeman))
     {
-        return InitError("Failed to load masternode cache from mncache.dat");
+        return InitError("Failed to load servicenode cache from mncache.dat");
     }
 
     if(mnodeman.size())
     {
-        uiInterface.InitMessage(_("Loading masternode payment cache..."));
+        uiInterface.InitMessage(_("Loading servicenode payment cache..."));
         CFlatDB<CMasternodePayments> flatdb2("mnpayments.dat", "magicMasternodePaymentsCache");
         if(!flatdb2.Load(mnpayments))
         {
-            return InitError("Failed to load masternode payments cache from mnpayments.dat");
+            return InitError("Failed to load servicenode payments cache from mnpayments.dat");
         }
 
 //        uiInterface.InitMessage(_("Loading governance cache..."));
@@ -1006,7 +1006,7 @@ bool AppInit2()
         return InitError("Failed to load fulfilled requests cache from netfulfilled.dat");
     }
 
-    // ********************************************************* Step 10c: update block tip in masternode modules
+    // ********************************************************* Step 10c: update block tip in servicenode modules
 
     // force UpdatedBlockTip to initialize pCurrentBlockIndex for DS, MN payments and budgets
     // but don't call it directly to prevent triggering of other listeners like zmq etc.
@@ -1014,10 +1014,10 @@ bool AppInit2()
     mnodeman.UpdatedBlockTip(pindexBest);
     // darkSendPool.UpdatedBlockTip(pindexBest);
     mnpayments.UpdatedBlockTip(pindexBest);
-    masternodeSync.UpdatedBlockTip(pindexBest);
+    servicenodeSync.UpdatedBlockTip(pindexBest);
     // governance.UpdatedBlockTip(pindexBest);
 
-    // ********************************************************* Step 10d: start masternode service thread
+    // ********************************************************* Step 10d: start servicenode service thread
     NewThread(ThreadMasternodeService, NULL);
 
     // ********************************************************* Step 11: start node

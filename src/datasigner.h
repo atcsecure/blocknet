@@ -19,7 +19,7 @@ public:
     DataSigner();
 
 public:
-    /// Is the input associated with this public key? (and there is 1000 DASH - checking if valid masternode)
+    /// Is the input associated with this public key? (and there is 1000 DASH - checking if valid servicenode)
     static bool IsVinAssociatedWithPubkey(const CTxIn& vin, const CPubKey& pubkey);
     /// Set the private/public key values, returns true if successful
     static bool GetKeysFromSecret(std::string strSecret, CKey& keyRet, CPubKey& pubkeyRet);

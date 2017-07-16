@@ -14,9 +14,9 @@
 #include "kernel.h"
 #include "message.h"
 // #include "xbridgeconnector.h"
-#include "masternode/masternode-payments.h"
-#include "masternode/masternode-sync.h"
-#include "masternode/masternodeman.h"
+#include "servicenode/servicenode-payments.h"
+#include "servicenode/servicenode-sync.h"
+#include "servicenode/servicenodeman.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -1876,7 +1876,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     mnodeman.UpdatedBlockTip(pindexBest);
     // darkSendPool.UpdatedBlockTip(pindexBest);
     mnpayments.UpdatedBlockTip(pindexBest);
-    masternodeSync.UpdatedBlockTip(pindexBest);
+    servicenodeSync.UpdatedBlockTip(pindexBest);
     // governance.UpdatedBlockTip(pindexBest);
 
     return true;
@@ -2327,7 +2327,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     if (pfrom && !CSyncCheckpoint::strMasterPrivKey.empty())
         Checkpoints::SendSyncCheckpoint(Checkpoints::AutoSelectSyncCheckpoint());
 
-    masternodeSync.IsBlockchainSynced(true);
+    servicenodeSync.IsBlockchainSynced(true);
 
     return true;
 }
@@ -3808,7 +3808,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             mnpayments.ProcessMessage(pfrom, strCommand, vRecv);
             // instantsend.ProcessMessage(pfrom, strCommand, vRecv);
             // sporkManager.ProcessSpork(pfrom, strCommand, vRecv);
-            masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
+            servicenodeSync.ProcessMessage(pfrom, strCommand, vRecv);
             // governance.ProcessMessage(pfrom, strCommand, vRecv);
         }
         else

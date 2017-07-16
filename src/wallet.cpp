@@ -11,7 +11,7 @@
 #include "base58.h"
 #include "kernel.h"
 #include "coincontrol.h"
-#include "masternode/activemasternode.h"
+#include "servicenode/activeservicenode.h"
 
 #include <boost/algorithm/string/replace.hpp>
 
@@ -2533,7 +2533,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
     AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_MASTERNODE_AMOUNT);
     if(vPossibleCoins.empty())
     {
-        printf("CWallet::GetMasternodeVinAndKeys -- Could not locate any valid masternode vin\n");
+        printf("CWallet::GetMasternodeVinAndKeys -- Could not locate any valid servicenode vin\n");
         return false;
     }
 
@@ -2553,7 +2553,7 @@ bool CWallet::GetMasternodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& 
             return GetVinAndKeysFromOutput(out, txinRet, pubKeyRet, keyRet);
     }
 
-    printf("CWallet::GetMasternodeVinAndKeys -- Could not locate specified masternode vin\n");
+    printf("CWallet::GetMasternodeVinAndKeys -- Could not locate specified servicenode vin\n");
     return false;
 }
 

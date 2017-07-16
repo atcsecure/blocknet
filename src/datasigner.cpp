@@ -5,7 +5,7 @@
 #include "serialize.h"
 #include "base58.h"
 #include "tinyformat.h"
-#include "masternode/activemasternode.h"
+#include "servicenode/activeservicenode.h"
 
 //*****************************************************************************
 //*****************************************************************************
