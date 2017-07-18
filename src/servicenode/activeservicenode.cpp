@@ -261,7 +261,7 @@ void CActiveServicenode::ManageStateInitial()
 void CActiveServicenode::ManageStateRemote()
 {
     printf("CActiveServicenode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyServicenode.GetID() = %s\n",
-             GetStatus().c_str(), fPingerEnabled, GetTypeString().c_str(), pubKeyServicenode.GetID().ToString().c_str());
+             GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled, pubKeyServicenode.GetID().ToString().c_str());
 
     mnodeman.CheckServicenode(pubKeyServicenode);
     servicenode_info_t infoMn = mnodeman.GetServicenodeInfo(pubKeyServicenode);
