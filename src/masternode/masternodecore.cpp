@@ -7,7 +7,7 @@
 #include "util.h"
 
 
-void ThreadMasternodeService()
+void ThreadMasternodeService(void * /*parg*/)
 {
     static bool fOneThread;
     if (fOneThread)
