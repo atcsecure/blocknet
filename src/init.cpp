@@ -24,6 +24,8 @@
 #include "masternode/netfulfilledman.h"
 #include "masternode/masternode-sync.h"
 #include "masternode/masternodecore.h"
+#include "masternode/activemasternode.h"
+#include "datasigner.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -922,25 +924,32 @@ bool AppInit2()
 //                  "Please add txindex=1 to your configuration and start with -reindex");
 //    }
 
-//    if(fMasterNode) {
-//        LogPrintf("MASTERNODE:\n");
+    if(fMasterNode)
+    {
+        printf("MASTERNODE:\n");
 
-//        if(!GetArg("-masternodeaddr", "").empty()) {
+//        if (!GetArg("-masternodeaddr", "").empty())
+//        {
 //            // Hot masternode (either local or remote) should get its address in
 //            // CActiveMasternode::ManageState() automatically and no longer relies on masternodeaddr.
 //            return InitError(_("masternodeaddr option is deprecated. Please use masternode.conf to manage your remote masternodes."));
 //        }
 
-//        std::string strMasterNodePrivKey = GetArg("-masternodeprivkey", "");
-//        if(!strMasterNodePrivKey.empty()) {
-//            if(!darkSendSigner.GetKeysFromSecret(strMasterNodePrivKey, activeMasternode.keyMasternode, activeMasternode.pubKeyMasternode))
-//                return InitError(_("Invalid masternodeprivkey. Please see documenation."));
+        std::string strMasterNodePrivKey = GetArg("-masternodeprivkey", "");
+        if (!strMasterNodePrivKey.empty())
+        {
+            if (!DataSigner::GetKeysFromSecret(strMasterNodePrivKey, activeMasternode.keyMasternode, activeMasternode.pubKeyMasternode))
+            {
+                return InitError(_("Invalid masternodeprivkey. Please see documenation."));
+            }
 
-//            LogPrintf("  pubKeyMasternode: %s\n", CBitcoinAddress(activeMasternode.pubKeyMasternode.GetID()).ToString());
-//        } else {
-//            return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
-//        }
-//    }
+            printf("  pubKeyMasternode: %s\n", CBitcoinAddress(activeMasternode.pubKeyMasternode.GetID()).ToString().c_str());
+        }
+        else
+        {
+            return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
+        }
+    }
 
     printf("Using masternode config file %s\n", GetMasternodeConfigFile().string().c_str());
 
