@@ -7,7 +7,7 @@
 #include "util.h"
 
 
-void ThreadServicenodeService()
+void ThreadServicenodeService(void * /*parg*/)
 {
     static bool fOneThread;
     if (fOneThread)
