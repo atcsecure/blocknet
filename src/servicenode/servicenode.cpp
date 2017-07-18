@@ -471,7 +471,7 @@ void CServicenode::UpdateLastPaid(const CBlockIndex *pindex, int nMaxBlocksToSca
 bool CServicenodeBroadcast::Create(const std::string & strService, const std::string & strKeyServicenode,
                                   const std::string & strTxHash, const std::string & strOutputIndex,
                                   std::string & strErrorRet, CServicenodeBroadcast & mnbRet,
-                                  const bool fOffline = false)
+                                  const bool fOffline)
 {
     CTxIn txin;
     CPubKey pubKeyCollateralAddressNew;
