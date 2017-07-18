@@ -201,21 +201,21 @@ SOURCES += src/txdb-leveldb.cpp \
     src/rpc/bitcoinrpc.cpp \
     src/rpc/rpcblockchain.cpp \
     src/rpc/rpcdump.cpp \
-    src/rpc/rpcmasternode.cpp \
+    src/rpc/rpcservicenode.cpp \
     src/rpc/rpcmining.cpp \
     src/rpc/rpcnet.cpp \
     src/rpc/rpcrawtransaction.cpp \
     src/rpc/rpcwallet.cpp \
     src/rpc/rpcxbridge.cpp \
-    src/masternode/masternodeconfig.cpp \
-    src/masternode/masternodeman.cpp \
-    src/masternode/masternode.cpp \
-    src/masternode/activemasternode.cpp \
-    src/masternode/masternode-sync.cpp \
-    src/masternode/masternode-payments.cpp \
-    src/masternode/netfulfilledman.cpp \
-    src/datasigner.cpp \
-    src/masternode/masternodecore.cpp
+    src/servicenode/servicenodeconfig.cpp \
+    src/servicenode/servicenodeman.cpp \
+    src/servicenode/servicenode.cpp \
+    src/servicenode/activeservicenode.cpp \
+    src/servicenode/servicenode-sync.cpp \
+    src/servicenode/servicenode-payments.cpp \
+    src/servicenode/netfulfilledman.cpp \
+    src/servicenode/servicenodecore.cpp \
+    src/datasigner.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
@@ -367,7 +367,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/askpassphrasedialog.h \
     src/protocol.h \
     src/qt/notificator.h \
-	src/qt/statisticspage.h \
+    src/qt/statisticspage.h \
     src/qt/qtipcserver.h \
     src/allocators.h \
     src/ui_interface.h \
@@ -391,10 +391,10 @@ HEADERS += src/qt/bitcoingui.h \
     src/sph_shavite.h \
     src/sph_simd.h \
     src/sph_skein.h \
-	src/sph_fugue.h \
-	src/sph_hamsi.h \
-	src/sph_shabal.h \
-	src/sph_whirlpool.h \
+    src/sph_fugue.h \
+    src/sph_hamsi.h \
+    src/sph_shabal.h \
+    src/sph_whirlpool.h \
     src/sph_types.h \
     src/threadsafety.h \
     src/txdb-leveldb.h \
@@ -448,17 +448,17 @@ HEADERS += src/qt/bitcoingui.h \
     src/xbridge/xbitcoinaddress.h \
     src/xbridge/xbridgesessionbtc.h \
     src/rpc/bitcoinrpc.h \
-    src/masternode/masternodeconfig.h \
-    src/masternode/masternodeman.h \
-    src/masternode/masternode.h \
-    src/masternode/activemasternode.h \
-    src/masternode/masternode-sync.h \
-    src/masternode/masternode-payments.h \
+    src/servicenode/servicenodeconfig.h \
+    src/servicenode/servicenodeman.h \
+    src/servicenode/servicenode.h \
+    src/servicenode/activeservicenode.h \
+    src/servicenode/servicenode-sync.h \
+    src/servicenode/servicenode-payments.h \
+    src/servicenode/netfulfilledman.h \
+    src/servicenode/servicenodecore.h \
     src/tinyformat.h \
-    src/masternode/netfulfilledman.h \
     src/datasigner.h \
-    src/flat-database.h \
-    src/masternode/masternodecore.h
+    src/flat-database.h
 
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
@@ -482,7 +482,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/script.cpp \
     src/main.cpp \
     src/miner.cpp \
-	src/qt/statisticspage.cpp \
+    src/qt/statisticspage.cpp \
     src/init.cpp \
     src/net.cpp \
     src/irc.cpp \
@@ -541,7 +541,7 @@ FORMS += \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
-	src/qt/forms/statisticspage.ui \
+    src/qt/forms/statisticspage.ui \
     src/qt/forms/blockbrowser.ui \
     src/qt/messagedialog/messagedialog.ui
 

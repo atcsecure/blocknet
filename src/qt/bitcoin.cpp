@@ -7,7 +7,7 @@
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
-#include "masternode/masternodeconfig.h"
+#include "servicenode/servicenodeconfig.h"
 
 #include "init.h"
 #include "ui_interface.h"
@@ -154,9 +154,10 @@ int main(int argc, char *argv[])
     ReadConfigFile(mapArgs, mapMultiArgs);
 
     std::string strErr;
-    if(!masternodeConfig.read(strErr)) {
+    if(!servicenodeConfig.read(strErr))
+    {
         QMessageBox::critical(0, QObject::tr("Blocknet Core"),
-                              QObject::tr("Error reading masternode configuration file: %1").arg(strErr.c_str()));
+                              QObject::tr("Error reading service node configuration file: %1").arg(strErr.c_str()));
         return EXIT_FAILURE;
     }
 
