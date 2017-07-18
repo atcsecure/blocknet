@@ -261,7 +261,7 @@ void CActiveMasternode::ManageStateInitial()
 void CActiveMasternode::ManageStateRemote()
 {
     printf("CActiveMasternode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyMasternode.GetID() = %s\n",
-             GetStatus().c_str(), fPingerEnabled, GetTypeString().c_str(), pubKeyMasternode.GetID().ToString().c_str());
+             GetStatus().c_str(), GetTypeString().c_str(), fPingerEnabled, pubKeyMasternode.GetID().ToString().c_str());
 
     mnodeman.CheckMasternode(pubKeyMasternode);
     masternode_info_t infoMn = mnodeman.GetMasternodeInfo(pubKeyMasternode);
