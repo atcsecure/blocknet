@@ -24,6 +24,8 @@
 #include "servicenode/netfulfilledman.h"
 #include "servicenode/servicenode-sync.h"
 #include "servicenode/servicenodecore.h"
+#include "masternode/activemasternode.h"
+#include "datasigner.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -922,25 +924,32 @@ bool AppInit2()
 //                  "Please add txindex=1 to your configuration and start with -reindex");
 //    }
 
-//    if(fServiceNode) {
-//        LogPrintf("SERVICENODE:\n");
+    if(fServiceNode)
+    {
+        printf("SERVICENODE:\n");
 
-//        if(!GetArg("-servicenodeaddr", "").empty()) {
-//            // Hot servicenode (either local or remote) should get its address in
-//            // CActiveServicenode::ManageState() automatically and no longer relies on servicenodeaddr.
-//            return InitError(_("servicenodeaddr option is deprecated. Please use servicenode.conf to manage your remote servicenodes."));
+//        if (!GetArg("-servicenodeaddr", "").empty())
+//        {
+//            // Hot service node (either local or remote) should get its address in
+//            // CActiveServicenode::ManageState() automatically and no longer relies on servicenodeeaddr.
+//            return InitError(_("servicenodeeaddr option is deprecated. Please use servicenode.conf to manage your remote servicenodes."));
 //        }
 
-//        std::string strServiceNodePrivKey = GetArg("-servicenodeprivkey", "");
-//        if(!strServiceNodePrivKey.empty()) {
-//            if(!darkSendSigner.GetKeysFromSecret(strServiceNodePrivKey, activeServicenode.keyServicenode, activeServicenode.pubKeyServicenode))
-//                return InitError(_("Invalid servicenodeprivkey. Please see documenation."));
+        std::string strServiceNodePrivKey = GetArg("-servicenodeprivkey", "");
+        if (!strServiceNodePrivKey.empty())
+        {
+            if (!DataSigner::GetKeysFromSecret(strServiceNodePrivKey, activeServicenode.keyServiceNode, activeServicenode.pubKeyServiceNode))
+            {
+                return InitError(_("Invalid servicenodeprivkey. Please see documenation."));
+            }
 
-//            LogPrintf("  pubKeyServicenode: %s\n", CBitcoinAddress(activeServicenode.pubKeyServicenode.GetID()).ToString());
-//        } else {
-//            return InitError(_("You must specify a servicenodeprivkey in the configuration. Please see documentation for help."));
-//        }
-//    }
+            printf("  pubKeyServicenode: %s\n", CBitcoinAddress(activeService.pubKeyServicenode.GetID()).ToString().c_str());
+        }
+        else
+        {
+            return InitError(_("You must specify a servicenodeprivkey in the configuration. Please see documentation for help."));
+        }
+    }
 
     printf("Using servicenode config file %s\n", GetServicenodeConfigFile().string().c_str());
 
