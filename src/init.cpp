@@ -24,7 +24,7 @@
 #include "servicenode/netfulfilledman.h"
 #include "servicenode/servicenode-sync.h"
 #include "servicenode/servicenodecore.h"
-#include "masternode/activemasternode.h"
+#include "servicenode/activeservicenode.h"
 #include "datasigner.h"
 
 #include <boost/filesystem.hpp>
@@ -938,12 +938,12 @@ bool AppInit2()
         std::string strServiceNodePrivKey = GetArg("-servicenodeprivkey", "");
         if (!strServiceNodePrivKey.empty())
         {
-            if (!DataSigner::GetKeysFromSecret(strServiceNodePrivKey, activeServicenode.keyServiceNode, activeServicenode.pubKeyServiceNode))
+            if (!DataSigner::GetKeysFromSecret(strServiceNodePrivKey, activeServicenode.keyServicenode, activeServicenode.pubKeyServicenode))
             {
                 return InitError(_("Invalid servicenodeprivkey. Please see documenation."));
             }
 
-            printf("  pubKeyServicenode: %s\n", CBitcoinAddress(activeService.pubKeyServicenode.GetID()).ToString().c_str());
+            printf("  pubKeyServicenode: %s\n", CBitcoinAddress(activeServicenode.pubKeyServicenode.GetID()).ToString().c_str());
         }
         else
         {
