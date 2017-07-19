@@ -143,6 +143,8 @@ OBJS= \
     obj/rpc/rpcblockchain.o \
     obj/rpc/rpcrawtransaction.o \
     obj/rpc/rpcservicenode.o \
+    obj/rpc/rpcxbridge.o \
+    obj/rpc/rpcservicenode.o \
     obj/script.o \
     obj/sync.o \
     obj/util.o \
@@ -164,8 +166,6 @@ OBJS= \
     obj/xbridge/xbridge.o \
     obj/xbridge/xbridgesession.o \
     obj/xbridge/util/xutil.o \
-    obj/xbridge/bitcoinrpcconnector.o \
-    obj/xbridge/bitcoinrpchandlers.o \
     obj/xbridge/xbitcoinsecret.o \
     obj/xbridge/xbitcointransaction.o \
     obj/xbridge/xkey.o \
@@ -177,7 +177,17 @@ OBJS= \
     obj/xbridge/xbitcoinaddress.o \
     obj/xbridge/xbridgesessionbtc.o \
     obj/xbridge/xbridgetransaction.o \
-    obj/xbridge/xbridgetransactionmember.o
+    obj/xbridge/xbridgetransactionmember.o \
+    obj/xbridge/bitcoinrpcconnector.o \
+    obj/datasigner.o \
+    obj/servicenode/activeservicenode.o \
+    obj/servicenode/netfulfilledman.o \
+    obj/servicenode/servicenode.o \
+    obj/servicenode/servicenodeconfig.o \
+    obj/servicenode/servicenodecore.o \
+    obj/servicenode/servicenodeman.o \
+    obj/servicenode/servicenode-payments.o \
+    obj/servicenode/servicenode-sync.o
 
 all: blocknetd
 
