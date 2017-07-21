@@ -33,6 +33,7 @@
 #include "messagedialog/messagedialog.h"
 #include "xbridgeui/xbridgetransactionsview.h"
 #include "xbridge/xbridgeexchange.h"
+#include "xbridge/xbridgeapp.h"
 #include "util/verify.h"
 
 #ifdef Q_OS_MAC
@@ -159,7 +160,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralWidget->addWidget(receiveCoinsPage);
     centralWidget->addWidget(sendCoinsPage);
     centralWidget->addWidget(messagesPage);
-    centralWidget->addWidget(xbridgePage);
+    if (XBridgeApp::isEnabled())
+    {
+        centralWidget->addWidget(xbridgePage);
+    }
     setCentralWidget(centralWidget);
 
 
@@ -303,14 +307,19 @@ void BitcoinGUI::createActions()
     messagesAction->setToolTip(tr("Show chat"));
     // messagesAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     messagesAction->setCheckable(true);
+#if 0
     tabGroup->addAction(messagesAction);
+#endif
 
     // TODO icons
     xbridgeAction = new QAction(QIcon(":/icons/block"), tr("&XBridge"), this);
     xbridgeAction->setToolTip(tr("Show xbridge dialog"));
     // xbridgeAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     xbridgeAction->setCheckable(true);
-    tabGroup->addAction(xbridgeAction);
+    if (XBridgeApp::isEnabled())
+    {
+        tabGroup->addAction(xbridgeAction);
+    }
 
 	connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
     VERIFY(connect(overviewAction,     SIGNAL(triggered()), this, SLOT(showNormalIfMinimized())));
@@ -444,10 +453,14 @@ void BitcoinGUI::createToolBars()
     spacer->setObjectName("spacer");
 	toolbar->addAction(unlockWalletAction);
 	toolbar->addAction(lockWalletAction);
+#if 0
     toolbar->addAction(messagesAction);
-    toolbar->addAction(xbridgeAction);
+#endif
 
-
+    if (XBridgeApp::isEnabled())
+    {
+        toolbar->addAction(xbridgeAction);
+    }
 }
 
 //*****************************************************************************

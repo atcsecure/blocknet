@@ -46,6 +46,8 @@ public:
 
     static std::string version();
 
+    static bool isEnabled();
+
     bool init(int argc, char *argv[]);
     bool start();
 
