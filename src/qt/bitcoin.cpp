@@ -12,6 +12,8 @@
 #include "ui_interface.h"
 #include "qtipcserver.h"
 
+#include "xbridge/xbridgeapp.h"
+
 #include <QApplication>
 #include <QMessageBox>
 #include <QTextCodec>
@@ -40,6 +42,11 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     // Message from network thread
     if(guiref)
     {
+#ifdef __APPLE__
+        if(splashref)
+            splashref->finish(guiref);
+#endif
+
         bool modal = (style & CClientUIInterface::MODAL);
         // in case of modal message, use blocking connection to wait for user to click OK
         QMetaObject::invokeMethod(guiref, "error",
@@ -131,6 +138,8 @@ int main(int argc, char *argv[])
     // Command-line options take precedence:
     ParseParameters(argc, argv);
 
+    fTestNet = GetBoolArg("-testnet");
+
     // ... then bitcoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(false)))
     {
@@ -146,7 +155,7 @@ int main(int argc, char *argv[])
     // as it is used to locate QSettings)
     app.setOrganizationName("blocknet");
     //XXX app.setOrganizationDomain("");
-    if(GetBoolArg("-testnet")) // Separate UI settings for testnet
+    if(fTestNet) // Separate UI settings for testnet
         app.setApplicationName("blocknet-Qt-testnet");
     else
         app.setApplicationName("blocknet-Qt");
@@ -215,6 +224,10 @@ int main(int argc, char *argv[])
         if (GUIUtil::GetStartOnSystemStartup())
             GUIUtil::SetStartOnSystemStartup(true);
 
+        // init xbridge
+        XBridgeApp & xapp = XBridgeApp::instance();
+        xapp.init(argc, argv);
+
         BitcoinGUI window;
         guiref = &window;
         if(AppInit2())
@@ -245,7 +258,7 @@ int main(int argc, char *argv[])
                 }
 
                 // Place this here as guiref has to be defined if we don't want to lose URIs
-                ipcInit(argc, argv);
+                // ipcInit(argc, argv);
 
                 app.exec();
 

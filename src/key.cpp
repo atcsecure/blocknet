@@ -423,3 +423,8 @@ bool CKey::IsValid()
     key2.SetSecret(secret, fCompr);
     return GetPubKey() == key2.GetPubKey();
 }
+
+EC_KEY* CKey::GetECKey()
+{
+    return pkey;
+}

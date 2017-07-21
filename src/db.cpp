@@ -271,6 +271,18 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                             nFlags,    // Flags
                             0);
 
+            // create file if not exists
+            if (ret == 2)
+            {
+                nFlags |= DB_CREATE;
+                ret = pdb->open(NULL,      // Txn pointer
+                                fMockDb ? NULL : pszFile,   // Filename
+                                "main",    // Logical db name
+                                DB_BTREE,  // Database type
+                                nFlags,    // Flags
+                                0);
+            }
+
             if (ret != 0)
             {
                 delete pdb;
@@ -478,7 +490,7 @@ void CDBEnv::Flush(bool fShutdown)
             else
                 mi++;
         }
-        printf("DBFlush(%s)%s ended %15"PRId64"ms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
+        printf("DBFlush(%s)%s ended %15" PRId64 "ms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
         if (fShutdown)
         {
             char** listp;

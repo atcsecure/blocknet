@@ -1,0 +1,2 @@
+start D:\work\bitcoin\xbridge\bitcoin-0.13\bitcoin-qt.exe -port=8333 -rpcuser=btcuser -rpcpassword=btcuserpass -datadir=D:\work\bitcoin\data2\btc -rpcport=12356 -rpcallowip=192.168.0.0/16 -server -debug
+start D:\work\bitcoin\xbridge\bitcoin-0.13\bitcoin-qt.exe -port=8334 -rpcuser=btcuser2 -rpcpassword=btcuserpass2 -datadir=D:\work\bitcoin\data\btc -rpcport=12357 -rpcallowip=192.168.0.0/16 -server -debug

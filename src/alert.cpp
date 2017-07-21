@@ -2,17 +2,16 @@
 // Alert system
 //
 
-#include <algorithm>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/foreach.hpp>
-#include <map>
-
 #include "alert.h"
 #include "key.h"
 #include "net.h"
 #include "sync.h"
 #include "ui_interface.h"
+
+#include <algorithm>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <map>
 
 using namespace std;
 
@@ -48,16 +47,16 @@ void CUnsignedAlert::SetNull()
 std::string CUnsignedAlert::ToString() const
 {
     std::string strSetCancel;
-    BOOST_FOREACH(int n, setCancel)
+    for (int n : setCancel)
         strSetCancel += strprintf("%d ", n);
     std::string strSetSubVer;
-    BOOST_FOREACH(std::string str, setSubVer)
+    for (std::string str : setSubVer)
         strSetSubVer += "\"" + str + "\" ";
     return strprintf(
         "CAlert(\n"
         "    nVersion     = %d\n"
-        "    nRelayUntil  = %"PRId64"\n"
-        "    nExpiration  = %"PRId64"\n"
+        "    nRelayUntil  = %" PRId64 "\n"
+        "    nExpiration  = %" PRId64 "\n"
         "    nID          = %d\n"
         "    nCancel      = %d\n"
         "    setCancel    = %s\n"
@@ -225,7 +224,7 @@ bool CAlert::ProcessAlert(bool fThread)
         }
 
         // Check if this alert has been cancelled
-        BOOST_FOREACH(PAIRTYPE(const uint256, CAlert)& item, mapAlerts)
+        for (PAIRTYPE(const uint256, CAlert)& item : mapAlerts)
         {
             const CAlert& alert = item.second;
             if (alert.Cancels(*this))

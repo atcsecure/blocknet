@@ -1,0 +1,2 @@
+start D:\work\bitcoin\xbridge\syscoin\syscoin-qt.exe -port=18397 -datadir=D:\work\bitcoin\data2\sys -rpcuser=sysuser2 -rpcpassword=sysuserpass2 -rpcport=12397 -rpcallowip=192.168.0.0/16 -server -testnet
+start D:\work\bitcoin\xbridge\syscoin\syscoin-qt.exe -port=18396 -datadir=D:\work\bitcoin\data\sys -rpcuser=sysuser -rpcpassword=sysuserpass -rpcport=12396 -rpcallowip=192.168.0.0/16 -server -testnet -connect=127.0.0.1:18397

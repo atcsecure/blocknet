@@ -143,9 +143,12 @@ void SendCoinsDialog::on_sendButton_clicked()
 
     // Format confirmation message
     QStringList formatted;
-    foreach(const SendCoinsRecipient &rcp, recipients)
+    for (const SendCoinsRecipient & rcp : recipients)
     {
-        formatted.append(tr("<b>%1</b> to %2 (%3)").arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount), Qt::escape(rcp.label), rcp.address));
+        formatted.append(tr("<b>%1</b> to %2 (%3)")
+                         .arg(BitcoinUnits::formatWithUnit(BitcoinUnits::BTC, rcp.amount),
+                              // Qt::escape(rcp.label), rcp.address));
+                              rcp.label.toHtmlEscaped(), rcp.address));
     }
 
     fNewRecipientAllowed = false;

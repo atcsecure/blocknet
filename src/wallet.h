@@ -122,6 +122,9 @@ public:
     std::map<CTxDestination, std::string> mapAddressBook;
 
     CPubKey vchDefaultKey;
+
+    std::set<COutPoint> setLockedCoins;
+
     int64_t nTimeFirstKey;
 
     // check whether we are allowed to upgrade (or already support) to the named feature
@@ -228,7 +231,7 @@ public:
     }
     bool IsMine(const CTransaction& tx) const
     {
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
             if (IsMine(txout) && txout.nValue >= nMinimumInputValue)
                 return true;
         return false;
@@ -240,7 +243,7 @@ public:
     int64_t GetDebit(const CTransaction& tx) const
     {
         int64_t nDebit = 0;
-        BOOST_FOREACH(const CTxIn& txin, tx.vin)
+        for (const CTxIn& txin : tx.vin)
         {
             nDebit += GetDebit(txin);
             if (!MoneyRange(nDebit))
@@ -251,7 +254,7 @@ public:
     int64_t GetCredit(const CTransaction& tx) const
     {
         int64_t nCredit = 0;
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
         {
             nCredit += GetCredit(txout);
             if (!MoneyRange(nCredit))
@@ -262,7 +265,7 @@ public:
     int64_t GetChange(const CTransaction& tx) const
     {
         int64_t nChange = 0;
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
         {
             nChange += GetChange(txout);
             if (!MoneyRange(nChange))
@@ -312,6 +315,14 @@ public:
 
     void FixSpentCoins(int& nMismatchSpent, int64_t& nBalanceInQuestion, bool fCheckOnly = false);
     void DisableTransaction(const CTransaction &tx);
+
+    // lock coins
+    bool IsLockedCoin(uint256 hash, unsigned int n) const;
+    void LockCoin(COutPoint& output);
+    void UnlockCoin(COutPoint& output);
+    void UnlockAllCoins();
+    void ListLockedCoins(std::vector<COutPoint>& vOutpts);
+
 
     /** Address book entry changed.
      * @note called with lock cs_wallet held.
@@ -457,7 +468,7 @@ public:
             pthis->mapValue["fromaccount"] = pthis->strFromAccount;
 
             std::string str;
-            BOOST_FOREACH(char f, vfSpent)
+            for (char f : vfSpent)
             {
                 str += (f ? '1' : '0');
                 if (f)
@@ -485,7 +496,7 @@ public:
             pthis->strFromAccount = pthis->mapValue["fromaccount"];
 
             if (mapValue.count("spent"))
-                BOOST_FOREACH(char c, pthis->mapValue["spent"])
+                for (char c : pthis->mapValue["spent"])
                     pthis->vfSpent.push_back(c != '0');
             else
                 pthis->vfSpent.assign(vout.size(), fSpent);
@@ -677,11 +688,11 @@ public:
 
             if (mapPrev.empty())
             {
-                BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+                for (const CMerkleTx& tx : vtxPrev)
                     mapPrev[tx.GetHash()] = &tx;
             }
 
-            BOOST_FOREACH(const CTxIn& txin, ptx->vin)
+            for (const CTxIn& txin : ptx->vin)
             {
                 if (!mapPrev.count(txin.prevout.hash))
                     return false;

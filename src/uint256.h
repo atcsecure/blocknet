@@ -341,12 +341,12 @@ public:
         return (GetHex());
     }
 
-    unsigned char* begin()
+    unsigned char* begin() const
     {
         return (unsigned char*)&pn[0];
     }
 
-    unsigned char* end()
+    unsigned char* end() const
     {
         return (unsigned char*)&pn[WIDTH];
     }
@@ -568,6 +568,11 @@ public:
             memcpy(pn, &vch[0], sizeof(pn));
         else
             *this = 0;
+    }
+
+    explicit uint256(const unsigned char * ptr)
+    {
+        memcpy(pn, ptr, sizeof(pn));
     }
 };
 

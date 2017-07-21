@@ -9,8 +9,12 @@
 #include "init.h"
 #include "base58.h"
 
+#include <boost/assign/list_of.hpp>
+
 using namespace json_spirit;
 using namespace std;
+using namespace boost;
+using namespace boost::assign;
 
 int64_t nWalletUnlockTime;
 static CCriticalSection cs_nWalletUnlockTime;
@@ -36,6 +40,18 @@ std::string HelpRequiringPassphrase()
         : "";
 }
 
+bool EnsureWalletIsAvailable(bool avoidException)
+{
+    if (!pwalletMain)
+    {
+        if (!avoidException)
+            throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+        else
+            return false;
+    }
+    return true;
+}
+
 void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
@@ -59,7 +75,7 @@ void WalletTxToJSON(const CWalletTx& wtx, Object& entry)
     entry.push_back(Pair("txid", wtx.GetHash().GetHex()));
     entry.push_back(Pair("time", (boost::int64_t)wtx.GetTxTime()));
     entry.push_back(Pair("timereceived", (boost::int64_t)wtx.nTimeReceived));
-    BOOST_FOREACH(const PAIRTYPE(string,string)& item, wtx.mapValue)
+    for (const PAIRTYPE(string,string)& item : wtx.mapValue)
         entry.push_back(Pair(item.first, item.second));
 }
 
@@ -187,7 +203,7 @@ CBitcoinAddress GetAccountAddress(string strAccount, bool bForceNew=false)
              ++it)
         {
             const CWalletTx& wtx = (*it).second;
-            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+            for (const CTxOut& txout : wtx.vout)
                 if (txout.scriptPubKey == scriptPubKey)
                     bKeyUsed = true;
         }
@@ -285,7 +301,7 @@ Value getaddressesbyaccount(const Array& params, bool fHelp)
 
     // Find all addresses that have the given account
     Array ret;
-    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, string)& item, pwalletMain->mapAddressBook)
+    for (const PAIRTYPE(CBitcoinAddress, string)& item : pwalletMain->mapAddressBook)
     {
         const CBitcoinAddress& address = item.first;
         const string& strName = item.second;
@@ -338,10 +354,10 @@ Value listaddressgroupings(const Array& params, bool fHelp)
 
     Array jsonGroupings;
     map<CTxDestination, int64_t> balances = pwalletMain->GetAddressBalances();
-    BOOST_FOREACH(set<CTxDestination> grouping, pwalletMain->GetAddressGroupings())
+    for (set<CTxDestination> grouping : pwalletMain->GetAddressGroupings())
     {
         Array jsonGrouping;
-        BOOST_FOREACH(CTxDestination address, grouping)
+        for (CTxDestination address : grouping)
         {
             Array addressInfo;
             addressInfo.push_back(CBitcoinAddress(address).ToString());
@@ -459,7 +475,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
         if (wtx.IsCoinBase() || wtx.IsCoinStake() || !wtx.IsFinal())
             continue;
 
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        for (const CTxOut& txout : wtx.vout)
             if (txout.scriptPubKey == scriptPubKey)
                 if (wtx.GetDepthInMainChain() >= nMinDepth)
                     nAmount += txout.nValue;
@@ -471,7 +487,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 
 void GetAccountAddresses(string strAccount, set<CTxDestination>& setAddress)
 {
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, string)& item, pwalletMain->mapAddressBook)
+    for (const PAIRTYPE(CTxDestination, string)& item : pwalletMain->mapAddressBook)
     {
         const CTxDestination& address = item.first;
         const string& strName = item.second;
@@ -507,7 +523,7 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
         if (wtx.IsCoinBase() || wtx.IsCoinStake() || !wtx.IsFinal())
             continue;
 
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        for (const CTxOut& txout : wtx.vout)
         {
             CTxDestination address;
             if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*pwalletMain, address) && setAddress.count(address))
@@ -585,10 +601,10 @@ Value getbalance(const Array& params, bool fHelp)
             wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount);
             if (wtx.GetDepthInMainChain() >= nMinDepth && wtx.GetBlocksToMaturity() == 0)
             {
-                BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listReceived)
+                for (const PAIRTYPE(CTxDestination,int64_t)& r : listReceived)
                     nBalance += r.second;
             }
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listSent)
+            for (const PAIRTYPE(CTxDestination,int64_t)& r : listSent)
                 nBalance -= r.second;
             nBalance -= allFee;
         }
@@ -722,7 +738,7 @@ Value sendmany(const Array& params, bool fHelp)
     vector<pair<CScript, int64_t> > vecSend;
 
     int64_t totalAmount = 0;
-    BOOST_FOREACH(const Pair& s, sendTo)
+    for (const Pair& s : sendTo)
     {
         CBitcoinAddress address(s.name_);
         if (!address.IsValid())
@@ -787,7 +803,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     if ((int)keys.size() < nRequired)
         throw runtime_error(
             strprintf("not enough keys supplied "
-                      "(got %"PRIszu" keys, but need at least %d to redeem)", keys.size(), nRequired));
+                      "(got %" PRIszu " keys, but need at least %d to redeem)", keys.size(), nRequired));
     std::vector<CKey> pubkeys;
     pubkeys.resize(keys.size());
     for (unsigned int i = 0; i < keys.size(); i++)
@@ -893,7 +909,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
         if (nDepth < nMinDepth)
             continue;
 
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        for (const CTxOut& txout : wtx.vout)
         {
             CTxDestination address;
             if (!ExtractDestination(txout.scriptPubKey, address) || !IsMine(*pwalletMain, address))
@@ -908,7 +924,7 @@ Value ListReceived(const Array& params, bool fByAccounts)
     // Reply
     Array ret;
     map<string, tallyitem> mapAccountTally;
-    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, string)& item, pwalletMain->mapAddressBook)
+    for (const PAIRTYPE(CBitcoinAddress, string)& item : pwalletMain->mapAddressBook)
     {
         const CBitcoinAddress& address = item.first;
         const string& strAccount = item.second;
@@ -1012,7 +1028,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     // Sent
     if ((!wtx.IsCoinStake()) && (!listSent.empty() || nFee != 0) && (fAllAccounts || strAccount == strSentAccount))
     {
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& s, listSent)
+        for (const PAIRTYPE(CTxDestination, int64_t)& s : listSent)
         {
             Object entry;
             entry.push_back(Pair("account", strSentAccount));
@@ -1030,7 +1046,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth)
     {
         bool stop = false;
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
+        for (const PAIRTYPE(CTxDestination, int64_t)& r : listReceived)
         {
             string account;
             if (pwalletMain->mapAddressBook.count(r.first))
@@ -1159,7 +1175,7 @@ Value listaccounts(const Array& params, bool fHelp)
         nMinDepth = params[0].get_int();
 
     map<string, int64_t> mapAccountBalances;
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, string)& entry, pwalletMain->mapAddressBook) {
+    for (const PAIRTYPE(CTxDestination, string)& entry : pwalletMain->mapAddressBook) {
         if (IsMine(*pwalletMain, entry.first)) // This address belongs to me
             mapAccountBalances[entry.second] = 0;
     }
@@ -1176,11 +1192,11 @@ Value listaccounts(const Array& params, bool fHelp)
             continue;
         wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount);
         mapAccountBalances[strSentAccount] -= nFee;
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& s, listSent)
+        for (const PAIRTYPE(CTxDestination, int64_t)& s : listSent)
             mapAccountBalances[strSentAccount] -= s.second;
         if (nDepth >= nMinDepth && wtx.GetBlocksToMaturity() == 0)
         {
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
+            for (const PAIRTYPE(CTxDestination, int64_t)& r : listReceived)
                 if (pwalletMain->mapAddressBook.count(r.first))
                     mapAccountBalances[pwalletMain->mapAddressBook[r.first]] += r.second;
                 else
@@ -1190,11 +1206,11 @@ Value listaccounts(const Array& params, bool fHelp)
 
     list<CAccountingEntry> acentries;
     CWalletDB(pwalletMain->strWalletFile).ListAccountCreditDebit("*", acentries);
-    BOOST_FOREACH(const CAccountingEntry& entry, acentries)
+    for (const CAccountingEntry& entry : acentries)
         mapAccountBalances[entry.strAccount] += entry.nCreditDebit;
 
     Object ret;
-    BOOST_FOREACH(const PAIRTYPE(string, int64_t)& accountBalance, mapAccountBalances) {
+    for (const PAIRTYPE(string, int64_t)& accountBalance : mapAccountBalances) {
         ret.push_back(Pair(accountBalance.first, ValueFromAmount(accountBalance.second)));
     }
     return ret;
@@ -1553,6 +1569,146 @@ Value encryptwallet(const Array& params, bool fHelp)
     return "wallet encrypted; blocknet server stopping, restart to run with encrypted wallet.  The keypool has been flushed, you need to make a new backup.";
 }
 
+Value lockunspent(const Array & params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return Value();
+
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "lockunspent lock [{\"txid\":\"txid\",\"vout\":n},...]\n"
+            "\nUpdates list of temporarily unspendable outputs.\n"
+            "Temporarily lock (lock=true) or unlock (lock=false) specified transaction outputs.\n"
+            "A locked transaction output will not be chosen by automatic coin selection, when spending blocks.\n"
+            "Locks are stored in memory only. Nodes start with zero locked outputs, and the locked output list\n"
+            "is always cleared (by virtue of process exit) when a node stops or fails.\n"
+            "Also see the listunspent call\n"
+            "\nArguments:\n"
+            "1. lock            (boolean, required) Whether to lock (true) or unlock (false) the specified transactions\n"
+            "2. \"transactions\"  (string, required) A json array of objects. Each object the txid (string) vout (numeric)\n"
+            "     [           (json array of json objects)\n"
+            "       {\n"
+            "         \"txid\":\"id\",    (string) The transaction id\n"
+            "         \"vout\": n         (numeric) The output number\n"
+            "       }\n"
+            "       ,...\n"
+            "     ]\n"
+
+            "\nResult:\n"
+            "true|false    (boolean) Whether the command was successful or not\n"
+
+            "\nExamples:\n"
+//            "\nList the unspent transactions\n"
+//            + HelpExampleCli("listunspent", "") +
+//            "\nLock an unspent transaction\n"
+//            + HelpExampleCli("lockunspent", "true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+//            "\nList the locked transactions\n"
+//            + HelpExampleCli("listlockunspent", "") +
+//            "\nUnlock the transaction again\n"
+//            + HelpExampleCli("lockunspent", "false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+            "\nAs a json rpc call\n"
+            + HelpExampleRpc("lockunspent", "true, \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    if (params.size() == 1)
+        RPCTypeCheck(params, list_of(bool_type));
+    else
+        RPCTypeCheck(params, list_of(bool_type)(array_type));
+
+    bool fLock = params[0].get_bool();
+
+    if (params.size() == 1)
+    {
+        if (!fLock)
+            pwalletMain->UnlockAllCoins();
+        return true;
+    }
+
+    Array outputs = params[1].get_array();
+    for (unsigned int idx = 0; idx < outputs.size(); idx++)
+    {
+        const Value & output = outputs[idx];
+        if (output.type() != obj_type)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected object");
+
+        const Object & o = output.get_obj();
+
+        RPCTypeCheck(o, map_list_of("txid", str_type)("vout", int_type));
+
+        string txid = find_value(o, "txid").get_str();
+        if (!IsHex(txid))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected hex txid");
+
+        int nOutput = find_value(o, "vout").get_int();
+        if (nOutput < 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
+
+        COutPoint outpt(uint256(txid), nOutput);
+
+        if (!fLock)
+        {
+            pwalletMain->UnlockCoin(outpt);
+        }
+        else
+        {
+            pwalletMain->LockCoin(outpt);
+        }
+    }
+
+    return true;
+}
+
+Value listlockunspent(const Array & params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return Value();
+
+    if (fHelp || params.size() > 0)
+        throw runtime_error(
+            "listlockunspent\n"
+            "\nReturns list of temporarily unspendable outputs.\n"
+            "See the lockunspent call to lock and unlock transactions for spending.\n"
+            "\nResult:\n"
+            "[\n"
+            "  {\n"
+            "    \"txid\" : \"transactionid\",     (string) The transaction id locked\n"
+            "    \"vout\" : n                      (numeric) The vout value\n"
+            "  }\n"
+            "  ,...\n"
+            "]\n"
+            "\nExamples:\n"
+//            "\nList the unspent transactions\n"
+//            + HelpExampleCli("listunspent", "") +
+//            "\nLock an unspent transaction\n"
+//            + HelpExampleCli("lockunspent", "false \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+//            "\nList the locked transactions\n"
+//            + HelpExampleCli("listlockunspent", "") +
+//            "\nUnlock the transaction again\n"
+//            + HelpExampleCli("lockunspent", "true \"[{\\\"txid\\\":\\\"a08e6907dbbd3d809776dbfc5d82e371b764ed838b5655e72f463568df1aadf0\\\",\\\"vout\\\":1}]\"") +
+            "\nAs a json rpc call\n"
+            + HelpExampleRpc("listlockunspent", "")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    vector<COutPoint> vOutpts;
+    pwalletMain->ListLockedCoins(vOutpts);
+
+    Array ret;
+
+    for (COutPoint & outpt : vOutpts)
+    {
+        Object o;
+        o.push_back(Pair("txid", outpt.hash.GetHex()));
+        o.push_back(Pair("vout", (int)outpt.n));
+        ret.push_back(o);
+    }
+
+    return ret;
+}
+
 class DescribeAddressVisitor : public boost::static_visitor<Object>
 {
 public:
@@ -1580,7 +1736,7 @@ public:
         obj.push_back(Pair("script", GetTxnOutputType(whichType)));
         obj.push_back(Pair("hex", HexStr(subscript.begin(), subscript.end())));
         Array a;
-        BOOST_FOREACH(const CTxDestination& addr, addresses)
+        for (const CTxDestination& addr : addresses)
             a.push_back(CBitcoinAddress(addr).ToString());
         obj.push_back(Pair("addresses", a));
         if (whichType == TX_MULTISIG)

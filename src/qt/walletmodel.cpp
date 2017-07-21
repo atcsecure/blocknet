@@ -141,7 +141,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
     }
 
     // Pre-check input data for validity
-    foreach(const SendCoinsRecipient &rcp, recipients)
+    for (const SendCoinsRecipient & rcp : recipients)
     {
         if(!validateAddress(rcp.address))
         {
@@ -165,7 +165,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins, true, coinControl);
 
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for (const COutput& out : vCoins)
         nBalance += out.tx->vout[out.i].nValue;
 
     if(total > nBalance)
@@ -183,7 +183,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 
         // Sendmany
         std::vector<std::pair<CScript, int64_t> > vecSend;
-        foreach(const SendCoinsRecipient &rcp, recipients)
+        for (const SendCoinsRecipient & rcp : recipients)
         {
             CScript scriptPubKey;
             scriptPubKey.SetDestination(CBitcoinAddress(rcp.address.toStdString()).Get());
@@ -215,7 +215,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
     }
 
     // Add addresses / update labels that we've sent to to the address book
-    foreach(const SendCoinsRecipient &rcp, recipients)
+    for (const SendCoinsRecipient & rcp : recipients)
     {
         std::string strAddress = rcp.address.toStdString();
         CTxDestination dest = CBitcoinAddress(strAddress).Get();
@@ -404,7 +404,7 @@ bool WalletModel::getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const
 // returns a list of COutputs from COutPoints
 void WalletModel::getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs)
 {
-    BOOST_FOREACH(const COutPoint& outpoint, vOutpoints)
+    for (const COutPoint& outpoint : vOutpoints)
     {
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
@@ -419,10 +419,12 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 {
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins);
+
     std::vector<COutPoint> vLockedCoins;
+    listLockedCoins(vLockedCoins);
 
     // add locked coins
-    BOOST_FOREACH(const COutPoint& outpoint, vLockedCoins)
+    for (const COutPoint& outpoint : vLockedCoins)
     {
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
@@ -431,7 +433,7 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
         vCoins.push_back(out);
     }
 
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for (const COutput& out : vCoins)
     {
         COutput cout = out;
 
@@ -449,20 +451,24 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 
 bool WalletModel::isLockedCoin(uint256 hash, unsigned int n) const
 {
-    return false;
+    LOCK2(cs_main, wallet->cs_wallet);
+    return wallet->IsLockedCoin(hash, n);
 }
 
 void WalletModel::lockCoin(COutPoint& output)
 {
-    return;
+    LOCK2(cs_main, wallet->cs_wallet);
+    wallet->LockCoin(output);
 }
 
 void WalletModel::unlockCoin(COutPoint& output)
 {
-    return;
+    LOCK2(cs_main, wallet->cs_wallet);
+    wallet->UnlockCoin(output);
 }
 
-void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts)
+void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts) const
 {
-    return;
+    LOCK2(cs_main, wallet->cs_wallet);
+    wallet->ListLockedCoins(vOutpts);
 }

@@ -27,8 +27,9 @@ class CRequestTracker;
 class CNode;
 
 // to make the PoS stable, PoW with 0 in rewards 72 + 36 hours post ICO
-// Nov 8th, 23:59:59 GMT
-static const int LAST_POW_TIME = 1415491199;
+// 08 Nov 2014, 23:59:59 GMT
+const int LAST_POW_TIME = 1415491199;
+
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -479,7 +480,7 @@ public:
             nBlockTime = GetAdjustedTime();
         if ((int64_t)nLockTime < ((int64_t)nLockTime < LOCKTIME_THRESHOLD ? (int64_t)nBlockHeight : nBlockTime))
             return true;
-        BOOST_FOREACH(const CTxIn& txin, vin)
+        for (const CTxIn& txin : vin)
             if (!txin.IsFinal())
                 return false;
         return true;
@@ -557,7 +558,7 @@ public:
     int64_t GetValueOut() const
     {
         int64_t nValueOut = 0;
-        BOOST_FOREACH(const CTxOut& txout, vout)
+        for (const CTxOut& txout : vout)
         {
             nValueOut += txout.nValue;
             if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
@@ -630,7 +631,7 @@ public:
     {
         std::string str;
         str += IsCoinBase()? "Coinbase" : (IsCoinStake()? "Coinstake" : "CTransaction");
-        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%"PRIszu", vout.size=%"PRIszu", nLockTime=%d)\n",
+        str += strprintf("(hash=%s, nTime=%d, ver=%d, vin.size=%" PRIszu ", vout.size=%" PRIszu ", nLockTime=%d)\n",
             GetHash().ToString().substr(0,10).c_str(),
             nTime,
             nVersion,
@@ -936,7 +937,7 @@ public:
     int64_t GetMaxTransactionTime() const
     {
         int64_t maxTransactionTime = 0;
-        BOOST_FOREACH(const CTransaction& tx, vtx)
+        for (const CTransaction& tx : vtx)
             maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
         return maxTransactionTime;
     }
@@ -944,7 +945,7 @@ public:
     uint256 BuildMerkleTree() const
     {
         vMerkleTree.clear();
-        BOOST_FOREACH(const CTransaction& tx, vtx)
+        for (const CTransaction& tx : vtx)
             vMerkleTree.push_back(tx.GetHash());
         int j = 0;
         for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
@@ -980,7 +981,7 @@ public:
     {
         if (nIndex == -1)
             return 0;
-        BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
+        for (const uint256& otherside: vMerkleBranch)
         {
             if (nIndex & 1)
                 hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
@@ -1048,7 +1049,7 @@ public:
 
     void print() const
     {
-        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%"PRIszu", vchBlockSig=%s)\n",
+        printf("CBlock(hash=%s, ver=%d, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%" PRIszu ", vchBlockSig=%s)\n",
             GetHash().ToString().c_str(),
             nVersion,
             hashPrevBlock.ToString().c_str(),
@@ -1309,7 +1310,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016"PRIx64", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+        return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016" PRIx64 ", nStakeModifierChecksum=%08x, hashProofOfStake=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
             pprev, pnext, nFile, nBlockPos, nHeight,
             FormatMoney(nMint).c_str(), FormatMoney(nMoneySupply).c_str(),
             GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
@@ -1499,7 +1500,7 @@ public:
         // Retrace how far back it was in the sender's branch
         int nDistance = 0;
         int nStep = 1;
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())
@@ -1518,7 +1519,7 @@ public:
     CBlockIndex* GetBlockIndex()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())
@@ -1534,7 +1535,7 @@ public:
     uint256 GetBlockHash()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())

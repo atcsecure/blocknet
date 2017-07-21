@@ -60,7 +60,7 @@ int64_t CWalletDB::GetAccountCreditDebit(const string& strAccount)
     ListAccountCreditDebit(strAccount, entries);
 
     int64_t nCreditDebit = 0;
-    BOOST_FOREACH (const CAccountingEntry& entry, entries)
+    for (const CAccountingEntry& entry : entries)
         nCreditDebit += entry.nCreditDebit;
 
     return nCreditDebit;
@@ -129,7 +129,7 @@ CWalletDB::ReorderTransactions(CWallet* pwallet)
     }
     list<CAccountingEntry> acentries;
     ListAccountCreditDebit("", acentries);
-    BOOST_FOREACH(CAccountingEntry& entry, acentries)
+    for (CAccountingEntry& entry : acentries)
     {
         txByTime.insert(make_pair(entry.nTime, TxPair((CWalletTx*)0, &entry)));
     }
@@ -156,7 +156,7 @@ CWalletDB::ReorderTransactions(CWallet* pwallet)
         else
         {
             int64_t nOrderPosOff = 0;
-            BOOST_FOREACH(const int64_t& nOffsetStart, nOrderPosOffsets)
+            for (const int64_t& nOffsetStart : nOrderPosOffsets)
             {
                 if (nOrderPos >= nOffsetStart)
                     ++nOrderPosOff;
@@ -254,7 +254,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
 
             //// debug print
             //printf("LoadWallet  %s\n", wtx.GetHash().ToString().c_str());
-            //printf(" %12"PRId64"  %s  %s  %s\n",
+            //printf(" %12" PRId64 "  %s  %s  %s\n",
             //    wtx.vout[0].nValue,
             //    DateTimeStrFormat("%x %H:%M:%S", wtx.GetBlockTime()).c_str(),
             //    wtx.hashBlock.ToString().substr(0,20).c_str(),
@@ -514,7 +514,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
         pwallet->nTimeFirstKey = 1; // 0 would be considered 'no value'
 
 
-    BOOST_FOREACH(uint256 hash, wss.vWalletUpgrade)
+    for (uint256 hash : wss.vWalletUpgrade)
         WriteTx(hash, pwallet->mapWallet[hash]);
 
     // Rewrite encrypted wallets of versions 0.4.0 and 0.5.0rc:
@@ -584,7 +584,7 @@ void ThreadFlushWalletDB(void* parg)
                         bitdb.CheckpointLSN(strFile);
 
                         bitdb.mapFileUseCount.erase(mi++);
-                        printf("Flushed wallet.dat %"PRId64"ms\n", GetTimeMillis() - nStart);
+                        printf("Flushed wallet.dat %" PRId64 "ms\n", GetTimeMillis() - nStart);
                     }
                 }
             }
@@ -645,7 +645,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
     // Set -rescan so any missing transactions will be
     // found.
     int64_t now = GetTime();
-    std::string newFilename = strprintf("wallet.%"PRId64".bak", now);
+    std::string newFilename = strprintf("wallet.%" PRId64 ".bak", now);
 
     int result = dbenv.dbenv.dbrename(NULL, filename.c_str(), NULL,
                                       newFilename.c_str(), DB_AUTO_COMMIT);
@@ -664,7 +664,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
         printf("Salvage(aggressive) found no records in %s.\n", newFilename.c_str());
         return false;
     }
-    printf("Salvage(aggressive) found %"PRIszu" records\n", salvagedData.size());
+    printf("Salvage(aggressive) found %" PRIszu " records\n", salvagedData.size());
 
     bool fSuccess = allOK;
     Db* pdbCopy = new Db(&dbenv.dbenv, 0);
@@ -683,7 +683,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
     CWalletScanState wss;
 
     DbTxn* ptxn = dbenv.TxnBegin();
-    BOOST_FOREACH(CDBEnv::KeyValPair& row, salvagedData)
+    for (CDBEnv::KeyValPair& row : salvagedData)
     {
         if (fOnlyKeys)
         {

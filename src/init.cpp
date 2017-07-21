@@ -2,6 +2,13 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include "xbridge/xbridgeapp.h"
+
+#ifdef STRICT
+#undef STRICT
+#endif
+
 #include "txdb.h"
 #include "walletdb.h"
 #include "bitcoinrpc.h"
@@ -10,6 +17,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -20,7 +28,6 @@
 #ifndef WIN32
 #include <signal.h>
 #endif
-
 
 using namespace std;
 using namespace boost;
@@ -136,6 +143,9 @@ bool AppInit(int argc, char* argv[])
         //
         // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main()
         ParseParameters(argc, argv);
+
+        fTestNet = GetBoolArg("-testnet");
+
         if (!boost::filesystem::is_directory(GetDataDir(false)))
         {
             fprintf(stderr, "Error: Specified directory does not exist\n");
@@ -169,6 +179,10 @@ bool AppInit(int argc, char* argv[])
             int ret = CommandLineRPC(argc, argv);
             exit(ret);
         }
+
+        // init xbridge
+        XBridgeApp & xapp = XBridgeApp::instance();
+        xapp.init(argc, argv);
 
         fRet = AppInit2();
     }
@@ -383,8 +397,6 @@ bool AppInit2()
 
     nDerivationMethodIndex = 0;
 
-    fTestNet = GetBoolArg("-testnet");
-    
     if (fTestNet) {
         SoftSetBoolArg("-irc", true);
     }
@@ -575,7 +587,7 @@ bool AppInit2()
 
     if (mapArgs.count("-onlynet")) {
         std::set<enum Network> nets;
-        BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"]) {
+        for (std::string snet : mapMultiArgs["-onlynet"]) {
             enum Network net = ParseNetwork(snet);
             if (net == NET_UNROUTABLE)
                 return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet.c_str()));
@@ -639,7 +651,7 @@ bool AppInit2()
     {
         std::string strError;
         if (mapArgs.count("-bind")) {
-            BOOST_FOREACH(std::string strBind, mapMultiArgs["-bind"]) {
+            for (std::string strBind : mapMultiArgs["-bind"]) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
                     return InitError(strprintf(_("Cannot resolve -bind address: '%s'"), strBind.c_str()));
@@ -661,7 +673,7 @@ bool AppInit2()
 
     if (mapArgs.count("-externalip"))
     {
-        BOOST_FOREACH(string strAddr, mapMultiArgs["-externalip"]) {
+        for (string strAddr : mapMultiArgs["-externalip"]) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
             if (!addrLocal.IsValid())
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr.c_str()));
@@ -684,7 +696,7 @@ bool AppInit2()
             InitError(_("Unable to sign checkpoint, wrong checkpointkey?\n"));
     }
 
-    BOOST_FOREACH(string strDest, mapMultiArgs["-seednode"])
+    for (string strDest : mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
     // ********************************************************* Step 7: load blockchain
@@ -720,7 +732,7 @@ bool AppInit2()
         printf("Shutdown requested. Exiting.\n");
         return false;
     }
-    printf(" block index %15"PRId64"ms\n", GetTimeMillis() - nStart);
+    printf(" block index %15" PRId64 "ms\n", GetTimeMillis() - nStart);
 
     if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
     {
@@ -811,7 +823,7 @@ bool AppInit2()
     }
 
     printf("%s", strErrors.str().c_str());
-    printf(" wallet      %15"PRId64"ms\n", GetTimeMillis() - nStart);
+    printf(" wallet      %15" PRId64 "ms\n", GetTimeMillis() - nStart);
 
     RegisterWallet(pwalletMain);
 
@@ -831,7 +843,7 @@ bool AppInit2()
         printf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
         nStart = GetTimeMillis();
         pwalletMain->ScanForWalletTransactions(pindexRescan, true);
-        printf(" rescan      %15"PRId64"ms\n", GetTimeMillis() - nStart);
+        printf(" rescan      %15" PRId64 "ms\n", GetTimeMillis() - nStart);
     }
 
     // ********************************************************* Step 9: import blocks
@@ -840,7 +852,7 @@ bool AppInit2()
     {
         uiInterface.InitMessage(_("Importing blockchain data file."));
 
-        BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
+        for (string strFile : mapMultiArgs["-loadblock"])
         {
             FILE *file = fopen(strFile.c_str(), "rb");
             if (file)
@@ -873,7 +885,7 @@ bool AppInit2()
             printf("Invalid or missing peers.dat; recreating\n");
     }
 
-    printf("Loaded %i addresses from peers.dat  %"PRId64"ms\n",
+    printf("Loaded %i addresses from peers.dat  %" PRId64 "ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 11: start node
@@ -884,11 +896,11 @@ bool AppInit2()
     RandAddSeedPerfmon();
 
     //// debug print
-    printf("mapBlockIndex.size() = %"PRIszu"\n",   mapBlockIndex.size());
+    printf("mapBlockIndex.size() = %" PRIszu "\n",   mapBlockIndex.size());
     printf("nBestHeight = %d\n",            nBestHeight);
-    printf("setKeyPool.size() = %"PRIszu"\n",      pwalletMain->setKeyPool.size());
-    printf("mapWallet.size() = %"PRIszu"\n",       pwalletMain->mapWallet.size());
-    printf("mapAddressBook.size() = %"PRIszu"\n",  pwalletMain->mapAddressBook.size());
+    printf("setKeyPool.size() = %" PRIszu "\n",      pwalletMain->setKeyPool.size());
+    printf("mapWallet.size() = %" PRIszu "\n",       pwalletMain->mapWallet.size());
+    printf("mapAddressBook.size() = %" PRIszu "\n",  pwalletMain->mapAddressBook.size());
 
     if (!NewThread(StartNode, NULL))
         InitError(_("Error: could not start node"));
@@ -906,6 +918,10 @@ bool AppInit2()
 
      // Add wallet transactions that aren't already in a block to mapTransactions
     pwalletMain->ReacceptWalletTransactions();
+
+    // start xbridge
+    XBridgeApp & app = XBridgeApp::instance();
+    app.start();
 
 #if !defined(QT_GUI)
     // Loop until process is exit()ed from shutdown() function,

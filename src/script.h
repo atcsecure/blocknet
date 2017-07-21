@@ -11,7 +11,6 @@
 
 #include <stdint.h>
 
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
 #include "keystore.h"
@@ -182,8 +181,10 @@ enum opcodetype
 
     // expansion
     OP_NOP1 = 0xb0,
-    OP_NOP2 = 0xb1,
-    OP_NOP3 = 0xb2,
+    OP_CHECKLOCKTIMEVERIFY = 0xb1,
+    OP_NOP2 = OP_CHECKLOCKTIMEVERIFY,
+    OP_CHECKSEQUENCEVERIFY = 0xb2,
+    OP_NOP3 = OP_CHECKSEQUENCEVERIFY,
     OP_NOP4 = 0xb3,
     OP_NOP5 = 0xb4,
     OP_NOP6 = 0xb5,
@@ -218,7 +219,7 @@ inline std::string ValueString(const std::vector<unsigned char>& vch)
 inline std::string StackString(const std::vector<std::vector<unsigned char> >& vStack)
 {
     std::string str;
-    BOOST_FOREACH(const std::vector<unsigned char>& vch, vStack)
+    for (const std::vector<unsigned char>& vch : vStack)
     {
         if (!str.empty())
             str += " ";
@@ -379,13 +380,14 @@ public:
         return *this;
     }
 
-    CScript& operator<<(const CScript& b)
-    {
-        // I'm not sure if this should push the script or concatenate scripts.
-        // If there's ever a use for pushing a script onto a script, delete this member fn
-        assert(!"Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate!");
-        return *this;
-    }
+    // WARNING this commented because operator << used in xbridge code (atomic crosschain)
+//    CScript& operator<<(const CScript& b)
+//    {
+//        // I'm not sure if this should push the script or concatenate scripts.
+//        // If there's ever a use for pushing a script onto a script, delete this member fn
+//        assert(!"Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate!");
+//        return *this;
+//    }
 
 
     bool GetOp(iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>& vchRet)

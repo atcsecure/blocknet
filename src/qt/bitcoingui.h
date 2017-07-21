@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QVariant>
+#include <QTimer>
+
+#include "util.h" // for uint64
 
 class TransactionTableModel;
 class ClientModel;
@@ -17,6 +21,7 @@ class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
+class MessagesDialog;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -71,6 +76,8 @@ private:
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
+    MessagesDialog * messagesPage;
+    QWidget * xbridgePage;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
@@ -102,6 +109,8 @@ private:
     QAction *lockWalletAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
+    QAction * messagesAction;
+    QAction * xbridgeAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -109,6 +118,8 @@ private:
     RPCConsole *rpcConsole;
 
     QMovie *syncIconMovie;
+
+    QTimer messageNotifyTimer;
 
     /** Create the main UI actions. */
     void createActions();
@@ -165,6 +176,10 @@ private slots:
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
+    /** Switch to messages page*/
+    void gotoMessagesPage(const QString & addr = QString());
+    /** */
+    void gotoXBridgePage();
 
     /** Show configuration dialog */
     void optionsClicked();
@@ -197,6 +212,11 @@ private slots:
     void toggleHidden();
 
     void updateStakingIcon();
+
+    /** Incoming message */
+    void incomingMessage(const QVariant message);
+    void incomingMessageNotify(const QString & title, const QString & text);
+    void onMessageNotifyTimer();
 };
 
 #endif

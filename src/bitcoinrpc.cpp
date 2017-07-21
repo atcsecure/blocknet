@@ -16,7 +16,6 @@
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/algorithm/string.hpp>
@@ -58,7 +57,7 @@ void RPCTypeCheck(const Array& params,
                   bool fAllowNull)
 {
     unsigned int i = 0;
-    BOOST_FOREACH(Value_type t, typesExpected)
+    for (Value_type t : typesExpected)
     {
         if (params.size() <= i)
             break;
@@ -67,7 +66,7 @@ void RPCTypeCheck(const Array& params,
         if (!((v.type() == t) || (fAllowNull && (v.type() == null_type))))
         {
             string err = strprintf("Expected type %s, got %s",
-                                   Value_type_name[t], Value_type_name[v.type()]);
+                                   value_type_to_string(t).c_str(), value_type_to_string(v.type()).c_str());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
         i++;
@@ -78,7 +77,7 @@ void RPCTypeCheck(const Object& o,
                   const map<string, Value_type>& typesExpected,
                   bool fAllowNull)
 {
-    BOOST_FOREACH(const PAIRTYPE(string, Value_type)& t, typesExpected)
+    for (const PAIRTYPE(string, Value_type)& t : typesExpected)
     {
         const Value& v = find_value(o, t.first);
         if (!fAllowNull && v.type() == null_type)
@@ -87,7 +86,7 @@ void RPCTypeCheck(const Object& o,
         if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type))))
         {
             string err = strprintf("Expected type %s for %s, got %s",
-                                   Value_type_name[t.second], t.first.c_str(), Value_type_name[v.type()]);
+                                   value_type_to_string(t.second).c_str(), t.first.c_str(), value_type_to_string(v.type()).c_str());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
     }
@@ -293,6 +292,8 @@ static const CRPCCommand vRPCCommands[] =
     { "importwallet",           &importwallet,           false,  false },
     { "importprivkey",          &importprivkey,          false,  false },
     { "listunspent",            &listunspent,            false,  false },
+    { "listlockunspent",        &listlockunspent,        false,  false },
+    { "lockunspent",            &lockunspent,            true,   false  },
     { "getrawtransaction",      &getrawtransaction,      false,  false },
     { "createrawtransaction",   &createrawtransaction,   false,  false },
     { "decoderawtransaction",   &decoderawtransaction,   false,  false },
@@ -306,6 +307,15 @@ static const CRPCCommand vRPCCommands[] =
     { "resendtx",               &resendtx,               false,  true},
     { "makekeypair",            &makekeypair,            false,  true},
     { "sendalert",              &sendalert,              false,  false},
+
+  //xbridge
+    { "dxGetTransactionList",           &dxGetTransactionList,          true,   true},
+    { "dxGetTransactionsHistoryList",   &dxGetTransactionsHistoryList,  true,   true},
+    { "dxGetTransactionInfo",           &dxGetTransactionInfo,          true,   true},
+    { "dxGetCurrencyList",              &dxGetCurrencyList,             true,   true},
+    { "dxCreateTransaction",            &dxCreateTransaction,           true,   true},
+    { "dxAcceptTransaction",            &dxAcceptTransaction,           true,   true},
+    { "dxCancelTransaction",            &dxCancelTransaction,           true,   true},
 };
 
 CRPCTable::CRPCTable()
@@ -345,7 +355,7 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
       << "Content-Length: " << strMsg.size() << "\r\n"
       << "Connection: close\r\n"
       << "Accept: application/json\r\n";
-    BOOST_FOREACH(const PAIRTYPE(string, string)& item, mapRequestHeaders)
+    for (const PAIRTYPE(string, string)& item : mapRequestHeaders)
         s << item.first << ": " << item.second << "\r\n";
     s << "\r\n" << strMsg;
 
@@ -395,7 +405,7 @@ static string HTTPReply(int nStatus, const string& strMsg, bool keepalive)
             "HTTP/1.1 %d %s\r\n"
             "Date: %s\r\n"
             "Connection: %s\r\n"
-            "Content-Length: %"PRIszu"\r\n"
+            "Content-Length: %" PRIszu "\r\n"
             "Content-Type: application/json\r\n"
             "Server: blocknet-json-rpc/%s\r\n"
             "\r\n"
@@ -559,7 +569,7 @@ bool ClientAllowed(const boost::asio::ip::address& address)
 
     const string strAddress = address.to_string();
     const vector<string>& vAllow = mapMultiArgs["-rpcallowip"];
-    BOOST_FOREACH(string strAllow, vAllow)
+    for (string strAllow : vAllow)
         if (WildcardMatch(strAddress, strAllow))
             return true;
     return false;
@@ -1178,7 +1188,7 @@ void ConvertTo(Value& value, bool fAllowNull=false)
 Array RPCConvertValues(const std::string &strMethod, const std::vector<std::string> &strParams)
 {
     Array params;
-    BOOST_FOREACH(const std::string &param, strParams)
+    for (const std::string &param : strParams)
         params.push_back(param);
 
     int n = params.size();
@@ -1233,6 +1243,8 @@ Array RPCConvertValues(const std::string &strMethod, const std::vector<std::stri
     if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
     if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
     if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<boost::int64_t>(params[0]);
+    if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
+    if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
 
     return params;
 }
@@ -1338,3 +1350,21 @@ int main(int argc, char *argv[])
 #endif
 
 const CRPCTable tableRPC;
+
+//std::string HelpExampleCli(const std::string& methodname, const std::string& args)
+//{
+//    return "> blocknet-cli " + methodname + " " + args + "\n";
+//}
+
+std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
+{
+    std::ostringstream o;
+    o << "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
+        "\"method\": \""
+      << methodname
+      << "\", \"params\": ["
+      << args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:"
+      << GetDefaultRPCPort()
+      << "/\n";
+    return o.str();
+}
