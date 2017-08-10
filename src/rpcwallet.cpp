@@ -2018,6 +2018,11 @@ Value listutxo(const Array & /*params*/, bool fHelp)
     Array result;
     for (const auto & out : utxo)
     {
+        if (out.second == 0)
+        {
+            continue;
+        }
+
         CTxDestination source;
         ExtractDestination(out.first, source);
         CBitcoinAddress addressSource(source);
