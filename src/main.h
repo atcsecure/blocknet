@@ -342,6 +342,19 @@ public:
         scriptPubKey = scriptPubKeyIn;
     }
 
+    CTxOut(const CTxOut & other)
+    {
+        nValue = other.nValue;
+        scriptPubKey = other.scriptPubKey;
+    }
+
+    CTxOut & operator = (const CTxOut & other)
+    {
+        nValue = other.nValue;
+        scriptPubKey = other.scriptPubKey;
+        return *this;
+    }
+
     IMPLEMENT_SERIALIZE
     (
         READWRITE(nValue);

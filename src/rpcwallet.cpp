@@ -1931,3 +1931,102 @@ Value makekeypair(const Array& params, bool fHelp)
     result.push_back(Pair("PublicKey", HexStr(key.GetPubKey().Raw())));
     return result;
 }
+
+Value listutxo(const Array & /*params*/, bool fHelp)
+{
+    if (fHelp)
+        throw runtime_error(
+            "listutxo\n"
+            "Get list utx outputs.\n");
+
+    if (pwalletMain->IsLocked())
+        throw runtime_error("Wallet locked");
+
+    typedef std::vector<CTxOut> TxOutVector;
+    typedef std::map<uint256, TxOutVector> TxMap;
+    TxMap txmap;
+
+    uint32_t counter = 0;
+    CBlockIndex * pindex = pindexGenesisBlock;
+    {
+        LOCK(pwalletMain->cs_wallet);
+        for (counter = 0; pindex; ++counter)
+        {
+            CBlock block;
+            block.ReadFromDisk(pindex, true);
+            for (const CTransaction & tx : block.vtx)
+            {
+                uint256 hash = tx.GetHash();
+
+                // inputs, remove spent
+                for (const CTxIn & in : tx.vin)
+                {
+                    const uint256 & inhash = in.prevout.hash;
+                    if (txmap.count(inhash))
+                    {
+                        if (txmap[inhash].size() <= in.prevout.n)
+                        {
+                            assert(!"bad index");
+                            continue;
+                        }
+
+                        // TODO check sequence ?
+                        txmap[inhash][in.prevout.n].nValue = 0;
+
+                        bool empty = true;
+                        for (const CTxOut & o : txmap[inhash])
+                        {
+                            if (o.nValue > 0)
+                            {
+                                empty = false;
+                            }
+                        }
+
+                        if (empty)
+                        {
+                            txmap.erase(inhash);
+                        }
+                    }
+                }
+
+                // outputs, add
+                for (unsigned int i = 0; i < tx.vout.size(); ++i)
+                {
+                    txmap[hash].push_back(tx.vout[i]);
+                }
+            }
+            pindex = pindex->pnext;
+        }
+    }
+
+    std::map<CScript, uint64_t> utxo;
+    for (const auto & ov : txmap)
+    {
+        for (const CTxOut & txo : ov.second)
+        {
+            if (utxo.count(txo.scriptPubKey))
+            {
+                utxo[txo.scriptPubKey] += txo.nValue;
+            }
+            else
+            {
+                utxo[txo.scriptPubKey] = txo.nValue;
+            }
+        }
+    }
+
+    Array result;
+    for (const auto & out : utxo)
+    {
+        CTxDestination source;
+        ExtractDestination(out.first, source);
+        CBitcoinAddress addressSource(source);
+
+        Object o;
+        o.push_back(Pair(addressSource.ToString(), out.second));
+
+        result.push_back(o);
+    }
+
+    return result;
+}
