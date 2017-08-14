@@ -1999,18 +1999,22 @@ Value listutxo(const Array & /*params*/, bool fHelp)
         }
     }
 
-    std::map<CScript, uint64_t> utxo;
+    std::map<CBitcoinAddress, uint64_t> utxo;
     for (const auto & ov : txmap)
     {
         for (const CTxOut & txo : ov.second)
         {
-            if (utxo.count(txo.scriptPubKey))
+            CTxDestination source;
+            ExtractDestination(txo.scriptPubKey, source);
+            CBitcoinAddress addr(source);
+
+            if (utxo.count(addr))
             {
-                utxo[txo.scriptPubKey] += txo.nValue;
+                utxo[addr] += txo.nValue;
             }
             else
             {
-                utxo[txo.scriptPubKey] = txo.nValue;
+                utxo[addr] = txo.nValue;
             }
         }
     }
@@ -2023,12 +2027,8 @@ Value listutxo(const Array & /*params*/, bool fHelp)
             continue;
         }
 
-        CTxDestination source;
-        ExtractDestination(out.first, source);
-        CBitcoinAddress addressSource(source);
-
         Object o;
-        o.push_back(Pair(addressSource.ToString(), out.second));
+        o.push_back(Pair(out.first.ToString(), out.second));
 
         result.push_back(o);
     }
