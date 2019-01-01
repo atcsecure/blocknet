@@ -1,3 +1,3 @@
-## Blocknets new wallet is available at - this wallet is deprecated
+## Blocknets new wallet is available at the URL below this wallet is deprecated
 
 https://github.com/BlocknetDX/BlockDX
